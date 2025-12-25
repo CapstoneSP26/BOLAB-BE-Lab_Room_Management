@@ -1,0 +1,44 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\BookLAB.Domain\BookLAB.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="16.0.0" />
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.0" />
+    <PackageReference Include="FluentValidation" Version="12.1.1" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
+    <PackageReference Include="MediatR" Version="14.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.9" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Common\Mappings\" />
+    <Folder Include="Common\Models\" />
+    <Folder Include="Features\Attendance\Commands\" />
+    <Folder Include="Features\Attendance\Queries\" />
+    <Folder Include="Features\Auth\Commands\" />
+    <Folder Include="Features\Auth\Queries\" />
+    <Folder Include="Features\Bookings\Commands\" />
+    <Folder Include="Features\Bookings\Queries\" />
+    <Folder Include="Features\Equipments\Commands\" />
+    <Folder Include="Features\Equipments\Queries\" />
+    <Folder Include="Features\Feedbacks\Commands\" />
+    <Folder Include="Features\Feedbacks\Queries\" />
+    <Folder Include="Features\Groups\Commands\" />
+    <Folder Include="Features\Groups\Queries\" />
+    <Folder Include="Features\LabRooms\Commands\" />
+    <Folder Include="Features\LabRooms\Queries\" />
+    <Folder Include="Features\Users\Commands\" />
+    <Folder Include="Features\Users\Queries\" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>
