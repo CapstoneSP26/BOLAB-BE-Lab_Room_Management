@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BookLAB.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(BookLABDbContext))]
-    [Migration("20251224191012_InitialCreate")]
+    [Migration("20251226154041_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
