@@ -2,20 +2,24 @@
 
 namespace BookLAB.Domain.Entities
 {
-    public class LabRoom : BaseEntity, ISoftDeletable
+    public class LabRoom : BaseEntity, ISoftDeletable, IAuditable, IUserTrackable
     {
         public Guid BuildingId { get; set; }
-        public Guid ManagerUserId { get; set; }
-
         public string RoomName { get; set; } = null!;
         public string? Location { get; set; }
-
-        public int Capacity { get; set; }
-
-        public bool IsSpecialized { get; set; }
-        public bool IsActive { get; set; } = true;
-        public bool IsDeleted { get; set; }
+        public int OverrideNumber { get; set; } = 0;
+        public bool HasEquipment { get; set; }
 
         public string? Description { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
+        public Guid? CreatedBy { get; set; }
+        public Guid? UpdatedBy { get; set; }
+        public bool IsActive { get; set; } = true;
+        public bool IsDeleted { get; set; }
+        
+        public virtual Building Building { get; set; } = new Building();
+        public ICollection<LabOwner> LabOwners = new List<LabOwner>();
+        public ICollection<RoomPolicy> RoomPolicies = new List<RoomPolicy>();
     }
 }

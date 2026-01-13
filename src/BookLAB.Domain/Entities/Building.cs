@@ -6,6 +6,8 @@ namespace BookLAB.Domain.Entities
     {
         public Guid CampusId { get; set; }
         public string BuildingName { get; set; } = null!;
-        public int NumberOfFloors { get; set; }
+        public string Description { get; set; } = null!;
+        public string BuildingImageUrl { get; set; } = null!;
+        public virtual Campus Campus { get; set; } = new Campus();
     }
 }

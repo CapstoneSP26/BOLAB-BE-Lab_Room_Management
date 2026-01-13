@@ -2,11 +2,11 @@
 
 namespace BookLAB.Domain.Entities
 {
-    public class GroupMember : BaseEntity
+    public class LabOwner : BaseEntity
     {
-        public Guid GroupId { get; set; }
         public Guid UserId { get; set; }
-        public virtual Group Group { get; set; } = new Group();
+        public Guid LabRoomId { get; set; }
         public virtual User User { get; set; } = new User();
+        public virtual LabRoom LabRoom { get; set; } = new LabRoom();
     }
 }
