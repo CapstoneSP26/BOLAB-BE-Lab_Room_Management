@@ -5,7 +5,7 @@ namespace BookLAB.Domain.Entities
     public class Schedule : BaseEntity, IAuditable, IUserTrackable
     {
         public Guid LecturerId {  get; set; }
-        public Guid LabRoomId { get; set; }
+        public int LabRoomId { get; set; }
         public string ScheduleType { get; set; } = string.Empty;
         public string ScheduleStatus { get; set; } = string.Empty;
         public DateTime StartTime { get; set; }

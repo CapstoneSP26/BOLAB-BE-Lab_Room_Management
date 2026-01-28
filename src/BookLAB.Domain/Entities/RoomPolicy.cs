@@ -4,7 +4,7 @@ namespace BookLAB.Domain.Entities
 {
     public class RoomPolicy : BaseEntity, IAuditable, IUserTrackable
     {
-        public Guid LabRoomId { get; set; }
+        public int LabRoomId { get; set; }
         public string PolicyKey { get; set; } = null!;
         public string PolicyValue { get; set; } = null!;
         public DateTime CreatedAt { get; set; }

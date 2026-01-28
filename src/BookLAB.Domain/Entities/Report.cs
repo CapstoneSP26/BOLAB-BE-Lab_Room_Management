@@ -16,5 +16,6 @@ namespace BookLAB.Domain.Entities
         public Guid? UpdatedBy { get; set; }
 
         public virtual Schedule Schedule { get; set; } = new Schedule();
+        public ICollection<ReportImage> ReportImages = new List<ReportImage>();
     }
 }

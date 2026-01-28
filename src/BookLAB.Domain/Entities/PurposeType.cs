@@ -2,8 +2,9 @@
 
 namespace BookLAB.Domain.Entities
 {
-    public class PurposeType : BaseEntity
+    public class PurposeType 
     {
+        public int Id { get; set; }
         public string PurposeName { get; set; } = string.Empty;
     }
 }
