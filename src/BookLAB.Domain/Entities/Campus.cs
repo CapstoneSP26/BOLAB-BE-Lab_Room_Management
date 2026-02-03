@@ -2,8 +2,9 @@
 
 namespace BookLAB.Domain.Entities
 {
-    public class Campus : BaseEntity
+    public class Campus
     {
+        public int Id { get; set; }
         public string CampusName { get; set; } = null!;
         public string? Address { get; set; }
         public string? CampusImageUrl { get; set; }

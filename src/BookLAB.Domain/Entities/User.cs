@@ -7,7 +7,9 @@ namespace BookLAB.Domain.Entities
         public string Email { get; set; } = string.Empty;
         public string FullName { get; set; } = string.Empty;
         public string UserImageUrl { get; set; } = string.Empty;
-        public Guid CampusId { get; set; }
+        public string? Provider { get; set; } 
+        public string? ProviderId { get; set; }
+        public int CampusId { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public Guid? CreatedBy { get; set; }
