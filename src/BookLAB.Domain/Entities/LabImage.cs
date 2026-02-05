@@ -10,6 +10,6 @@ namespace BookLAB.Domain.Entities
         public int Size { get; set; }
         public FileType FileType { get; set; }
         public bool IsAvatar { get; set; }
-        public virtual LabRoom LabRoom { get; set; } = new LabRoom();
+        public virtual LabRoom LabRoom { get; set; }
     }
 }

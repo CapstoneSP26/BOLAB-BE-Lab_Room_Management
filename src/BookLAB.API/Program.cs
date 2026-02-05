@@ -1,6 +1,10 @@
 using BookLAB.Application;
+using BookLAB.Application.Common.Interfaces.Repositories;
+using BookLAB.Application.Common.Interfaces.Services;
 using BookLAB.Infrastructure;
 using BookLAB.Infrastructure.Persistence;
+using BookLAB.Infrastructure.Repositories;
+using BookLAB.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,6 +17,16 @@ builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddControllers();
+
+builder.Services.AddDbContext<BookLABDbContext>(opt =>
+{
+    opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
+        b => b.MigrationsAssembly("BookLAB.API"));
+});
+
+builder.Services.AddScoped<IScheduleService, ScheduleService>();
+builder.Services.AddScoped<IScheduleRepository, ScheduleRepository>();
+
 // Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

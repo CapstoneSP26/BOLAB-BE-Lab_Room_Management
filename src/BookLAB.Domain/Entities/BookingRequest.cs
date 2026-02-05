@@ -10,14 +10,14 @@ namespace BookLAB.Domain.Entities
         public Guid? ResponsedByUserId { get; set; }
         public BookingRequestStatus BookingRequestStatus { get; set; }
         public string? ResponseContext { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime? UpdatedAt { get; set; }
+        public DateTimeOffset CreatedAt { get; set; }
+        public DateTimeOffset? UpdatedAt { get; set; }
         public Guid? CreatedBy { get; set; }
         public Guid? UpdatedBy { get; set; }
 
-        public virtual Booking Booking { get; set; } = new Booking();
-        public virtual User Requester { get; set; } = new User();
-        public virtual User Reponser { get; set; } = new User();
+        public virtual Booking Booking { get; set; }
+        public virtual User Requester { get; set; }
+        public virtual User Reponser { get; set; }
 
     }
 }
