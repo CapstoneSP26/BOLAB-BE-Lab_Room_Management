@@ -6,7 +6,7 @@ namespace BookLAB.Domain.Entities
     {
         public Guid GroupId { get; set; }
         public Guid UserId { get; set; }
-        public virtual Group Group { get; set; } = new Group();
-        public virtual User User { get; set; } = new User();
+        public virtual Group Group { get; set; }
+        public virtual User User { get; set; }
     }
 }

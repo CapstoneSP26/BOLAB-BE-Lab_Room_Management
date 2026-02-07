@@ -13,6 +13,6 @@ namespace BookLAB.Domain.Entities
         public int Size { get; set; }
         public FileType FileType { get; set; }
         public bool IsAvatar { get; set; }
-        public virtual Report Report { get; set; } = new Report();
+        public virtual Report Report { get; set; }
     }
 }
