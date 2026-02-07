@@ -9,6 +9,6 @@ namespace BookLAB.Domain.Entities
         public TimeOnly StartTimeSlot { get; set; }
         public TimeOnly EndTimeSlot { get; set; }
         public int OrderIndex { get; set; }
-        public SlotType SlotType { get; set; } = new SlotType();
+        public SlotType SlotType { get; set; }
     }
 }
