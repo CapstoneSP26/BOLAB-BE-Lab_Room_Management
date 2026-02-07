@@ -34,6 +34,10 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
             .HasMaxLength(20)
             .IsRequired();
 
+        builder.Property(b => b.CalendarEventId)
+            .HasMaxLength(255)
+            .IsRequired(false);
+
         // 3. Cấu hình các thuộc tính từ IAuditable & IUserTrackable
         builder.Property(b => b.CreatedAt).IsRequired();
         builder.Property(b => b.CreatedBy).IsRequired();

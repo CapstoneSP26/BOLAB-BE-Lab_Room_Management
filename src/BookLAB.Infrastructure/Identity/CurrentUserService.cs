@@ -1,12 +1,39 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Security.Claims;
+using BookLAB.Application.Common.Interfaces.Identity;
+using Microsoft.AspNetCore.Http;
 
-namespace BookLAB.Infrastructure.Identity
+namespace BookLAB.Infrastructure.Identity;
+
+public class CurrentUserService : ICurrentUserService
 {
-    internal class CurrentUserService
+    private readonly IHttpContextAccessor _httpContextAccessor;
+
+    public CurrentUserService(IHttpContextAccessor httpContextAccessor)
     {
+        _httpContextAccessor = httpContextAccessor;
     }
+
+    public Guid? UserId
+    {
+        get
+        {
+            var idClaim = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier);
+            if (idClaim == null) return null;
+            
+            return Guid.TryParse(idClaim.Value, out var userId) ? userId : null;
+        }
+    }
+
+    public IReadOnlyList<string> Roles 
+    {
+        get
+        {
+            return _httpContextAccessor.HttpContext?.User?.Claims
+                .Where(c => c.Type == ClaimTypes.Role)
+                .Select(c => c.Value)
+                .ToList() ?? new List<string>();
+        }
+    }
+
+    public bool IsAuthenticated => _httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated ?? false;
 }

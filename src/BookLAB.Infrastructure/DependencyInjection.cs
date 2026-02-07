@@ -3,7 +3,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 using BookLAB.Application.Common.Interfaces.Persistence;
+using BookLAB.Application.Common.Interfaces.Services;
+using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Infrastructure.Persistence;
+using BookLAB.Infrastructure.Services;
 
 
 namespace BookLAB.Infrastructure
@@ -25,13 +28,14 @@ namespace BookLAB.Infrastructure
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             // ===== IDENTITY =====
-            //services.AddHttpContextAccessor();
-            //services.AddScoped<ICurrentUserService, CurrentUserService>();
+            services.AddHttpContextAccessor();
+            services.AddScoped<ICurrentUserService, Identity.CurrentUserService>();
 
             // ===== SERVICES =====
             //services.AddScoped<IDateTime, DateTimeService>();
             //services.AddScoped<IEmailService, EmailService>();
             // services.AddScoped<IFileStorageService, LocalFileStorageService>();
+            services.AddScoped<ICalendarSyncService, GoogleCalendarSyncService>();
 
             return services;
         }

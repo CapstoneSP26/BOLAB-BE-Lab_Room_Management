@@ -11,7 +11,8 @@ namespace BookLAB.Domain.Entities
         public BookingStatus BookingStatus { get; set; }
         public BookingType BookingType {  get; set; }
         public string Reason {  get; set; } = string.Empty;
-        public Guid PurposeTypeId { get; set; } 
+        public Guid PurposeTypeId { get; set; }
+        public string? CalendarEventId { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public Guid? CreatedBy { get; set; }

@@ -482,3 +482,10 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Google Calendar API Credentials
+**/credentials/*.json
+!**/credentials/*.json.example
+
+# Local Development Settings (Secrets)
+**/appsettings.Development.json
