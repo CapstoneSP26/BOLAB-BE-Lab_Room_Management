@@ -2,9 +2,10 @@
 
 namespace BookLAB.Domain.Entities
 {
-    public class LabRoom : BaseEntity, ISoftDeletable, IAuditable, IUserTrackable
+    public class LabRoom : ISoftDeletable, IAuditable, IUserTrackable
     {
-        public Guid BuildingId { get; set; }
+        public int Id { get; set; } 
+        public int BuildingId { get; set; }
         public string RoomName { get; set; } = null!;
         public string? Location { get; set; }
         public int OverrideNumber { get; set; } = 0;
@@ -21,5 +22,6 @@ namespace BookLAB.Domain.Entities
         public virtual Building Building { get; set; } = new Building();
         public ICollection<LabOwner> LabOwners = new List<LabOwner>();
         public ICollection<RoomPolicy> RoomPolicies = new List<RoomPolicy>();
+        public ICollection<LabImage> LabImages = new List<LabImage>();
     }
 }

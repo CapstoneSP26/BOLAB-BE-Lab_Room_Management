@@ -2,9 +2,10 @@
 
 namespace BookLAB.Domain.Entities
 {
-    public class SlotFrame : BaseEntity
+    public class SlotFrame
     {
-        public Guid SlotTypeId { get; set; }
+        public int Id { get; set; }
+        public int SlotTypeId { get; set; }
         public TimeOnly StartTimeSlot { get; set; }
         public TimeOnly EndTimeSlot { get; set; }
         public int OrderIndex { get; set; }

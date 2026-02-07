@@ -10,7 +10,7 @@ public class UserRoleConfiguration : IEntityTypeConfiguration<UserRole>
     {
         // 1. Cấu hình Tên bảng và Khóa chính
         builder.ToTable("UserRoles");
-        builder.HasKey(ur => ur.Id);
+        builder.HasKey(ur => new { ur.UserId, ur.RoleId });
 
         // 2. Cấu hình Quan hệ (Relationships)
 
@@ -27,14 +27,6 @@ public class UserRoleConfiguration : IEntityTypeConfiguration<UserRole>
             .HasForeignKey(ur => ur.RoleId)
             .OnDelete(DeleteBehavior.Cascade);
         // Rule: Nếu xóa một Role trong hệ thống, các liên kết gán quyền cũng biến mất.
-
-        // 3. Ràng buộc duy nhất (Unique Constraint)
-        // Rule: Một User không thể được gán cùng một Role 2 lần.
-        builder.HasIndex(ur => new { ur.UserId, ur.RoleId })
-            .IsUnique()
-            .HasDatabaseName("UQ_User_Role");
-
-        // 4. Index để tối ưu kiểm tra quyền (Authorization)
 
         // Tìm nhanh: "User này có những quyền gì?" (Dùng khi tạo Token/Claims)
         builder.HasIndex(ur => ur.UserId)
