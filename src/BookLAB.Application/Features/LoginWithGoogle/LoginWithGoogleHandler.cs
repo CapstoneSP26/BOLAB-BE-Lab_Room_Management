@@ -17,13 +17,15 @@ namespace BookLAB.Application.Features.LoginWithGoogle
         //private readonly IGoogleAuthService _googleAuthService;
         private readonly IUserRepository _userRepository;
         private readonly IJwtTokenGenerator _jwtTokenGenerator;
-        private readonly IAccountRepository _accountRepository;
+        //private readonly IAccountRepository _accountRepository;
 
         private readonly IUnitOfWork _unitOfWork;
-        public LoginWithGoogleHandler(IUnitOfWork unitOfWork, IAccountRepository accountRepository, IJwtTokenGenerator jwtTokenGenerator)
+        public LoginWithGoogleHandler(IUnitOfWork unitOfWork, 
+            //IAccountRepository accountRepository, 
+            IJwtTokenGenerator jwtTokenGenerator)
         {
             _unitOfWork = unitOfWork;
-            _accountRepository = accountRepository;
+            //_accountRepository = accountRepository;
             _jwtTokenGenerator = jwtTokenGenerator;
         }
 
@@ -50,39 +52,39 @@ namespace BookLAB.Application.Features.LoginWithGoogle
             //    await _userRepository.AddAsync(user);
             //}
 
-            var account = await _accountRepository.GetByProviderUserIdAsync(request.IdToken);
+            //var account = await _accountRepository.GetByProviderUserIdAsync(request.IdToken);
             User user = new User();
 
-            if (account == null)
-            {
-                user = new User
-                {
-                    Id = Guid.NewGuid(),
-                    Email = request.email,
-                    FullName = request.fullname,
-                    StudentId = request.studentId,
-                    IsActive = false,
-                    IsDeleted = false
-                };
+            //if (account == null)
+            //{
+            //    user = new User
+            //    {
+            //        Id = Guid.NewGuid(),
+            //        Email = request.email,
+            //        FullName = request.fullname,
+            //        StudentId = request.studentId,
+            //        IsActive = false,
+            //        IsDeleted = false
+            //    };
 
-                await _userRepository.AddAsync(user);
+            //    await _userRepository.AddAsync(user);
 
-                account = new Accounts
-                {
-                    Id = Guid.NewGuid(),
-                    UserId = user.Id,
-                    Provider = "Google",
-                    ProviderUserId = request.IdToken,
-                    LastLoginAt = DateTime.UtcNow,
-                    CreatedAt = DateTime.UtcNow
-                };
-                await _accountRepository.AddAsync(account);
-            }
-            else
-            {
-                account.LastLoginAt = DateTime.UtcNow;
-                _accountRepository.Update(account);
-            }
+            //    account = new Accounts
+            //    {
+            //        Id = Guid.NewGuid(),
+            //        UserId = user.Id,
+            //        Provider = "Google",
+            //        ProviderUserId = request.IdToken,
+            //        LastLoginAt = DateTime.UtcNow,
+            //        CreatedAt = DateTime.UtcNow
+            //    };
+            //    await _accountRepository.AddAsync(account);
+            //}
+            //else
+            //{
+            //    account.LastLoginAt = DateTime.UtcNow;
+            //    _accountRepository.Update(account);
+            //}
 
             return _jwtTokenGenerator.GenerateToken(user);
         }

@@ -40,5 +40,16 @@ namespace BookLAB.Infrastructure.Repositories
             return await _context.Users
                 .FirstOrDefaultAsync(u => u.Email == email && !u.IsDeleted);
         }
+
+        public async Task<User?> GetByProviderUserIdAsync(string providerId)
+        {
+            if (providerId == null)
+            {
+                throw new ArgumentNullException(nameof(providerId));
+            }
+
+            return await _context.Users
+                .FirstOrDefaultAsync(u => u.ProviderId == providerId && !u.IsDeleted);
+        }
     }
 }

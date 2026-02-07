@@ -24,71 +24,71 @@ namespace BookLAB.API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IMediator _mediator;
-        private readonly BookLABDbContext _context;
+        //private readonly BookLABDbContext _context;
         private readonly LinkGenerator _linkGenerator;
         //private readonly SignInManager<User> _signInManager;
         private readonly IUserRepository _userRepository;
         private readonly IUserRoleRepository _userRoleRepository;
 
         public AuthController(IMediator mediator, 
-                              BookLABDbContext context,
+                              //BookLABDbContext context,
                               LinkGenerator linkGenerator,
                               //SignInManager<User> signInManager,
                               IUserRepository userRepository,
                               IUserRoleRepository userRoleRepository)
         {
             _mediator = mediator;
-            _context = context;
+            //_context = context;
             _linkGenerator = linkGenerator;
             //_signInManager = signInManager;
             _userRepository = userRepository;
             _userRoleRepository = userRoleRepository;
         }
 
-        [HttpPost("google-login")]
-        public async Task<IActionResult> GoogleLogin([FromBody] LoginWithGoogleCommand command)
-        {
-            var token = await _mediator.Send(command);
-            return Ok(new { Token = token });
-        }
+        //[HttpPost("google-login")]
+        //public async Task<IActionResult> GoogleLogin([FromBody] LoginWithGoogleCommand command)
+        //{
+        //    var token = await _mediator.Send(command);
+        //    return Ok(new { Token = token });
+        //}
 
-        public async Task Login()
-        {
-            await HttpContext.ChallengeAsync(GoogleDefaults.AuthenticationScheme,
-                new AuthenticationProperties()
-                {
-                    RedirectUri = Url.Action("GoogleResponse")
-                });
-        }
+        //public async Task Login()
+        //{
+        //    await HttpContext.ChallengeAsync(GoogleDefaults.AuthenticationScheme,
+        //        new AuthenticationProperties()
+        //        {
+        //            RedirectUri = Url.Action("GoogleResponse")
+        //        });
+        //}
 
-        public async Task<IActionResult> GoogleResponse()
-        {
-            var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        //public async Task<IActionResult> GoogleResponse()
+        //{
+        //    var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
-            var claims = result.Principal.Identities.FirstOrDefault().Claims.Select(claim => new
-            {
-                claim.Issuer,
-                claim.OriginalIssuer,
-                claim.Type,
-                claim.Value
-            });
+        //    var claims = result.Principal.Identities.FirstOrDefault().Claims.Select(claim => new
+        //    {
+        //        claim.Issuer,
+        //        claim.OriginalIssuer,
+        //        claim.Type,
+        //        claim.Value
+        //    });
 
-            LoginWithGoogleCommand command = new LoginWithGoogleCommand(claims.FirstOrDefault(a => Regex.IsMatch(a.Type, @"/nameidentifier$")).Value,
-                                                                        claims.FirstOrDefault(a => Regex.IsMatch(a.Type, @"/emailaddress$")).Value,
-                                                                        claims.FirstOrDefault(a => Regex.IsMatch(a.Type, @"/name$")).Value,
-                                                                        null);
-            var token = await _mediator.Send(command);
+        //    LoginWithGoogleCommand command = new LoginWithGoogleCommand(claims.FirstOrDefault(a => Regex.IsMatch(a.Type, @"/nameidentifier$")).Value,
+        //                                                                claims.FirstOrDefault(a => Regex.IsMatch(a.Type, @"/emailaddress$")).Value,
+        //                                                                claims.FirstOrDefault(a => Regex.IsMatch(a.Type, @"/name$")).Value,
+        //                                                                null);
+        //    var token = await _mediator.Send(command);
 
-            return Ok(token);
+        //    return Ok(token);
 
-            //return RedirectToAction("Index", "Home", new {area= ""} );
-        }
+        //    //return RedirectToAction("Index", "Home", new {area= ""} );
+        //}
 
-        public async Task<IActionResult> Logout()
-        {
-            await HttpContext.SignOutAsync();
-            return Ok();
-        }
+        //public async Task<IActionResult> Logout()
+        //{
+        //    await HttpContext.SignOutAsync();
+        //    return Ok();
+        //}
 
         // front-end sẽ vào đây đầu tiên
         [HttpGet("login/google")]
@@ -115,39 +115,47 @@ namespace BookLAB.API.Controllers
                 return Results.Unauthorized();
             }
 
-            var account = await _accountRepository.GetByProviderUserIdAsync(result.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var account = await _userRepository.GetByProviderUserIdAsync(result.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value);
             var userId = Guid.NewGuid();
 
             if (account == null)
             {
-                User user = new User
-                {
-                    Id = userId,
-                    Email = result.Principal?.FindFirst(ClaimTypes.Email)?.Value,
-                    FullName = result.Principal?.FindFirst(ClaimTypes.Name)?.Value,
-                    StudentId = studentId,
-                    IsActive = false,
-                    IsDeleted = false
-                };
+                //User user = new User
+                //{
+                //    Id = userId,
+                //    Email = result.Principal?.FindFirst(ClaimTypes.Email)?.Value,
+                //    FullName = result.Principal?.FindFirst(ClaimTypes.Name)?.Value,
+                //    //StudentId = studentId,
+                //    Provider = "Google",
+                //    ProviderId = result.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value,
+                //    CreatedAt = DateTime.Now,
+                //    UpdatedAt = null,
+                //    CreatedBy = null,
+                //    UpdatedBy = null,
+                    
+                //    IsActive = false,
+                //    IsDeleted = false
+                //};
 
-                await _userRepository.AddAsync(user);
+                //await _userRepository.AddAsync(user);
 
-                Accounts newAccount = new Accounts
-                {
-                    Id = Guid.NewGuid(),
-                    UserId = userId,
-                    CreatedAt = DateTime.Now,
-                    LastLoginAt = DateTime.Now,
-                    PasswordHash = null,
-                    Provider = "Google",
-                    ProviderUserId = result.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                };
+                ////Accounts newAccount = new Accounts
+                ////{
+                ////    Id = Guid.NewGuid(),
+                ////    UserId = userId,
+                ////    CreatedAt = DateTime.Now,
+                ////    LastLoginAt = DateTime.Now,
+                ////    PasswordHash = null,
+                ////    Provider = "Google",
+                ////    ProviderUserId = result.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                ////};
 
-                await _accountRepository.AddAsync(newAccount);
-            } else
+                //await _accountRepository.AddAsync(newAccount);
+            }
+            else
             {
-                account.LastLoginAt = DateTime.Now;
-                _accountRepository.Update(account);
+                //account.LastLoginAt = DateTime.Now;
+                //_accountRepository.Update(account);
             }
 
             var role = await _userRoleRepository.GetAsync(userId);

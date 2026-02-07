@@ -72,7 +72,7 @@ builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 // Lifetime Services
-builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+//builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserRoleRepository, UserRoleRepository>();
 builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
