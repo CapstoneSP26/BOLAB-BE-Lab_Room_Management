@@ -27,8 +27,16 @@ namespace BookLAB.Infrastructure.Repositories
 
         public async Task<bool> AddScheduleAsync(Schedule schedule)
         {
-            await _context.Schedules.AddAsync(schedule);
-            var result = await _context.SaveChangesAsync();
+            var result = 0;
+            try
+            {
+                await _context.Schedules.AddAsync(schedule);
+                result = await _context.SaveChangesAsync();
+            } catch (Exception)
+            {
+                return false;
+            }
+
             return result > 0;
         }
     }

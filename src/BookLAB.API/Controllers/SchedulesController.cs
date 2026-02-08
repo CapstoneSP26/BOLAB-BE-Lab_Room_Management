@@ -1,5 +1,6 @@
 ﻿using BookLAB.Application.Features.Bookings.AddSchedule;
 using BookLAB.Application.Features.Bookings.CheckConflict;
+using BookLAB.Domain.DTOs;
 using BookLAB.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -52,7 +53,7 @@ namespace BookLAB.API.Controllers
         {
         }
 
-        [HttpGet("check-conflict")]
+        [HttpPost("check-conflict")]
         public async Task<bool> CheckConflictAsync([FromBody] Booking booking)
         {
             if (booking == null) return true;
@@ -69,20 +70,21 @@ namespace BookLAB.API.Controllers
             return false;
         }
 
-        [HttpGet("add")]
-        public async Task<bool> AddScheduleAsync([FromBody] Guid lecturerId, int labRoomId, string scheduleType, DateTimeOffset startTime, DateTimeOffset endTime, bool fromAdmin)
+        [HttpPost("add")]
+        public async Task<bool> AddScheduleAsync([FromBody] AddScheduleDTO dtos)
         {
-            if (lecturerId == null || labRoomId == null || scheduleType == null || startTime == null || endTime == null) return false;
+            if (dtos.lecturerId == null || dtos.labRoomId == null || dtos.scheduleType == null || dtos.startTime == null || dtos.endTime == null) return false;
 
             Schedule schedule = new Schedule
             {
-                LecturerId = lecturerId,
-                LabRoomId = labRoomId,
-                ScheduleType = scheduleType,
+                LecturerId = dtos.lecturerId,
+                LabRoomId = dtos.labRoomId,
+                ScheduleType = dtos.scheduleType,
                 ScheduleStatus = "Not yet",
-                StartTime = startTime,
-                EndTime = endTime,
+                StartTime = dtos.startTime,
+                EndTime = dtos.endTime,
                 CreatedAt = DateTimeOffset.UtcNow,
+                CreatedBy = dtos.createdBy,
                 IsActive = true,
                 IsDeleted = false
             };
