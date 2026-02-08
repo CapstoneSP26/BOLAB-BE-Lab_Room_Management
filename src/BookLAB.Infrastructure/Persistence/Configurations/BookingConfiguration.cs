@@ -29,6 +29,9 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
             .HasMaxLength(20)
             .IsRequired();
 
+        builder.Property(b => b.Recur)
+            .HasDefaultValue(0);
+
         builder.Property(b => b.BookingType)
             .HasConversion<string>()
             .HasMaxLength(20)

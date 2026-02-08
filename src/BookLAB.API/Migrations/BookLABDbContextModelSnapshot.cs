@@ -8,7 +8,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace BookLAB.Infrastructure.Persistence.Migrations
+namespace BookLAB.API.Migrations
 {
     [DbContext(typeof(BookLABDbContext))]
     partial class BookLABDbContextModelSnapshot : ModelSnapshot
@@ -41,19 +41,19 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)");
 
-                    b.Property<DateTime?>("CheckInTime")
+                    b.Property<DateTimeOffset?>("CheckInTime")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime?>("CheckOutTime")
+                    b.Property<DateTimeOffset?>("CheckOutTime")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("CreatedBy")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime?>("UpdatedAt")
+                    b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid?>("UpdatedBy")
@@ -75,6 +75,38 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("UQ_Attendance_Booking_User");
 
                     b.ToTable("Attendances", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("15151515-1515-1515-1515-151515151515"),
+                            AttendanceStatus = "NotYet",
+                            BookingId = new Guid("44444444-4444-4444-4444-444444444444"),
+                            CheckInMethod = "FaceId",
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 16, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedBy = new Guid("11111111-1111-1111-1111-111111111111"),
+                            UserId = new Guid("22222222-2222-2222-2222-222222222222")
+                        },
+                        new
+                        {
+                            Id = new Guid("16161616-1616-1616-1616-161616161616"),
+                            AttendanceStatus = "NotYet",
+                            BookingId = new Guid("55555555-5555-5555-5555-555555555555"),
+                            CheckInMethod = "QR",
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 17, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedBy = new Guid("22222222-2222-2222-2222-222222222222"),
+                            UserId = new Guid("33333333-3333-3333-3333-333333333333")
+                        },
+                        new
+                        {
+                            Id = new Guid("17171717-1717-1717-1717-171717171717"),
+                            AttendanceStatus = "NotYet",
+                            BookingId = new Guid("66666666-6666-6666-6666-666666666666"),
+                            CheckInMethod = "Manual",
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 18, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedBy = new Guid("33333333-3333-3333-3333-333333333333"),
+                            UserId = new Guid("11111111-1111-1111-1111-111111111111")
+                        });
                 });
 
             modelBuilder.Entity("BookLAB.Domain.Entities.Booking", b =>
@@ -93,13 +125,13 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("CreatedBy")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("EndTime")
+                    b.Property<DateTimeOffset>("EndTime")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("LabRoomId")
@@ -118,10 +150,10 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasDefaultValue(0);
 
-                    b.Property<DateTime>("StartTime")
+                    b.Property<DateTimeOffset>("StartTime")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime?>("UpdatedAt")
+                    b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid?>("UpdatedBy")
@@ -137,6 +169,50 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("IX_Booking_Room_Time");
 
                     b.ToTable("Bookings", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("44444444-4444-4444-4444-444444444444"),
+                            BookingStatus = "PendingApproval",
+                            BookingType = "0",
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 10, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedBy = new Guid("11111111-1111-1111-1111-111111111111"),
+                            EndTime = new DateTimeOffset(new DateTime(2025, 2, 1, 10, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            LabRoomId = 1,
+                            PurposeTypeId = 1,
+                            Reason = "Intro lecture",
+                            Recur = 0,
+                            StartTime = new DateTimeOffset(new DateTime(2025, 2, 1, 8, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Id = new Guid("55555555-5555-5555-5555-555555555555"),
+                            BookingStatus = "PendingApproval",
+                            BookingType = "0",
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 11, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedBy = new Guid("22222222-2222-2222-2222-222222222222"),
+                            EndTime = new DateTimeOffset(new DateTime(2025, 2, 2, 15, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            LabRoomId = 2,
+                            PurposeTypeId = 2,
+                            Reason = "Practical session",
+                            Recur = 0,
+                            StartTime = new DateTimeOffset(new DateTime(2025, 2, 2, 13, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Id = new Guid("66666666-6666-6666-6666-666666666666"),
+                            BookingStatus = "Approved",
+                            BookingType = "0",
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 12, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedBy = new Guid("33333333-3333-3333-3333-333333333333"),
+                            EndTime = new DateTimeOffset(new DateTime(2025, 2, 3, 10, 30, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            LabRoomId = 3,
+                            PurposeTypeId = 3,
+                            Reason = "Workshop",
+                            Recur = 0,
+                            StartTime = new DateTimeOffset(new DateTime(2025, 2, 3, 9, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        });
                 });
 
             modelBuilder.Entity("BookLAB.Domain.Entities.BookingGroup", b =>
@@ -161,6 +237,26 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("UQ_Booking_Group");
 
                     b.ToTable("BookingGroups", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777777777"),
+                            BookingId = new Guid("44444444-4444-4444-4444-444444444444"),
+                            GroupId = new Guid("18181818-1818-1818-1818-181818181818")
+                        },
+                        new
+                        {
+                            Id = new Guid("88888888-8888-8888-8888-888888888888"),
+                            BookingId = new Guid("55555555-5555-5555-5555-555555555555"),
+                            GroupId = new Guid("19191919-1919-1919-1919-191919191919")
+                        },
+                        new
+                        {
+                            Id = new Guid("99999999-9999-9999-9999-999999999999"),
+                            BookingId = new Guid("66666666-6666-6666-6666-666666666666"),
+                            GroupId = new Guid("20202020-2020-2020-2020-202020202020")
+                        });
                 });
 
             modelBuilder.Entity("BookLAB.Domain.Entities.BookingRequest", b =>
@@ -177,7 +273,7 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("CreatedBy")
@@ -193,7 +289,7 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("ResponsedByUserId")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime?>("UpdatedAt")
+                    b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid?>("UpdatedBy")
@@ -211,6 +307,35 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .HasFilter("\"ResponsedByUserId\" IS NOT NULL");
 
                     b.ToTable("BookingRequests", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("12121212-1212-1212-1212-121212121212"),
+                            BookingId = new Guid("44444444-4444-4444-4444-444444444444"),
+                            BookingRequestStatus = "Pending",
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 13, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedBy = new Guid("11111111-1111-1111-1111-111111111111"),
+                            RequestedByUserId = new Guid("11111111-1111-1111-1111-111111111111")
+                        },
+                        new
+                        {
+                            Id = new Guid("13131313-1313-1313-1313-131313131313"),
+                            BookingId = new Guid("55555555-5555-5555-5555-555555555555"),
+                            BookingRequestStatus = "Pending",
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 14, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedBy = new Guid("22222222-2222-2222-2222-222222222222"),
+                            RequestedByUserId = new Guid("22222222-2222-2222-2222-222222222222")
+                        },
+                        new
+                        {
+                            Id = new Guid("14141414-1414-1414-1414-141414141414"),
+                            BookingId = new Guid("66666666-6666-6666-6666-666666666666"),
+                            BookingRequestStatus = "Pending",
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 15, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedBy = new Guid("33333333-3333-3333-3333-333333333333"),
+                            RequestedByUserId = new Guid("33333333-3333-3333-3333-333333333333")
+                        });
                 });
 
             modelBuilder.Entity("BookLAB.Domain.Entities.Building", b =>
@@ -246,6 +371,29 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("UQ_Building_Campus_Name");
 
                     b.ToTable("Buildings", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            BuildingName = "Science Building",
+                            CampusId = 1,
+                            Description = "Science faculty building"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            BuildingName = "Engineering Building",
+                            CampusId = 1,
+                            Description = "Engineering labs"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            BuildingName = "Admin Building",
+                            CampusId = 2,
+                            Description = "Administration"
+                        });
                 });
 
             modelBuilder.Entity("BookLAB.Domain.Entities.Campus", b =>
@@ -283,6 +431,29 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                     b.HasIndex("IsActive");
 
                     b.ToTable("Campuses", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Address = "1 University Ave",
+                            CampusName = "Main Campus",
+                            IsActive = true
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Address = "100 North St",
+                            CampusName = "North Campus",
+                            IsActive = true
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Address = "50 West Blvd",
+                            CampusName = "West Campus",
+                            IsActive = true
+                        });
                 });
 
             modelBuilder.Entity("BookLAB.Domain.Entities.EmailTemplate", b =>
@@ -305,6 +476,26 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("EmailTemplates", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Content = "<h1>Booking Confirmed</h1>",
+                            Type = "0"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Content = "<h1>Booking Rejected</h1>",
+                            Type = "0"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Content = "<h1>Attendance Report</h1>",
+                            Type = "0"
+                        });
                 });
 
             modelBuilder.Entity("BookLAB.Domain.Entities.Group", b =>
@@ -313,7 +504,7 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("CreatedBy")
@@ -332,7 +523,7 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime?>("UpdatedAt")
+                    b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid?>("UpdatedBy")
@@ -350,6 +541,35 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .HasFilter("\"IsDeleted\" = false");
 
                     b.ToTable("Groups", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("18181818-1818-1818-1818-181818181818"),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedBy = new Guid("11111111-1111-1111-1111-111111111111"),
+                            GroupName = "Team Alpha",
+                            IsDeleted = false,
+                            OwnerId = new Guid("11111111-1111-1111-1111-111111111111")
+                        },
+                        new
+                        {
+                            Id = new Guid("19191919-1919-1919-1919-191919191919"),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedBy = new Guid("22222222-2222-2222-2222-222222222222"),
+                            GroupName = "Team Beta",
+                            IsDeleted = false,
+                            OwnerId = new Guid("22222222-2222-2222-2222-222222222222")
+                        },
+                        new
+                        {
+                            Id = new Guid("20202020-2020-2020-2020-202020202020"),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 3, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedBy = new Guid("33333333-3333-3333-3333-333333333333"),
+                            GroupName = "Team Gamma",
+                            IsDeleted = false,
+                            OwnerId = new Guid("33333333-3333-3333-3333-333333333333")
+                        });
                 });
 
             modelBuilder.Entity("BookLAB.Domain.Entities.GroupMember", b =>
@@ -377,6 +597,26 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("UQ_Group_User_Member");
 
                     b.ToTable("GroupMembers", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("41414141-4141-4141-4141-414141414141"),
+                            GroupId = new Guid("18181818-1818-1818-1818-181818181818"),
+                            UserId = new Guid("22222222-2222-2222-2222-222222222222")
+                        },
+                        new
+                        {
+                            Id = new Guid("42424242-4242-4242-4242-424242424242"),
+                            GroupId = new Guid("19191919-1919-1919-1919-191919191919"),
+                            UserId = new Guid("33333333-3333-3333-3333-333333333333")
+                        },
+                        new
+                        {
+                            Id = new Guid("43434343-4343-4343-4343-434343434343"),
+                            GroupId = new Guid("20202020-2020-2020-2020-202020202020"),
+                            UserId = new Guid("11111111-1111-1111-1111-111111111111")
+                        });
                 });
 
             modelBuilder.Entity("BookLAB.Domain.Entities.LabImage", b =>
@@ -413,6 +653,35 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("IX_LabImage_Room_Avatar");
 
                     b.ToTable("LabImages", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("33333333-3333-3333-3333-333333333330"),
+                            FileType = 0,
+                            ImageUrl = "https://cdn.example/room1.jpg",
+                            IsAvatar = true,
+                            LabRoomId = 1,
+                            Size = 1024
+                        },
+                        new
+                        {
+                            Id = new Guid("34343434-3434-3434-3434-343434343434"),
+                            FileType = 0,
+                            ImageUrl = "https://cdn.example/room2.jpg",
+                            IsAvatar = false,
+                            LabRoomId = 2,
+                            Size = 2048
+                        },
+                        new
+                        {
+                            Id = new Guid("35353535-3535-3535-3535-353535353535"),
+                            FileType = 0,
+                            ImageUrl = "https://cdn.example/room3.jpg",
+                            IsAvatar = false,
+                            LabRoomId = 3,
+                            Size = 512
+                        });
                 });
 
             modelBuilder.Entity("BookLAB.Domain.Entities.LabOwner", b =>
@@ -440,6 +709,26 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("UQ_LabOwner_User_Room");
 
                     b.ToTable("LabOwners", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+                            LabRoomId = 1,
+                            UserId = new Guid("11111111-1111-1111-1111-111111111111")
+                        },
+                        new
+                        {
+                            Id = new Guid("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
+                            LabRoomId = 2,
+                            UserId = new Guid("22222222-2222-2222-2222-222222222222")
+                        },
+                        new
+                        {
+                            Id = new Guid("cccccccc-cccc-cccc-cccc-cccccccccccc"),
+                            LabRoomId = 3,
+                            UserId = new Guid("33333333-3333-3333-3333-333333333333")
+                        });
                 });
 
             modelBuilder.Entity("BookLAB.Domain.Entities.LabRoom", b =>
@@ -453,7 +742,7 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                     b.Property<int>("BuildingId")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("CreatedBy")
@@ -492,7 +781,7 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
-                    b.Property<DateTime?>("UpdatedAt")
+                    b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid?>("UpdatedBy")
@@ -510,6 +799,50 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .HasFilter("\"IsDeleted\" = false");
 
                     b.ToTable("LabRooms", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            BuildingId = 1,
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedBy = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Description = "General purpose lab",
+                            HasEquipment = true,
+                            IsActive = true,
+                            IsDeleted = false,
+                            Location = "Floor 1",
+                            OverrideNumber = 0,
+                            RoomName = "Lab A1"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            BuildingId = 1,
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedBy = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Description = "Hardware lab",
+                            HasEquipment = true,
+                            IsActive = true,
+                            IsDeleted = false,
+                            Location = "Floor 2",
+                            OverrideNumber = 0,
+                            RoomName = "Lab A2"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            BuildingId = 2,
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 3, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedBy = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Description = "Software lab",
+                            HasEquipment = false,
+                            IsActive = true,
+                            IsDeleted = false,
+                            Location = "Floor 3",
+                            OverrideNumber = 0,
+                            RoomName = "Lab B1"
+                        });
                 });
 
             modelBuilder.Entity("BookLAB.Domain.Entities.PurposeType", b =>
@@ -532,6 +865,23 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("UQ_PurposeType_Name");
 
                     b.ToTable("PurposeTypes", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            PurposeName = "Lecture"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            PurposeName = "Practical"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            PurposeName = "Workshop"
+                        });
                 });
 
             modelBuilder.Entity("BookLAB.Domain.Entities.Report", b =>
@@ -540,7 +890,7 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("CreatedBy")
@@ -564,7 +914,7 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("ScheduleId")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime?>("UpdatedAt")
+                    b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid?>("UpdatedBy")
@@ -583,6 +933,38 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                     b.HasIndex("ScheduleId");
 
                     b.ToTable("Reports", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("21212121-2121-2121-2121-212121212121"),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 20, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedBy = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Description = "Projector not working",
+                            IsResolved = false,
+                            ReportType = "0",
+                            ScheduleId = new Guid("27272727-2727-2727-2727-272727272727")
+                        },
+                        new
+                        {
+                            Id = new Guid("22222222-2222-2222-2222-222222222221"),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 21, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedBy = new Guid("22222222-2222-2222-2222-222222222222"),
+                            Description = "Broken chair",
+                            IsResolved = false,
+                            ReportType = "0",
+                            ScheduleId = new Guid("28282828-2828-2828-2828-282828282828")
+                        },
+                        new
+                        {
+                            Id = new Guid("23232323-2323-2323-2323-232323232323"),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 22, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedBy = new Guid("33333333-3333-3333-3333-333333333333"),
+                            Description = "AC not cooling",
+                            IsResolved = false,
+                            ReportType = "0",
+                            ScheduleId = new Guid("29292929-2929-2929-2929-292929292929")
+                        });
                 });
 
             modelBuilder.Entity("BookLAB.Domain.Entities.ReportImage", b =>
@@ -619,6 +1001,35 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("IX_ReportImage_Report_Avatar");
 
                     b.ToTable("ReportImages", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("24242424-2424-2424-2424-242424242424"),
+                            FileType = 0,
+                            ImageUrl = "https://cdn.example/report1.jpg",
+                            IsAvatar = false,
+                            ReportId = new Guid("21212121-2121-2121-2121-212121212121"),
+                            Size = 1200
+                        },
+                        new
+                        {
+                            Id = new Guid("25252525-2525-2525-2525-252525252525"),
+                            FileType = 0,
+                            ImageUrl = "https://cdn.example/report2.jpg",
+                            IsAvatar = false,
+                            ReportId = new Guid("22222222-2222-2222-2222-222222222221"),
+                            Size = 800
+                        },
+                        new
+                        {
+                            Id = new Guid("26262626-2626-2626-2626-262626262626"),
+                            FileType = 0,
+                            ImageUrl = "https://cdn.example/report3.jpg",
+                            IsAvatar = true,
+                            ReportId = new Guid("23232323-2323-2323-2323-232323232323"),
+                            Size = 600
+                        });
                 });
 
             modelBuilder.Entity("BookLAB.Domain.Entities.Role", b =>
@@ -637,6 +1048,23 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("roles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            RoleName = "Admin"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            RoleName = "Manager"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            RoleName = "Lecturer"
+                        });
                 });
 
             modelBuilder.Entity("BookLAB.Domain.Entities.RoomPolicy", b =>
@@ -645,7 +1073,7 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("CreatedBy")
@@ -669,7 +1097,7 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
-                    b.Property<DateTime?>("UpdatedAt")
+                    b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid?>("UpdatedBy")
@@ -686,6 +1114,38 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("UQ_Room_PolicyKey");
 
                     b.ToTable("RoomPolicies", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("30303030-3030-3030-3030-303030303030"),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedBy = new Guid("11111111-1111-1111-1111-111111111111"),
+                            IsActive = true,
+                            LabRoomId = 1,
+                            PolicyKey = "MaxCapacity",
+                            PolicyValue = "30"
+                        },
+                        new
+                        {
+                            Id = new Guid("31313131-3131-3131-3131-313131313131"),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedBy = new Guid("11111111-1111-1111-1111-111111111111"),
+                            IsActive = true,
+                            LabRoomId = 2,
+                            PolicyKey = "Projector",
+                            PolicyValue = "Required"
+                        },
+                        new
+                        {
+                            Id = new Guid("32323232-3232-3232-3232-323232323232"),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 3, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedBy = new Guid("11111111-1111-1111-1111-111111111111"),
+                            IsActive = true,
+                            LabRoomId = 3,
+                            PolicyKey = "FoodAllowed",
+                            PolicyValue = "No"
+                        });
                 });
 
             modelBuilder.Entity("BookLAB.Domain.Entities.Schedule", b =>
@@ -694,13 +1154,13 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("CreatedBy")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("EndTime")
+                    b.Property<DateTimeOffset>("EndTime")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<bool>("IsActive")
@@ -729,10 +1189,10 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
-                    b.Property<DateTime>("StartTime")
+                    b.Property<DateTimeOffset>("StartTime")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime?>("UpdatedAt")
+                    b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid?>("UpdatedBy")
@@ -747,6 +1207,50 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                     b.HasIndex("ScheduleStatus");
 
                     b.ToTable("Schedules", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("27272727-2727-2727-2727-272727272727"),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedBy = new Guid("11111111-1111-1111-1111-111111111111"),
+                            EndTime = new DateTimeOffset(new DateTime(2025, 2, 1, 10, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            IsActive = true,
+                            IsDeleted = false,
+                            LabRoomId = 1,
+                            LecturerId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            ScheduleStatus = "Active",
+                            ScheduleType = "Lecture",
+                            StartTime = new DateTimeOffset(new DateTime(2025, 2, 1, 8, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Id = new Guid("28282828-2828-2828-2828-282828282828"),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedBy = new Guid("22222222-2222-2222-2222-222222222222"),
+                            EndTime = new DateTimeOffset(new DateTime(2025, 2, 2, 15, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            IsActive = true,
+                            IsDeleted = false,
+                            LabRoomId = 2,
+                            LecturerId = new Guid("22222222-2222-2222-2222-222222222222"),
+                            ScheduleStatus = "Active",
+                            ScheduleType = "Lab",
+                            StartTime = new DateTimeOffset(new DateTime(2025, 2, 2, 13, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Id = new Guid("29292929-2929-2929-2929-292929292929"),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 3, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedBy = new Guid("33333333-3333-3333-3333-333333333333"),
+                            EndTime = new DateTimeOffset(new DateTime(2025, 2, 3, 10, 30, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            IsActive = true,
+                            IsDeleted = false,
+                            LabRoomId = 3,
+                            LecturerId = new Guid("33333333-3333-3333-3333-333333333333"),
+                            ScheduleStatus = "Active",
+                            ScheduleType = "Workshop",
+                            StartTime = new DateTimeOffset(new DateTime(2025, 2, 3, 9, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        });
                 });
 
             modelBuilder.Entity("BookLAB.Domain.Entities.SlotFrame", b =>
@@ -784,6 +1288,32 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("UQ_SlotFrame_Type_StartTime");
 
                     b.ToTable("SlotFrames", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            EndTimeSlot = new TimeOnly(9, 30, 0),
+                            OrderIndex = 1,
+                            SlotTypeId = 1,
+                            StartTimeSlot = new TimeOnly(8, 0, 0)
+                        },
+                        new
+                        {
+                            Id = 2,
+                            EndTimeSlot = new TimeOnly(11, 15, 0),
+                            OrderIndex = 2,
+                            SlotTypeId = 1,
+                            StartTimeSlot = new TimeOnly(9, 45, 0)
+                        },
+                        new
+                        {
+                            Id = 3,
+                            EndTimeSlot = new TimeOnly(15, 0, 0),
+                            OrderIndex = 1,
+                            SlotTypeId = 2,
+                            StartTimeSlot = new TimeOnly(13, 0, 0)
+                        });
                 });
 
             modelBuilder.Entity("BookLAB.Domain.Entities.SlotType", b =>
@@ -816,6 +1346,29 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("UQ_SlotType_Campus_Code");
 
                     b.ToTable("SlotTypes", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CampusId = 1,
+                            Code = "S90",
+                            Name = "90-min slot"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CampusId = 1,
+                            Code = "S120",
+                            Name = "120-min slot"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CampusId = 2,
+                            Code = "S45",
+                            Name = "45-min slot"
+                        });
                 });
 
             modelBuilder.Entity("BookLAB.Domain.Entities.User", b =>
@@ -827,7 +1380,7 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                     b.Property<int>("CampusId")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid?>("CreatedBy")
@@ -861,7 +1414,7 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .HasMaxLength(1024)
                         .HasColumnType("character varying(1024)");
 
-                    b.Property<DateTime?>("UpdatedAt")
+                    b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid?>("UpdatedBy")
@@ -882,6 +1435,41 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                     b.HasIndex("FullName");
 
                     b.ToTable("Users", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("11111111-1111-1111-1111-111111111111"),
+                            CampusId = 1,
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Email = "alice@example.edu",
+                            FullName = "Alice Tran",
+                            IsActive = true,
+                            IsDeleted = false,
+                            UserImageUrl = ""
+                        },
+                        new
+                        {
+                            Id = new Guid("22222222-2222-2222-2222-222222222222"),
+                            CampusId = 1,
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Email = "bob@example.edu",
+                            FullName = "Bob Nguyen",
+                            IsActive = true,
+                            IsDeleted = false,
+                            UserImageUrl = ""
+                        },
+                        new
+                        {
+                            Id = new Guid("33333333-3333-3333-3333-333333333333"),
+                            CampusId = 2,
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 3, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Email = "carol@example.edu",
+                            FullName = "Carol Le",
+                            IsActive = true,
+                            IsDeleted = false,
+                            UserImageUrl = ""
+                        });
                 });
 
             modelBuilder.Entity("BookLAB.Domain.Entities.UserRole", b =>
@@ -901,6 +1489,23 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("IX_UserRole_UserId");
 
                     b.ToTable("UserRoles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            UserId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            RoleId = 1
+                        },
+                        new
+                        {
+                            UserId = new Guid("22222222-2222-2222-2222-222222222222"),
+                            RoleId = 2
+                        },
+                        new
+                        {
+                            UserId = new Guid("33333333-3333-3333-3333-333333333333"),
+                            RoleId = 3
+                        });
                 });
 
             modelBuilder.Entity("BookLAB.Domain.Entities.Attendance", b =>

@@ -10,11 +10,12 @@ namespace BookLAB.Domain.Entities
         public ReportType ReportType { get; set; }
         public string Description { get; set; } = string.Empty;
         public bool IsResolved { get; set; } = false;
-        public DateTime CreatedAt { get; set; }
-        public DateTime? UpdatedAt { get; set; }
+        public DateTimeOffset CreatedAt { get; set; }
+        public DateTimeOffset? UpdatedAt { get; set; }
         public Guid? CreatedBy { get; set; }
         public Guid? UpdatedBy { get; set; }
 
-        public virtual Schedule Schedule { get; set; } = new Schedule();
+        public virtual Schedule Schedule { get; set; }
+        public ICollection<ReportImage> ReportImages = new List<ReportImage>();
     }
 }

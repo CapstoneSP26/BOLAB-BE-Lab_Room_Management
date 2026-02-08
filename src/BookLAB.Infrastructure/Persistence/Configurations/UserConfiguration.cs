@@ -25,6 +25,14 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasMaxLength(2048)
             .IsRequired(false);
 
+        builder.Property(u => u.Provider)
+            .HasMaxLength(100)
+            .IsRequired(false);
+
+        builder.Property(u => u.ProviderId)
+            .HasMaxLength(1024)
+            .IsRequired(false);
+
         // 3. Cấu hình Trạng thái và Soft Delete
         builder.Property(u => u.IsActive)
             .HasDefaultValue(true);
