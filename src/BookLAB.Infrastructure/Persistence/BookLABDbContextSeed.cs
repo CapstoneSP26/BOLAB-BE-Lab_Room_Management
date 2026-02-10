@@ -113,13 +113,14 @@ public static class BookLABDbContextSeed
             }
 
             // Seed Test Booking
-            if (!await context.Bookings.AnyAsync())
+            var testBookingId = Guid.Parse("77777777-7777-7777-7777-777777777777");
+            if (!await context.Bookings.AnyAsync(b => b.Id == testBookingId))
             {
                 logger.LogInformation("Seeding test booking...");
                 
                 var booking = new Booking
                 {
-                    Id = Guid.NewGuid(),
+                    Id = testBookingId,
                     LabRoomId = Guid.Parse("33333333-3333-3333-3333-333333333333"), // Lab 101
                     StartTime = DateTime.UtcNow.AddHours(2),
                     EndTime = DateTime.UtcNow.AddHours(4),
