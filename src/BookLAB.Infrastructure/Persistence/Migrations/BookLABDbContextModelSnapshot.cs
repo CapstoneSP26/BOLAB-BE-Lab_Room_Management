@@ -102,16 +102,21 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("EndTime")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid>("LabRoomId")
-                        .HasColumnType("uuid");
+                    b.Property<int>("LabRoomId")
+                        .HasColumnType("integer");
 
-                    b.Property<Guid>("PurposeTypeId")
-                        .HasColumnType("uuid");
+                    b.Property<int>("PurposeTypeId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Reason")
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
+
+                    b.Property<int>("Recur")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
 
                     b.Property<DateTime>("StartTime")
                         .HasColumnType("timestamp with time zone");
@@ -210,9 +215,11 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("BookLAB.Domain.Entities.Building", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("BuildingImageUrl")
                         .HasMaxLength(2048)
@@ -223,8 +230,8 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<Guid>("CampusId")
-                        .HasColumnType("uuid");
+                    b.Property<int>("CampusId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Description")
                         .HasMaxLength(500)
@@ -243,9 +250,11 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("BookLAB.Domain.Entities.Campus", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Address")
                         .HasMaxLength(500)
@@ -274,6 +283,28 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                     b.HasIndex("IsActive");
 
                     b.ToTable("Campuses", (string)null);
+                });
+
+            modelBuilder.Entity("BookLAB.Domain.Entities.EmailTemplate", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("EmailTemplates", (string)null);
                 });
 
             modelBuilder.Entity("BookLAB.Domain.Entities.Group", b =>
@@ -348,14 +379,50 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                     b.ToTable("GroupMembers", (string)null);
                 });
 
+            modelBuilder.Entity("BookLAB.Domain.Entities.LabImage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("FileType")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<bool>("IsAvatar")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<int>("LabRoomId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Size")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LabRoomId")
+                        .HasDatabaseName("IX_LabImage_LabRoomId");
+
+                    b.HasIndex("LabRoomId", "IsAvatar")
+                        .HasDatabaseName("IX_LabImage_Room_Avatar");
+
+                    b.ToTable("LabImages", (string)null);
+                });
+
             modelBuilder.Entity("BookLAB.Domain.Entities.LabOwner", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("LabRoomId")
-                        .HasColumnType("uuid");
+                    b.Property<int>("LabRoomId")
+                        .HasColumnType("integer");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
@@ -377,12 +444,14 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("BookLAB.Domain.Entities.LabRoom", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("integer");
 
-                    b.Property<Guid>("BuildingId")
-                        .HasColumnType("uuid");
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BuildingId")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -445,9 +514,11 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("BookLAB.Domain.Entities.PurposeType", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("PurposeName")
                         .IsRequired()
@@ -514,10 +585,46 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                     b.ToTable("Reports", (string)null);
                 });
 
-            modelBuilder.Entity("BookLAB.Domain.Entities.Role", b =>
+            modelBuilder.Entity("BookLAB.Domain.Entities.ReportImage", b =>
                 {
                     b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<int>("FileType")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<bool>("IsAvatar")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<Guid>("ReportId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Size")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReportId")
+                        .HasDatabaseName("IX_ReportImage_ReportId");
+
+                    b.HasIndex("ReportId", "IsAvatar")
+                        .HasDatabaseName("IX_ReportImage_Report_Avatar");
+
+                    b.ToTable("ReportImages", (string)null);
+                });
+
+            modelBuilder.Entity("BookLAB.Domain.Entities.Role", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
 
                     b.Property<string>("RoleName")
                         .IsRequired()
@@ -549,8 +656,8 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(true);
 
-                    b.Property<Guid>("LabRoomId")
-                        .HasColumnType("uuid");
+                    b.Property<int>("LabRoomId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("PolicyKey")
                         .IsRequired()
@@ -606,8 +713,8 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
-                    b.Property<Guid>("LabRoomId")
-                        .HasColumnType("uuid");
+                    b.Property<int>("LabRoomId")
+                        .HasColumnType("integer");
 
                     b.Property<Guid>("LecturerId")
                         .HasColumnType("uuid");
@@ -644,9 +751,11 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("BookLAB.Domain.Entities.SlotFrame", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<TimeOnly>("EndTimeSlot")
                         .HasColumnType("time without time zone");
@@ -656,8 +765,8 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasDefaultValue(0);
 
-                    b.Property<Guid>("SlotTypeId")
-                        .HasColumnType("uuid");
+                    b.Property<int>("SlotTypeId")
+                        .HasColumnType("integer");
 
                     b.Property<TimeOnly>("StartTimeSlot")
                         .HasColumnType("time without time zone");
@@ -679,12 +788,14 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("BookLAB.Domain.Entities.SlotType", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("integer");
 
-                    b.Property<Guid>("CampusId")
-                        .HasColumnType("uuid");
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CampusId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Code")
                         .IsRequired()
@@ -713,8 +824,8 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("CampusId")
-                        .HasColumnType("uuid");
+                    b.Property<int>("CampusId")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -742,6 +853,14 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
+                    b.Property<string>("Provider")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("ProviderId")
+                        .HasMaxLength(1024)
+                        .HasColumnType("character varying(1024)");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -767,27 +886,19 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("BookLAB.Domain.Entities.UserRole", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("RoleId")
-                        .HasColumnType("uuid");
-
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
-                    b.HasKey("Id");
+                    b.Property<int>("RoleId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("UserId", "RoleId");
 
                     b.HasIndex("RoleId")
                         .HasDatabaseName("IX_UserRole_RoleId");
 
                     b.HasIndex("UserId")
                         .HasDatabaseName("IX_UserRole_UserId");
-
-                    b.HasIndex("UserId", "RoleId")
-                        .IsUnique()
-                        .HasDatabaseName("UQ_User_Role");
 
                     b.ToTable("UserRoles", (string)null);
                 });
@@ -916,6 +1027,17 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("BookLAB.Domain.Entities.LabImage", b =>
+                {
+                    b.HasOne("BookLAB.Domain.Entities.LabRoom", "LabRoom")
+                        .WithMany("LabImages")
+                        .HasForeignKey("LabRoomId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("LabRoom");
+                });
+
             modelBuilder.Entity("BookLAB.Domain.Entities.LabOwner", b =>
                 {
                     b.HasOne("BookLAB.Domain.Entities.LabRoom", "LabRoom")
@@ -955,6 +1077,17 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Schedule");
+                });
+
+            modelBuilder.Entity("BookLAB.Domain.Entities.ReportImage", b =>
+                {
+                    b.HasOne("BookLAB.Domain.Entities.Report", "Report")
+                        .WithMany("ReportImages")
+                        .HasForeignKey("ReportId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Report");
                 });
 
             modelBuilder.Entity("BookLAB.Domain.Entities.RoomPolicy", b =>
@@ -1051,9 +1184,16 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("BookLAB.Domain.Entities.LabRoom", b =>
                 {
+                    b.Navigation("LabImages");
+
                     b.Navigation("LabOwners");
 
                     b.Navigation("RoomPolicies");
+                });
+
+            modelBuilder.Entity("BookLAB.Domain.Entities.Report", b =>
+                {
+                    b.Navigation("ReportImages");
                 });
 
             modelBuilder.Entity("BookLAB.Domain.Entities.Schedule", b =>
