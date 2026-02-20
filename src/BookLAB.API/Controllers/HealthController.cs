@@ -29,8 +29,7 @@ public class HealthController : ControllerBase
                 return StatusCode(503, new 
                 { 
                     Status = "Unhealthy", 
-                    Error = "Cannot connect to database",
-                    ConnectionString = _context.Database.GetConnectionString()?.Replace("bach2004", "***")
+                    Error = "Cannot connect to database"
                 });
             }
 
@@ -57,8 +56,7 @@ public class HealthController : ControllerBase
             return StatusCode(500, new 
             { 
                 Status = "Unhealthy", 
-                Error = ex.Message,
-                StackTrace = ex.StackTrace
+                Error = ex.Message
             });
         }
     }

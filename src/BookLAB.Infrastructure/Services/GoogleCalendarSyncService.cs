@@ -1,5 +1,6 @@
 using BookLAB.Application.Common.Interfaces.Persistence;
 using BookLAB.Application.Common.Interfaces.Services;
+using Google;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Calendar.v3;
 using Google.Apis.Calendar.v3.Data;
@@ -10,12 +11,15 @@ using Microsoft.Extensions.Logging;
 
 namespace BookLAB.Infrastructure.Services;
 
-public class GoogleCalendarSyncService : ICalendarSyncService
+public class GoogleCalendarSyncService : ICalendarSyncService, IDisposable
 {
     private readonly IBookLABDbContext _context;
     private readonly IConfiguration _configuration;
     private readonly ILogger<GoogleCalendarSyncService> _logger;
     private readonly string _calendarId;
+    private readonly string _timeZone;
+    private CalendarService? _calendarService;
+    private bool _disposed;
 
     public GoogleCalendarSyncService(
         IBookLABDbContext context,
@@ -26,6 +30,7 @@ public class GoogleCalendarSyncService : ICalendarSyncService
         _configuration = configuration;
         _logger = logger;
         _calendarId = _configuration["GoogleCalendar:CalendarId"] ?? "primary";
+        _timeZone = _configuration["GoogleCalendar:TimeZone"] ?? "Asia/Ho_Chi_Minh";
     }
 
     public async Task<string> CreateCalendarEventAsync(Guid bookingId, CancellationToken cancellationToken)
@@ -53,12 +58,12 @@ public class GoogleCalendarSyncService : ICalendarSyncService
             Start = new EventDateTime
             {
                 DateTimeDateTimeOffset = new DateTimeOffset(booking.StartTime),
-                TimeZone = "Asia/Ho_Chi_Minh"
+                TimeZone = _timeZone
             },
             End = new EventDateTime
             {
                 DateTimeDateTimeOffset = new DateTimeOffset(booking.EndTime),
-                TimeZone = "Asia/Ho_Chi_Minh"
+                TimeZone = _timeZone
             },
             Reminders = new Event.RemindersData
             {
@@ -80,6 +85,14 @@ public class GoogleCalendarSyncService : ICalendarSyncService
                 createdEvent.Id, bookingId);
 
             return createdEvent.Id;
+        }
+        catch (GoogleApiException gex)
+        {
+            _logger.LogError(gex,
+                "Google Calendar API error while creating event for booking {BookingId}. StatusCode: {StatusCode}, Message: {Message}",
+                bookingId, gex.HttpStatusCode, gex.Message);
+
+            throw new InvalidOperationException("Google Calendar API error while creating event.", gex);
         }
         catch (Exception ex)
         {
@@ -115,12 +128,12 @@ public class GoogleCalendarSyncService : ICalendarSyncService
             existingEvent.Start = new EventDateTime
             {
                 DateTimeDateTimeOffset = new DateTimeOffset(booking.StartTime),
-                TimeZone = "Asia/Ho_Chi_Minh"
+                TimeZone = _timeZone
             };
             existingEvent.End = new EventDateTime
             {
                 DateTimeDateTimeOffset = new DateTimeOffset(booking.EndTime),
-                TimeZone = "Asia/Ho_Chi_Minh"
+                TimeZone = _timeZone
             };
 
             var updateRequest = service.Events.Update(existingEvent, _calendarId, calendarEventId);
@@ -128,6 +141,14 @@ public class GoogleCalendarSyncService : ICalendarSyncService
 
             _logger.LogInformation("Updated calendar event {EventId} for booking {BookingId}",
                 calendarEventId, bookingId);
+        }
+        catch (GoogleApiException gex)
+        {
+            _logger.LogError(gex,
+                "Google Calendar API error while updating event {EventId} for booking {BookingId}. StatusCode: {StatusCode}, Message: {Message}",
+                calendarEventId, bookingId, gex.HttpStatusCode, gex.Message);
+
+            throw new InvalidOperationException("Google Calendar API error while updating event.", gex);
         }
         catch (Exception ex)
         {
@@ -147,6 +168,14 @@ public class GoogleCalendarSyncService : ICalendarSyncService
             await deleteRequest.ExecuteAsync(cancellationToken);
 
             _logger.LogInformation("Deleted calendar event {EventId}", calendarEventId);
+        }
+        catch (GoogleApiException gex)
+        {
+            _logger.LogError(gex,
+                "Google Calendar API error while deleting event {EventId}. StatusCode: {StatusCode}, Message: {Message}",
+                calendarEventId, gex.HttpStatusCode, gex.Message);
+
+            throw new InvalidOperationException("Google Calendar API error while deleting event.", gex);
         }
         catch (Exception ex)
         {
@@ -179,11 +208,18 @@ public class GoogleCalendarSyncService : ICalendarSyncService
             credential = credential.CreateScoped(CalendarService.Scope.Calendar);
         }
 
-        return new CalendarService(new BaseClientService.Initializer
+        if (_calendarService != null)
+        {
+            return _calendarService;
+        }
+
+        _calendarService = new CalendarService(new BaseClientService.Initializer
         {
             HttpClientInitializer = credential,
             ApplicationName = "BookLAB"
         });
+
+        return _calendarService;
     }
 
     private static string BuildEventDescription(BookLAB.Domain.Entities.Booking booking)
@@ -196,5 +232,16 @@ public class GoogleCalendarSyncService : ICalendarSyncService
                 
                 This is an automated booking from BookLAB system.
                 """;
+    }
+
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _calendarService?.Dispose();
+        _disposed = true;
     }
 }

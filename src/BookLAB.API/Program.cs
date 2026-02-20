@@ -32,7 +32,7 @@ app.UseHttpsRedirection();
 
 app.MapControllers();
 
-// Seed database with initial data - DISABLED TO FIX STARTUP ISSUE
+// Seed database with initial data on startup
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;

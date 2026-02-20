@@ -41,15 +41,17 @@ public class DeleteCalendarEventCommandHandler : IRequestHandler<DeleteCalendarE
 
         try
         {
+            var calendarEventId = booking.CalendarEventId;
+
             await _calendarSyncService.DeleteCalendarEventAsync(
-                booking.CalendarEventId,
+                calendarEventId,
                 cancellationToken);
 
             booking.CalendarEventId = null;
             await _context.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation("Calendar event {EventId} deleted for booking {BookingId}",
-                booking.CalendarEventId, request.BookingId);
+                calendarEventId, request.BookingId);
 
             return Unit.Value;
         }
