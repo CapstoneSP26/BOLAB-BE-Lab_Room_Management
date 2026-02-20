@@ -4,7 +4,7 @@ namespace BookLAB.Infrastructure.Persistence
 {
     public class UnitOfWork : IUnitOfWork
     {
-        private readonly IBookLABDbContext _context;
+        public readonly IBookLABDbContext _context;
 
         public UnitOfWork(IBookLABDbContext context)
         {

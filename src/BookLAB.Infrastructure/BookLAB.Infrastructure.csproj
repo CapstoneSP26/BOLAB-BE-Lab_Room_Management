@@ -16,6 +16,7 @@
   <ItemGroup>
     <Folder Include="Integration\" />
     <Folder Include="Persistence\Migrations\" />
+    <Folder Include="Persistence\Configurations\Identity\" />
   </ItemGroup>
 
   <PropertyGroup>
