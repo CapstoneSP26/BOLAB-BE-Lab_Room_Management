@@ -19,38 +19,11 @@ namespace BookLAB.API.Controllers
             _mediator = mediator;
         }
 
-        // GET: api/<BookingsController>
-        [HttpGet]
-        public IEnumerable<string> Get()
-        {
-            return new string[] { "value1", "value2" };
-        }
-
-        // GET api/<BookingsController>/5
-        [HttpGet("{id}")]
-        public string Get(int id)
-        {
-            return "value";
-        }
-
-        // POST api/<BookingsController>
-        [HttpPost]
-        public void Post([FromBody] string value)
-        {
-        }
-
-        // PUT api/<BookingsController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
-
-        // DELETE api/<BookingsController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
-        }
-
+        /// <summary>
+        /// This endpoint retrieves the booking history for a specific user.
+        /// </summary>
+        /// <param name="dto">Nessesary info for endpoint</param>
+        /// <returns>List of booking user has booked in the past</returns>
         [HttpPost("get-booking-history")]
         public async Task<List<Booking>> GetBookingHistoryList([FromBody] ViewBookingHistoryDTO dto)
         {
