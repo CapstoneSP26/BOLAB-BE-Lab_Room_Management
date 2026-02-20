@@ -17,6 +17,7 @@
     <Folder Include="Integration\" />
     <Folder Include="Repositories\" />
     <Folder Include="Persistence\Migrations\" />
+    <Folder Include="Persistence\Configurations\Identity\" />
   </ItemGroup>
 
   <PropertyGroup>
