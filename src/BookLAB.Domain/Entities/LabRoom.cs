@@ -10,6 +10,7 @@ namespace BookLAB.Domain.Entities
         public string? Location { get; set; }
         public int OverrideNumber { get; set; } = 0;
         public bool HasEquipment { get; set; }
+        public int Capacity { get; set; }   
 
         public string? Description { get; set; }
         public DateTime CreatedAt { get; set; }

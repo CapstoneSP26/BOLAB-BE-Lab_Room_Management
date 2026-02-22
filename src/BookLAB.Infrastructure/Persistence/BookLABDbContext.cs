@@ -4,7 +4,7 @@ using BookLAB.Application.Common.Interfaces.Persistence;
 
 namespace BookLAB.Infrastructure.Persistence
 {
-    public class BookLABDbContext : DbContext, IBookLABDbContext
+    public class BookLABDbContext : DbContext
     {
         public BookLABDbContext(DbContextOptions<BookLABDbContext> options)
             : base(options)

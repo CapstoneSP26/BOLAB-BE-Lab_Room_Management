@@ -33,6 +33,10 @@ public class LabRoomConfiguration : IEntityTypeConfiguration<LabRoom>
         builder.Property(lr => lr.HasEquipment)
             .HasDefaultValue(false);
 
+        builder.Property(lr => lr.Capacity)
+            .HasDefaultValue(1)
+            .IsRequired();
+
         // Số lượng ghi đè (OverrideNumber) - có thể dùng cho logic ưu tiên hoặc giới hạn đặc biệt
         builder.Property(lr => lr.OverrideNumber)
             .HasDefaultValue(0);
