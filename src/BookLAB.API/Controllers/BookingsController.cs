@@ -1,4 +1,4 @@
-﻿using BookLAB.Application.Features.Bookings;
+﻿using BookLAB.Application.Features.Bookings.ViewBookingHistory;
 using BookLAB.Domain.DTOs;
 using BookLAB.Domain.Entities;
 using MediatR;
@@ -27,14 +27,26 @@ namespace BookLAB.API.Controllers
         [HttpPost("get-booking-history")]
         public async Task<List<Booking>> GetBookingHistoryList([FromBody] ViewBookingHistoryDTO dto)
         {
-            ViewBookingHistoryCommand command = new ViewBookingHistoryCommand
+            try
             {
-                UserId = dto.userId
-            };
+                ViewBookingHistoryCommand command = new ViewBookingHistoryCommand
+                {
+                    userId = HttpContext.User.FindFirst("Id").Value ?? "11111111-1111-1111-1111-111111111111",
+                    page = dto.page,
+                    limit = dto.limit,
+                    status = dto.status,
+                    startDate = dto.startDate,
+                    endDate = dto.endDate,
+                };
 
-            var result = await _mediator.Send(command);
+                var result = await _mediator.Send(command);
 
-            return result;
+                return result;
+            } catch (Exception ex)
+            {
+                return null;
+            }
+            
         }
     }
 }

@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
 
-namespace BookLAB.Application.Features.Bookings
+namespace BookLAB.Application.Features.Bookings.ViewBookingHistory
 {
     public class ViewBookingHistoryHandler : IRequestHandler<ViewBookingHistoryCommand, List<Booking>>
     {
@@ -18,12 +18,8 @@ namespace BookLAB.Application.Features.Bookings
         }
         public async Task<List<Booking>> Handle(ViewBookingHistoryCommand request, CancellationToken cancellationToken)
         {
-            if (request.UserId == Guid.Empty)
-            {
-                throw new ArgumentException("Invalid UserId");
-            }
-
-            return await _bookingService.GetBookingHistoryByUserIdAsync(request.UserId);
+            Guid Id = Guid.Parse(request.userId);
+            return await _bookingService.GetBookingHistoryByUserIdAsync(Id, request.page, request.limit, request.status, request.startDate, request.endDate);
         }
     }
 }

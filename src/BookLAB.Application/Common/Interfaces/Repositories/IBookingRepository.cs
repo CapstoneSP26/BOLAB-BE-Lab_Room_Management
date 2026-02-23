@@ -8,6 +8,6 @@ namespace BookLAB.Application.Common.Interfaces.Repositories
 {
     public interface IBookingRepository
     {
-        public Task<List<Booking>> GetBookingHistoryByUserIdAsync(Guid userId);
+        public Task<List<Booking>> GetBookingHistoryByUserIdAsync(Guid userId, int page, int limit, string status, DateTimeOffset startDate, DateTimeOffset endDate);
     }
 }

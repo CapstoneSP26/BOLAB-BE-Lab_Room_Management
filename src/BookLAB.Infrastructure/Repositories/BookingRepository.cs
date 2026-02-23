@@ -20,5 +20,13 @@ namespace BookLAB.Infrastructure.Repositories
         {
             return await _context.Bookings.Where(b => b.CreatedBy == userId).ToListAsync();
         }
+
+        public async Task<List<Booking>> GetBookingHistoryByUserIdAsync(Guid userId, int page, int limit, string status, DateTimeOffset startDate, DateTimeOffset endDate)
+        {
+            return await _context.Bookings.Where(b => b.CreatedBy == userId && b.BookingStatus.ToString() == status && b.StartTime >= startDate && b.EndTime <= endDate)
+                .Skip((page - 1) * limit)
+                .Take(limit)
+                .ToListAsync();
+        }
     }
 }
