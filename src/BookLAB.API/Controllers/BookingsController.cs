@@ -1,4 +1,5 @@
 ﻿using BookLAB.Application.Features.Bookings;
+using BookLAB.Application.Features.Bookings.Queries.ViewUncheckedBookingRequest;
 using BookLAB.Domain.DTOs;
 using BookLAB.Domain.Entities;
 using MediatR;
@@ -30,6 +31,19 @@ namespace BookLAB.API.Controllers
             ViewBookingHistoryCommand command = new ViewBookingHistoryCommand
             {
                 UserId = dto.userId
+            };
+
+            var result = await _mediator.Send(command);
+
+            return result;
+        }
+
+        [HttpGet("get-unchecked-booking-request")]
+        public async Task<List<BookingRequest>> GetUncheckedBookingRequestList()
+        {
+            ViewUncheckedBookingRequestCommand command = new ViewUncheckedBookingRequestCommand
+            {
+                userId = HttpContext.User.FindFirst("Id")?.Value ?? "11111111-1111-1111-1111-111111111111"
             };
 
             var result = await _mediator.Send(command);

@@ -23,7 +23,6 @@
     <Folder Include="Features\Auth\Commands\" />
     <Folder Include="Features\Auth\Queries\" />
     <Folder Include="Features\Bookings\Commands\" />
-    <Folder Include="Features\Bookings\Queries\" />
     <Folder Include="Features\Equipments\Commands\" />
     <Folder Include="Features\Equipments\Queries\" />
     <Folder Include="Features\Feedbacks\Commands\" />
