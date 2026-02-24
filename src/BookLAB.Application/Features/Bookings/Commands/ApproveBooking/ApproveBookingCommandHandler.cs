@@ -82,9 +82,6 @@ namespace BookLAB.Application.Features.Bookings.Commands.ApproveBooking
             await _unitOfWork.BeginTransactionAsync();
             try
             {
-                booking.BookingStatus = BookingStatus.Approved;
-                _unitOfWork.Repository<Booking>().Update(booking);
-
                 if (bookingRequest != null)
                 {
                     bookingRequest.BookingRequestStatus = BookingRequestStatus.Approved;

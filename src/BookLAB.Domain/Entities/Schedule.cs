@@ -8,7 +8,7 @@ namespace BookLAB.Domain.Entities
         public Guid LecturerId {  get; set; }
         public int LabRoomId { get; set; }
         public Guid? BookingId { get; set; }
-        public int? GroupId { get; set; }
+        public Guid? GroupId { get; set; }
         public int SlotTypeId { get; set; }
         public ScheduleType ScheduleType { get; set; }
         public ScheduleStatus ScheduleStatus { get; set; }
