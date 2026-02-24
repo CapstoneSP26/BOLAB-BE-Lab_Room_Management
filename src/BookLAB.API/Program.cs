@@ -1,3 +1,4 @@
+using BookLAB.API.Middlewares;
 using BookLAB.Application;
 using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Application.Common.Interfaces.Repositories;
@@ -96,7 +97,7 @@ builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
 var app = builder.Build();
-
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 // Middleware pipeline
 if (app.Environment.IsDevelopment())
 {
