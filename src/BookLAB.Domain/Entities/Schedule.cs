@@ -14,11 +14,11 @@ namespace BookLAB.Domain.Entities
         public ScheduleStatus ScheduleStatus { get; set; }
         public int StudentCount { get; set; }
         public string? SubjectCode { get; set; }
+        public DateTimeOffset StartTime { get; set; }
+        public DateTimeOffset EndTime { get; set; }
 
-        public DateTime StartTime { get; set; }
-        public DateTime EndTime { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime? UpdatedAt { get; set; }
+        public DateTimeOffset CreatedAt { get; set; }
+        public DateTimeOffset? UpdatedAt { get; set; }
         public Guid? CreatedBy { get; set; }
         public Guid? UpdatedBy { get; set; }
         public bool IsActive { get; set; } = true;

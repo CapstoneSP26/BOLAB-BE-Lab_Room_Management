@@ -1,9 +1,9 @@
 ﻿using System.Collections;
-using BookLAB.Application.Common.Interfaces.Persistence;
-using BookLAB.Infrastructure.Persistence.Repositories;
+using BookLAB.Application.Common.Interfaces.Repositories;
+using BookLAB.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore.Storage;
 
-namespace BookLAB.Infrastructure.Persistence;
+namespace BookLAB.Infrastructure.Repositories;
 
 /// <summary>
 /// Implements the Unit of Work pattern to coordinate repositories 

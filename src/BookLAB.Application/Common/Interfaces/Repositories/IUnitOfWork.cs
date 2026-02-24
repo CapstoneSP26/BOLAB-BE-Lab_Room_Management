@@ -1,4 +1,4 @@
-﻿namespace BookLAB.Application.Common.Interfaces.Persistence
+﻿namespace BookLAB.Application.Common.Interfaces.Repositories
 {
     public interface IUnitOfWork : IDisposable
     {

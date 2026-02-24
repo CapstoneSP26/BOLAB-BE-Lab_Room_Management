@@ -9,6 +9,6 @@ namespace BookLAB.Domain.Entities
         public string BuildingName { get; set; } = null!;
         public string Description { get; set; } = null!;
         public string BuildingImageUrl { get; set; } = null!;
-        public virtual Campus Campus { get; set; } = new Campus();
+        public virtual Campus Campus { get; set; }
     }
 }

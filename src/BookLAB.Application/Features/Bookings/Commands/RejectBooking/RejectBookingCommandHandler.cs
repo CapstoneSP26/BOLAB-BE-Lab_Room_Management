@@ -1,6 +1,6 @@
 ﻿using BookLAB.Application.Common.Exceptions;
 using BookLAB.Application.Common.Interfaces.Identity;
-using BookLAB.Application.Common.Interfaces.Persistence;
+using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Domain.Entities;
 using BookLAB.Domain.Enums;
 using MediatR;

@@ -1,6 +1,6 @@
 ﻿using BookLAB.Domain.Entities;
 
-namespace BookLAB.Application.Common.Interfaces.Persistence
+namespace BookLAB.Application.Common.Interfaces.Repositories
 {
     public interface ILabOwnerRepository : IGenericRepository<LabOwner>
     {
