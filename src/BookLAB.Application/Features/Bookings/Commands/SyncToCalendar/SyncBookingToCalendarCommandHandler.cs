@@ -44,15 +44,32 @@ public class SyncBookingToCalendarCommandHandler : IRequestHandler<SyncBookingTo
 
         try
         {
+            if (!booking.ScheduleId.HasValue)
+            {
+                _logger.LogWarning("Booking {BookingId} has no associated schedule for calendar sync", request.BookingId);
+                throw new InvalidOperationException("Booking must be associated with a schedule before syncing to calendar.");
+            }
+
+            var scheduleId = booking.ScheduleId.Value;
+
             var calendarEventId = await _calendarSyncService.CreateCalendarEventAsync(
-                request.BookingId,
+                scheduleId,
                 cancellationToken);
 
-            booking.CalendarEventId = calendarEventId;
+            var schedule = await _context.Schedules
+                .FirstOrDefaultAsync(s => s.Id == scheduleId, cancellationToken);
+
+            if (schedule == null)
+            {
+                _logger.LogWarning("Schedule {ScheduleId} not found when syncing booking {BookingId} to calendar", scheduleId, request.BookingId);
+                throw new InvalidOperationException($"Schedule with ID {scheduleId} not found.");
+            }
+
+            schedule.CalendarEventId = calendarEventId;
             await _context.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("Booking {BookingId} synced to calendar with event ID {EventId}",
-                request.BookingId, calendarEventId);
+            _logger.LogInformation("Booking {BookingId} synced to calendar via schedule {ScheduleId} with event ID {EventId}",
+                request.BookingId, scheduleId, calendarEventId);
 
             return calendarEventId;
         }

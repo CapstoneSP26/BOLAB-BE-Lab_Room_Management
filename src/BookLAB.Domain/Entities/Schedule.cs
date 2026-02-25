@@ -10,6 +10,7 @@ namespace BookLAB.Domain.Entities
         public string ScheduleStatus { get; set; } = string.Empty;
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
+        public string? CalendarEventId { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public Guid? CreatedBy { get; set; }

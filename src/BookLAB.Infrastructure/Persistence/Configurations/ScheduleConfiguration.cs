@@ -21,6 +21,10 @@ public class ScheduleConfiguration : IEntityTypeConfiguration<Schedule>
             .HasMaxLength(50)
             .IsRequired();
 
+        builder.Property(s => s.CalendarEventId)
+            .HasMaxLength(255)
+            .IsRequired(false);
+
         builder.Property(s => s.StartTime)
             .IsRequired();
 

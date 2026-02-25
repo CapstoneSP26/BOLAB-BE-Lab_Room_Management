@@ -33,7 +33,22 @@ public class DeleteCalendarEventCommandHandler : IRequestHandler<DeleteCalendarE
             throw new InvalidOperationException($"Booking with ID {request.BookingId} not found.");
         }
 
-        if (string.IsNullOrEmpty(booking.CalendarEventId))
+        if (!booking.ScheduleId.HasValue)
+        {
+            _logger.LogInformation("Booking {BookingId} has no schedule associated; nothing to delete on calendar", request.BookingId);
+            return Unit.Value;
+        }
+
+        var schedule = await _context.Schedules
+            .FirstOrDefaultAsync(s => s.Id == booking.ScheduleId.Value, cancellationToken);
+
+        if (schedule == null)
+        {
+            _logger.LogInformation("Schedule {ScheduleId} not found for booking {BookingId}; nothing to delete on calendar", booking.ScheduleId, request.BookingId);
+            return Unit.Value;
+        }
+
+        if (string.IsNullOrEmpty(schedule.CalendarEventId))
         {
             _logger.LogInformation("Booking {BookingId} has no calendar event to delete", request.BookingId);
             return Unit.Value;
@@ -41,13 +56,13 @@ public class DeleteCalendarEventCommandHandler : IRequestHandler<DeleteCalendarE
 
         try
         {
-            var calendarEventId = booking.CalendarEventId;
+            var calendarEventId = schedule.CalendarEventId;
 
             await _calendarSyncService.DeleteCalendarEventAsync(
                 calendarEventId,
                 cancellationToken);
 
-            booking.CalendarEventId = null;
+            schedule.CalendarEventId = null;
             await _context.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation("Calendar event {EventId} deleted for booking {BookingId}",

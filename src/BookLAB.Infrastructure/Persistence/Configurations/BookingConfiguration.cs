@@ -34,10 +34,6 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
             .HasMaxLength(20)
             .IsRequired();
 
-        builder.Property(b => b.CalendarEventId)
-            .HasMaxLength(255)
-            .IsRequired(false);
-
         // 3. Cấu hình các thuộc tính từ IAuditable & IUserTrackable
         builder.Property(b => b.CreatedAt).IsRequired();
         builder.Property(b => b.CreatedBy).IsRequired();
@@ -55,6 +51,12 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
         builder.HasOne(b => b.PurposeType)
             .WithMany()
             .HasForeignKey(b => b.PurposeTypeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Booking - Schedule (N-1, optional)
+        builder.HasOne(b => b.Schedule)
+            .WithMany()
+            .HasForeignKey(b => b.ScheduleId)
             .OnDelete(DeleteBehavior.Restrict);
 
         // Booking - BookingGroups (1-n)

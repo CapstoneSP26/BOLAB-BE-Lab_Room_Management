@@ -33,7 +33,22 @@ public class UpdateCalendarEventCommandHandler : IRequestHandler<UpdateCalendarE
             throw new InvalidOperationException($"Booking with ID {request.BookingId} not found.");
         }
 
-        if (string.IsNullOrEmpty(booking.CalendarEventId))
+        if (!booking.ScheduleId.HasValue)
+        {
+            _logger.LogWarning("Booking {BookingId} has no associated schedule for calendar update", request.BookingId);
+            throw new InvalidOperationException("Booking must be associated with a schedule before updating calendar event.");
+        }
+
+        var schedule = await _context.Schedules
+            .FirstOrDefaultAsync(s => s.Id == booking.ScheduleId.Value, cancellationToken);
+
+        if (schedule == null)
+        {
+            _logger.LogWarning("Schedule {ScheduleId} not found for booking {BookingId} calendar update", booking.ScheduleId, request.BookingId);
+            throw new InvalidOperationException($"Schedule with ID {booking.ScheduleId} not found.");
+        }
+
+        if (string.IsNullOrEmpty(schedule.CalendarEventId))
         {
             _logger.LogWarning("Booking {BookingId} has no associated calendar event", request.BookingId);
             throw new InvalidOperationException("Booking has no associated calendar event.");
@@ -42,12 +57,12 @@ public class UpdateCalendarEventCommandHandler : IRequestHandler<UpdateCalendarE
         try
         {
             await _calendarSyncService.UpdateCalendarEventAsync(
-                request.BookingId,
-                booking.CalendarEventId,
+                schedule.Id,
+                schedule.CalendarEventId,
                 cancellationToken);
 
             _logger.LogInformation("Calendar event {EventId} updated for booking {BookingId}",
-                booking.CalendarEventId, request.BookingId);
+                schedule.CalendarEventId, request.BookingId);
 
             return Unit.Value;
         }

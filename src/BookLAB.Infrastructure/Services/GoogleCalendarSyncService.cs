@@ -33,36 +33,37 @@ public class GoogleCalendarSyncService : ICalendarSyncService, IDisposable
         _timeZone = _configuration["GoogleCalendar:TimeZone"] ?? "Asia/Ho_Chi_Minh";
     }
 
-    public async Task<string> CreateCalendarEventAsync(Guid bookingId, CancellationToken cancellationToken)
+    public async Task<string> CreateCalendarEventAsync(Guid scheduleId, CancellationToken cancellationToken)
     {
-        var booking = await _context.Bookings
-            .Include(b => b.LabRoom)
+        var schedule = await _context.Schedules
+            .Include(s => s.LabRoom)
                 .ThenInclude(r => r.Building)
-            .FirstOrDefaultAsync(b => b.Id == bookingId, cancellationToken);
+            .Include(s => s.User)
+            .FirstOrDefaultAsync(s => s.Id == scheduleId, cancellationToken);
 
-        if (booking == null)
-            throw new InvalidOperationException($"Booking {bookingId} not found.");
+        if (schedule == null)
+            throw new InvalidOperationException($"Schedule {scheduleId} not found.");
 
         var service = await GetCalendarServiceAsync(cancellationToken);
 
-        var eventTitle = $"Lab Booking - {booking.LabRoom?.RoomName ?? "Unknown Room"}";
-        var location = booking.LabRoom?.Building != null
-            ? $"{booking.LabRoom.RoomName}, {booking.LabRoom.Building.BuildingName}"
-            : booking.LabRoom?.RoomName ?? "Unknown Location";
+        var eventTitle = $"Schedule - {schedule.LabRoom?.RoomName ?? "Unknown Room"} - {schedule.User?.FullName ?? "Unknown Lecturer"}";
+        var location = schedule.LabRoom?.Building != null
+            ? $"{schedule.LabRoom.RoomName}, {schedule.LabRoom.Building.BuildingName}"
+            : schedule.LabRoom?.RoomName ?? "Unknown Location";
 
         var calendarEvent = new Event
         {
             Summary = eventTitle,
             Location = location,
-            Description = BuildEventDescription(booking),
+            Description = BuildEventDescription(schedule),
             Start = new EventDateTime
             {
-                DateTimeDateTimeOffset = new DateTimeOffset(booking.StartTime),
+                DateTimeDateTimeOffset = new DateTimeOffset(schedule.StartTime),
                 TimeZone = _timeZone
             },
             End = new EventDateTime
             {
-                DateTimeDateTimeOffset = new DateTimeOffset(booking.EndTime),
+                DateTimeDateTimeOffset = new DateTimeOffset(schedule.EndTime),
                 TimeZone = _timeZone
             },
             Reminders = new Event.RemindersData
@@ -81,35 +82,36 @@ public class GoogleCalendarSyncService : ICalendarSyncService, IDisposable
             var request = service.Events.Insert(calendarEvent, _calendarId);
             var createdEvent = await request.ExecuteAsync(cancellationToken);
 
-            _logger.LogInformation("Created calendar event {EventId} for booking {BookingId}",
-                createdEvent.Id, bookingId);
+            _logger.LogInformation("Created calendar event {EventId} for schedule {ScheduleId}",
+                createdEvent.Id, scheduleId);
 
             return createdEvent.Id;
         }
         catch (GoogleApiException gex)
         {
             _logger.LogError(gex,
-                "Google Calendar API error while creating event for booking {BookingId}. StatusCode: {StatusCode}, Message: {Message}",
-                bookingId, gex.HttpStatusCode, gex.Message);
+                "Google Calendar API error while creating event for schedule {ScheduleId}. StatusCode: {StatusCode}, Message: {Message}",
+                scheduleId, gex.HttpStatusCode, gex.Message);
 
             throw new InvalidOperationException("Google Calendar API error while creating event.", gex);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to create calendar event for booking {BookingId}", bookingId);
-            throw new InvalidOperationException("Failed to sync booking to Google Calendar.", ex);
+            _logger.LogError(ex, "Failed to create calendar event for schedule {ScheduleId}", scheduleId);
+            throw new InvalidOperationException("Failed to sync schedule to Google Calendar.", ex);
         }
     }
 
-    public async Task UpdateCalendarEventAsync(Guid bookingId, string calendarEventId, CancellationToken cancellationToken)
+    public async Task UpdateCalendarEventAsync(Guid scheduleId, string calendarEventId, CancellationToken cancellationToken)
     {
-        var booking = await _context.Bookings
-            .Include(b => b.LabRoom)
+        var schedule = await _context.Schedules
+            .Include(s => s.LabRoom)
                 .ThenInclude(r => r.Building)
-            .FirstOrDefaultAsync(b => b.Id == bookingId, cancellationToken);
+            .Include(s => s.User)
+            .FirstOrDefaultAsync(s => s.Id == scheduleId, cancellationToken);
 
-        if (booking == null)
-            throw new InvalidOperationException($"Booking {bookingId} not found.");
+        if (schedule == null)
+            throw new InvalidOperationException($"Schedule {scheduleId} not found.");
 
         var service = await GetCalendarServiceAsync(cancellationToken);
 
@@ -117,43 +119,43 @@ public class GoogleCalendarSyncService : ICalendarSyncService, IDisposable
         {
             var existingEvent = await service.Events.Get(_calendarId, calendarEventId).ExecuteAsync(cancellationToken);
 
-            var eventTitle = $"Lab Booking - {booking.LabRoom?.RoomName ?? "Unknown Room"}";
-            var location = booking.LabRoom?.Building != null
-                ? $"{booking.LabRoom.RoomName}, {booking.LabRoom.Building.BuildingName}"
-                : booking.LabRoom?.RoomName ?? "Unknown Location";
+            var eventTitle = $"Schedule - {schedule.LabRoom?.RoomName ?? "Unknown Room"} - {schedule.User?.FullName ?? "Unknown Lecturer"}";
+            var location = schedule.LabRoom?.Building != null
+                ? $"{schedule.LabRoom.RoomName}, {schedule.LabRoom.Building.BuildingName}"
+                : schedule.LabRoom?.RoomName ?? "Unknown Location";
 
             existingEvent.Summary = eventTitle;
             existingEvent.Location = location;
-            existingEvent.Description = BuildEventDescription(booking);
+            existingEvent.Description = BuildEventDescription(schedule);
             existingEvent.Start = new EventDateTime
             {
-                DateTimeDateTimeOffset = new DateTimeOffset(booking.StartTime),
+                DateTimeDateTimeOffset = new DateTimeOffset(schedule.StartTime),
                 TimeZone = _timeZone
             };
             existingEvent.End = new EventDateTime
             {
-                DateTimeDateTimeOffset = new DateTimeOffset(booking.EndTime),
+                DateTimeDateTimeOffset = new DateTimeOffset(schedule.EndTime),
                 TimeZone = _timeZone
             };
 
             var updateRequest = service.Events.Update(existingEvent, _calendarId, calendarEventId);
             await updateRequest.ExecuteAsync(cancellationToken);
 
-            _logger.LogInformation("Updated calendar event {EventId} for booking {BookingId}",
-                calendarEventId, bookingId);
+            _logger.LogInformation("Updated calendar event {EventId} for schedule {ScheduleId}",
+                calendarEventId, scheduleId);
         }
         catch (GoogleApiException gex)
         {
             _logger.LogError(gex,
-                "Google Calendar API error while updating event {EventId} for booking {BookingId}. StatusCode: {StatusCode}, Message: {Message}",
-                calendarEventId, bookingId, gex.HttpStatusCode, gex.Message);
+                "Google Calendar API error while updating event {EventId} for schedule {ScheduleId}. StatusCode: {StatusCode}, Message: {Message}",
+                calendarEventId, scheduleId, gex.HttpStatusCode, gex.Message);
 
             throw new InvalidOperationException("Google Calendar API error while updating event.", gex);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to update calendar event {EventId} for booking {BookingId}",
-                calendarEventId, bookingId);
+            _logger.LogError(ex, "Failed to update calendar event {EventId} for schedule {ScheduleId}",
+                calendarEventId, scheduleId);
             throw new InvalidOperationException("Failed to update calendar event.", ex);
         }
     }
@@ -222,15 +224,15 @@ public class GoogleCalendarSyncService : ICalendarSyncService, IDisposable
         return _calendarService;
     }
 
-    private static string BuildEventDescription(BookLAB.Domain.Entities.Booking booking)
+    private static string BuildEventDescription(BookLAB.Domain.Entities.Schedule schedule)
     {
         return $"""
-                Booking Details:
-                - Reason: {booking.Reason ?? "N/A"}
-                - Status: {booking.BookingStatus}
-                - Booking ID: {booking.Id}
+                Schedule Details:
+                - Type: {schedule.ScheduleType}
+                - Status: {schedule.ScheduleStatus}
+                - Schedule ID: {schedule.Id}
                 
-                This is an automated booking from BookLAB system.
+                This is an automated schedule from BookLAB system.
                 """;
     }
 

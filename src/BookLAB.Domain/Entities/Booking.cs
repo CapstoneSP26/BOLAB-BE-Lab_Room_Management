@@ -12,7 +12,7 @@ namespace BookLAB.Domain.Entities
         public BookingType BookingType {  get; set; }
         public string Reason {  get; set; } = string.Empty;
         public Guid PurposeTypeId { get; set; }
-        public string? CalendarEventId { get; set; }
+        public Guid? ScheduleId { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public Guid? CreatedBy { get; set; }
@@ -20,6 +20,7 @@ namespace BookLAB.Domain.Entities
 
         public virtual LabRoom LabRoom { get; set; } = new LabRoom();
         public virtual PurposeType PurposeType { get; set; } = new PurposeType();
+        public virtual Schedule? Schedule { get; set; }
         public ICollection<BookingGroup> BookingGroups { get; set; } = new List<BookingGroup>();
     }
 }
