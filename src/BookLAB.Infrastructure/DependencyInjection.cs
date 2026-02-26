@@ -4,6 +4,8 @@ using Microsoft.Extensions.DependencyInjection;
 
 using BookLAB.Application.Common.Interfaces.Persistence;
 using BookLAB.Infrastructure.Persistence;
+using BookLAB.Application.Common.Interfaces.Repositories;
+using BookLAB.Infrastructure.Repositories;
 
 
 namespace BookLAB.Infrastructure

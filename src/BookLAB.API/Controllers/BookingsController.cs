@@ -1,9 +1,11 @@
-﻿using BookLAB.Application.Features.Bookings.Queries.ViewBookingHistory;
+﻿using BookLAB.Application.Features.Bookings.Queries.GetBookingStats;
+using BookLAB.Application.Features.Bookings.Queries.ViewBookingHistory;
 using BookLAB.Domain.DTOs;
 using BookLAB.Domain.Entities;
 using BookLAB.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration.UserSecrets;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -69,22 +71,25 @@ namespace BookLAB.API.Controllers
                     page = dto.page,
                     limit = dto.limit
                 });
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 return null;
             }
-            
+
         }
 
-
-        public async Task<IActionResult> GetBookingStats([FromBody] GetBookingStatsRequestDTO dto)
+        [HttpGet("get-booking-stats")]
+        public async Task<IActionResult> GetBookingStats([FromQuery] GetBookingStatsRequestDTO dto)
         {
             try
             {
                 GetBookingStatsCommand command = new GetBookingStatsCommand
                 {
-                    startDate = dto.startDate,
-                    endDate = dto.endDate,
+                     //userId = "11111111-1111-1111-1111-111111111111"
+                    userId = HttpContext.User.FindFirst("Id").Value,
+                    startDate = DateTimeOffset.Parse(dto.startDate).ToUniversalTime(),
+                    endDate = DateTimeOffset.Parse(dto.endDate).ToUniversalTime(),
                 };
                 var result = await _mediator.Send(command);
                 return Ok(result);
@@ -94,4 +99,5 @@ namespace BookLAB.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+    }
 }
