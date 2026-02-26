@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
 
-namespace BookLAB.Application.Features.Bookings.ViewBookingHistory
+namespace BookLAB.Application.Features.Bookings.Queries.ViewBookingHistory
 {
     public class ViewBookingHistoryHandler : IRequestHandler<ViewBookingHistoryCommand, List<Booking>>
     {

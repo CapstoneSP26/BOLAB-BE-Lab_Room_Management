@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace BookLAB.Application.Features.Bookings.ViewBookingHistory
+namespace BookLAB.Application.Features.Bookings.Queries.ViewBookingHistory
 {
     public class ViewBookingHistoryValidator : AbstractValidator<ViewBookingHistoryCommand>
     {

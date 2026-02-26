@@ -1,4 +1,4 @@
-﻿using BookLAB.Application.Features.Bookings.ViewBookingHistory;
+﻿using BookLAB.Application.Features.Bookings.Queries.ViewBookingHistory;
 using BookLAB.Domain.DTOs;
 using BookLAB.Domain.Entities;
 using BookLAB.Domain.Enums;
@@ -75,5 +75,23 @@ namespace BookLAB.API.Controllers
             }
             
         }
-    }
+
+
+        public async Task<IActionResult> GetBookingStats([FromBody] GetBookingStatsRequestDTO dto)
+        {
+            try
+            {
+                GetBookingStatsCommand command = new GetBookingStatsCommand
+                {
+                    startDate = dto.startDate,
+                    endDate = dto.endDate,
+                };
+                var result = await _mediator.Send(command);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
 }
