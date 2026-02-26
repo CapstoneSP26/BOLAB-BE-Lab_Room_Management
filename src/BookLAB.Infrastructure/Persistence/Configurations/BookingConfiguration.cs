@@ -62,6 +62,12 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
             .HasForeignKey(bg => bg.BookingId)
             .OnDelete(DeleteBehavior.Cascade); // Xóa Booking thì xóa các nhóm liên quan
 
+        // Booking - CreatedByUser (1-n)
+        builder.HasOne(b => b.CreatedByUser)
+            .WithMany()
+            .HasForeignKey(b => b.CreatedBy)
+            .OnDelete(DeleteBehavior.Restrict);
+
         // 5. Cấu hình Hiệu năng (Performance & Index)
 
         // Index cho LabRoomId và Khoảng thời gian để check trùng lịch cực nhanh

@@ -20,6 +20,7 @@ namespace BookLAB.Domain.Entities
 
         public virtual LabRoom LabRoom { get; set; }
         public virtual PurposeType PurposeType { get; set; }
+        public virtual User CreatedByUser { get; set; }
         public ICollection<BookingGroup> BookingGroups { get; set; } = new List<BookingGroup>();
     }
 }
