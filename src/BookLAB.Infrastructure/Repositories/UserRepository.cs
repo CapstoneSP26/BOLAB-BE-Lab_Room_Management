@@ -1,5 +1,4 @@
-﻿using BookLAB.Application.Common.Interfaces.Persistence;
-using BookLAB.Application.Common.Interfaces.Repositories;
+﻿using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Domain.Entities;
 using BookLAB.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;

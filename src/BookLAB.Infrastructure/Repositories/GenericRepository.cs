@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BookLAB.Infrastructure.Repositories
 {
-    public class GenericRepository<T> : IGenericRepository<T> where T : class
+    public class GenericRepository<T> : IGenericRepository<T> where T : class 
     {
         private readonly BookLABDbContext _context;
         public GenericRepository(BookLABDbContext context) => _context = context;

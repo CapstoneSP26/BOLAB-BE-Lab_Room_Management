@@ -9,9 +9,9 @@ namespace BookLAB.Infrastructure.Repositories
     {
         private readonly BookLABDbContext _context;
 
-        public LabOwnerRepository(BookLABDbContext context) : base(context)
+        public LabOwnerRepository(BookLABDbContext context) : base(context) 
         {
-            _context = context;
+            _context = context;       
         }
 
         public async Task<List<Guid>> GetOwnerIdsByLabRoomIdAsync(int labRoomId)

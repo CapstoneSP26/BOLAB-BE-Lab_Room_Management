@@ -1,9 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-
-using BookLAB.Application.Common.Interfaces.Persistence;
 using BookLAB.Infrastructure.Persistence;
+using BookLAB.Application.Common.Interfaces.Identity;
+using BookLAB.Infrastructure.Identity;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Infrastructure.Repositories;
 
@@ -21,14 +21,14 @@ namespace BookLAB.Infrastructure
                 options.UseNpgsql(
                     configuration.GetConnectionString("DefaultConnection")));
 
-            services.AddScoped<IBookLABDbContext>(provider =>
+            services.AddScoped<BookLABDbContext>(provider =>
                 provider.GetRequiredService<BookLABDbContext>());
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             // ===== IDENTITY =====
-            //services.AddHttpContextAccessor();
-            //services.AddScoped<ICurrentUserService, CurrentUserService>();
+            services.AddHttpContextAccessor();
+            services.AddScoped<ICurrentUserService, CurrentUserService>();
 
             // ===== SERVICES =====
             //services.AddScoped<IDateTime, DateTimeService>();
