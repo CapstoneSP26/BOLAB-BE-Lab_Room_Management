@@ -1,5 +1,7 @@
 ﻿using System.Reflection;
 using BookLAB.Application.Common.Behaviors;
+using BookLAB.Application.Common.Interfaces.Services;
+using BookLAB.Application.Common.Policies;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,6 +35,20 @@ public static class DependencyInjection
             // Performance check cuối cùng để đo lường hiệu suất của Handler
             //cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(PerformanceBehaviour<,>));
         });
+
+        services.AddScoped<IPolicyEngine, PolicyEngine>();
+
+        var assembly = Assembly.GetExecutingAssembly();
+        var handlerTypes = assembly.GetTypes()
+            .Where(t => typeof(IBookingPolicyHandler).IsAssignableFrom(t)
+                        && !t.IsInterface
+                        && !t.IsAbstract);
+
+        foreach (var type in handlerTypes)
+        {
+            // Register as Scoped so they can inject IUnitOfWork or other services
+            services.AddScoped(typeof(IBookingPolicyHandler), type);
+        }
 
         return services;
     }
