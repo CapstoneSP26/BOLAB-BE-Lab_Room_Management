@@ -6,6 +6,7 @@ namespace BookLAB.Domain.Entities
     {
         public string Email { get; set; } = string.Empty;
         public string FullName { get; set; } = string.Empty;
+        public string UserCode { get; set; } = string.Empty;
         public string UserImageUrl { get; set; } = string.Empty;
         public string? Provider { get; set; } 
         public string? ProviderId { get; set; }

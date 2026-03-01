@@ -14,10 +14,10 @@ namespace BookLAB.Domain.Entities
         public int StudentCount { get; set; }
         public int Recur {  get; set; }
         public string Reason {  get; set; } = string.Empty;
-        public Guid PurposeTypeId { get; set; }
+        public int PurposeTypeId { get; set; }
         public Guid? ScheduleId { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime? UpdatedAt { get; set; }
+        public DateTimeOffset CreatedAt { get; set; }
+        public DateTimeOffset? UpdatedAt { get; set; }
         public Guid? CreatedBy { get; set; }
         public Guid? UpdatedBy { get; set; }
 

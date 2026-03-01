@@ -1,5 +1,6 @@
-using BookLAB.Application.Common.Interfaces.Persistence;
+using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Interfaces.Services;
+using BookLAB.Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -8,24 +9,23 @@ namespace BookLAB.Application.Features.Bookings.Commands.UpdateCalendarEvent;
 
 public class UpdateCalendarEventCommandHandler : IRequestHandler<UpdateCalendarEventCommand, Unit>
 {
-    private readonly IBookLABDbContext _context;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly ICalendarSyncService _calendarSyncService;
     private readonly ILogger<UpdateCalendarEventCommandHandler> _logger;
 
     public UpdateCalendarEventCommandHandler(
-        IBookLABDbContext context,
+        IUnitOfWork unitOfWork,
         ICalendarSyncService calendarSyncService,
         ILogger<UpdateCalendarEventCommandHandler> logger)
     {
-        _context = context;
+        _unitOfWork = unitOfWork;
         _calendarSyncService = calendarSyncService;
         _logger = logger;
     }
 
     public async Task<Unit> Handle(UpdateCalendarEventCommand request, CancellationToken cancellationToken)
     {
-        var booking = await _context.Bookings
-            .FirstOrDefaultAsync(b => b.Id == request.BookingId, cancellationToken);
+        var booking = await _unitOfWork.Repository<Booking>().GetByIdAsync(request.BookingId);
 
         if (booking == null)
         {
@@ -39,8 +39,7 @@ public class UpdateCalendarEventCommandHandler : IRequestHandler<UpdateCalendarE
             throw new InvalidOperationException("Booking must be associated with a schedule before updating calendar event.");
         }
 
-        var schedule = await _context.Schedules
-            .FirstOrDefaultAsync(s => s.Id == booking.ScheduleId.Value, cancellationToken);
+        var schedule = await _unitOfWork.Repository<Schedule>().GetByIdAsync(booking.ScheduleId.Value);
 
         if (schedule == null)
         {

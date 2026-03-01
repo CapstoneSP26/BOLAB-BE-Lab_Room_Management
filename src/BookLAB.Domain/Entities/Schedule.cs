@@ -10,6 +10,7 @@ namespace BookLAB.Domain.Entities
         public Guid? BookingId { get; set; }
         public Guid? GroupId { get; set; }
         public int SlotTypeId { get; set; }
+        public string? CalendarEventId { get; set; }
         public ScheduleType ScheduleType { get; set; }
         public ScheduleStatus ScheduleStatus { get; set; }
         public int StudentCount { get; set; }

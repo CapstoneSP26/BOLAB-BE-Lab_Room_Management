@@ -2,15 +2,13 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-using BookLAB.Application.Common.Interfaces.Persistence;
 using BookLAB.Application.Common.Interfaces.Services;
 using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Infrastructure.Persistence;
-using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Infrastructure.Identity;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Infrastructure.Repositories;
-
+using BookLAB.Infrastructure.Services;
 
 namespace BookLAB.Infrastructure
 {
@@ -35,10 +33,16 @@ namespace BookLAB.Infrastructure
             services.AddScoped<ICurrentUserService, Identity.CurrentUserService>();
 
             // ===== SERVICES =====
-            //services.AddScoped<IDateTime, DateTimeService>();
+            services.AddScoped<IBookingService, BookingService>();
             //services.AddScoped<IEmailService, EmailService>();
-            // services.AddScoped<IFileStorageService, LocalFileStorageService>();
+            services.AddScoped<IScheduleService, ScheduleService>();
             services.AddScoped<ICalendarSyncService, GoogleCalendarSyncService>();
+
+            // ===== REPOSITORIES =====
+            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IUserRoleRepository, UserRoleRepository>();
+            services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+            services.AddScoped<IBookingRepository, BookingRepository>();
 
             return services;
         }

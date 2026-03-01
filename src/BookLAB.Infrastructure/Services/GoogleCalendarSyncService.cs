@@ -1,5 +1,6 @@
-using BookLAB.Application.Common.Interfaces.Persistence;
+using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Interfaces.Services;
+using BookLAB.Domain.Entities;
 using Google;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Calendar.v3;
@@ -13,7 +14,7 @@ namespace BookLAB.Infrastructure.Services;
 
 public class GoogleCalendarSyncService : ICalendarSyncService, IDisposable
 {
-    private readonly IBookLABDbContext _context;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly IConfiguration _configuration;
     private readonly ILogger<GoogleCalendarSyncService> _logger;
     private readonly string _calendarId;
@@ -22,11 +23,11 @@ public class GoogleCalendarSyncService : ICalendarSyncService, IDisposable
     private bool _disposed;
 
     public GoogleCalendarSyncService(
-        IBookLABDbContext context,
+        IUnitOfWork unitOfWork,
         IConfiguration configuration,
         ILogger<GoogleCalendarSyncService> logger)
     {
-        _context = context;
+        _unitOfWork = unitOfWork;
         _configuration = configuration;
         _logger = logger;
         _calendarId = _configuration["GoogleCalendar:CalendarId"] ?? "primary";
@@ -35,7 +36,7 @@ public class GoogleCalendarSyncService : ICalendarSyncService, IDisposable
 
     public async Task<string> CreateCalendarEventAsync(Guid scheduleId, CancellationToken cancellationToken)
     {
-        var schedule = await _context.Schedules
+        var schedule = await _unitOfWork.Repository<Schedule>().Entities
             .Include(s => s.LabRoom)
                 .ThenInclude(r => r.Building)
             .Include(s => s.User)
@@ -58,12 +59,12 @@ public class GoogleCalendarSyncService : ICalendarSyncService, IDisposable
             Description = BuildEventDescription(schedule),
             Start = new EventDateTime
             {
-                DateTimeDateTimeOffset = new DateTimeOffset(schedule.StartTime),
+                DateTimeDateTimeOffset = new DateTimeOffset(schedule.StartTime.DateTime),
                 TimeZone = _timeZone
             },
             End = new EventDateTime
             {
-                DateTimeDateTimeOffset = new DateTimeOffset(schedule.EndTime),
+                DateTimeDateTimeOffset = new DateTimeOffset(schedule.EndTime.DateTime),
                 TimeZone = _timeZone
             },
             Reminders = new Event.RemindersData
@@ -104,7 +105,7 @@ public class GoogleCalendarSyncService : ICalendarSyncService, IDisposable
 
     public async Task UpdateCalendarEventAsync(Guid scheduleId, string calendarEventId, CancellationToken cancellationToken)
     {
-        var schedule = await _context.Schedules
+        var schedule = await _unitOfWork.Repository<Schedule>().Entities
             .Include(s => s.LabRoom)
                 .ThenInclude(r => r.Building)
             .Include(s => s.User)
@@ -129,12 +130,12 @@ public class GoogleCalendarSyncService : ICalendarSyncService, IDisposable
             existingEvent.Description = BuildEventDescription(schedule);
             existingEvent.Start = new EventDateTime
             {
-                DateTimeDateTimeOffset = new DateTimeOffset(schedule.StartTime),
+                DateTimeDateTimeOffset = new DateTimeOffset(schedule.StartTime.DateTime),
                 TimeZone = _timeZone
             };
             existingEvent.End = new EventDateTime
             {
-                DateTimeDateTimeOffset = new DateTimeOffset(schedule.EndTime),
+                DateTimeDateTimeOffset = new DateTimeOffset(schedule.EndTime.DateTime),
                 TimeZone = _timeZone
             };
 
@@ -224,7 +225,7 @@ public class GoogleCalendarSyncService : ICalendarSyncService, IDisposable
         return _calendarService;
     }
 
-    private static string BuildEventDescription(BookLAB.Domain.Entities.Schedule schedule)
+    private static string BuildEventDescription(Schedule schedule)
     {
         return $"""
                 Schedule Details:

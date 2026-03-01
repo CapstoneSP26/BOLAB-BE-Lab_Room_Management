@@ -16,12 +16,10 @@
 
   <ItemGroup>
     <Folder Include="Common\Mappings\" />
-    <Folder Include="Common\Models\" />
     <Folder Include="Features\Attendance\Commands\" />
     <Folder Include="Features\Attendance\Queries\" />
     <Folder Include="Features\Auth\Commands\" />
     <Folder Include="Features\Auth\Queries\" />
-    <Folder Include="Features\Bookings\Queries\" />
     <Folder Include="Features\Equipments\Commands\" />
     <Folder Include="Features\Equipments\Queries\" />
     <Folder Include="Features\Feedbacks\Commands\" />
@@ -30,6 +28,7 @@
     <Folder Include="Features\Groups\Queries\" />
     <Folder Include="Features\LabRooms\Commands\" />
     <Folder Include="Features\LabRooms\Queries\" />
+    <Folder Include="Features\Schedules\Queries\" />
     <Folder Include="Features\Users\Commands\" />
     <Folder Include="Features\Users\Queries\" />
   </ItemGroup>

@@ -1,5 +1,6 @@
-using BookLAB.Application.Common.Interfaces.Persistence;
+using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Interfaces.Services;
+using BookLAB.Domain.Entities;
 using BookLAB.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -9,23 +10,23 @@ namespace BookLAB.Application.Features.Bookings.Commands.SyncToCalendar;
 
 public class SyncBookingToCalendarCommandHandler : IRequestHandler<SyncBookingToCalendarCommand, string>
 {
-    private readonly IBookLABDbContext _context;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly ICalendarSyncService _calendarSyncService;
     private readonly ILogger<SyncBookingToCalendarCommandHandler> _logger;
 
     public SyncBookingToCalendarCommandHandler(
-        IBookLABDbContext context,
+        IUnitOfWork unitOfWork,
         ICalendarSyncService calendarSyncService,
         ILogger<SyncBookingToCalendarCommandHandler> logger)
     {
-        _context = context;
+        _unitOfWork = unitOfWork;
         _calendarSyncService = calendarSyncService;
         _logger = logger;
     }
 
     public async Task<string> Handle(SyncBookingToCalendarCommand request, CancellationToken cancellationToken)
     {
-        var booking = await _context.Bookings
+        var booking = await _unitOfWork.Repository<Booking>().Entities
             .Include(b => b.LabRoom)
             .FirstOrDefaultAsync(b => b.Id == request.BookingId, cancellationToken);
 
@@ -56,9 +57,7 @@ public class SyncBookingToCalendarCommandHandler : IRequestHandler<SyncBookingTo
                 scheduleId,
                 cancellationToken);
 
-            var schedule = await _context.Schedules
-                .FirstOrDefaultAsync(s => s.Id == scheduleId, cancellationToken);
-
+            var schedule = await _unitOfWork.Repository<Schedule>().GetByIdAsync(scheduleId);
             if (schedule == null)
             {
                 _logger.LogWarning("Schedule {ScheduleId} not found when syncing booking {BookingId} to calendar", scheduleId, request.BookingId);
@@ -66,7 +65,7 @@ public class SyncBookingToCalendarCommandHandler : IRequestHandler<SyncBookingTo
             }
 
             schedule.CalendarEventId = calendarEventId;
-            await _context.SaveChangesAsync(cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation("Booking {BookingId} synced to calendar via schedule {ScheduleId} with event ID {EventId}",
                 request.BookingId, scheduleId, calendarEventId);

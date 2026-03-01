@@ -1,9 +1,6 @@
 ﻿using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Interfaces.Services;
 using BookLAB.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace BookLAB.Infrastructure.Services
 {
