@@ -6,6 +6,8 @@ using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Infrastructure.Identity;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Infrastructure.Repositories;
+using BookLAB.Application.Common.Interfaces.Services;
+using BookLAB.Infrastructure.Services;
 
 
 namespace BookLAB.Infrastructure
@@ -31,9 +33,15 @@ namespace BookLAB.Infrastructure
             services.AddScoped<ICurrentUserService, CurrentUserService>();
 
             // ===== SERVICES =====
-            //services.AddScoped<IDateTime, DateTimeService>();
+            services.AddScoped<IBookingService, BookingService>();
             //services.AddScoped<IEmailService, EmailService>();
-            // services.AddScoped<IFileStorageService, LocalFileStorageService>();
+            services.AddScoped<IScheduleService, ScheduleService>();
+
+            // ===== REPOSITORIES =====
+            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IUserRoleRepository, UserRoleRepository>();
+            services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+            services.AddScoped<IBookingRepository, BookingRepository>();
 
             return services;
         }

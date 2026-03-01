@@ -1,5 +1,4 @@
-﻿using BookLAB.Domain.Common;
-
+﻿
 namespace BookLAB.Domain.Entities
 {
     public class PurposeType 
