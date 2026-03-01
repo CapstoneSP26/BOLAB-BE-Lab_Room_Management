@@ -29,9 +29,15 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
             .HasMaxLength(20)
             .IsRequired();
 
+        builder.Property(b => b.Recur)
+            .HasDefaultValue(0);
+
         builder.Property(b => b.BookingType)
             .HasConversion<string>()
             .HasMaxLength(20)
+            .IsRequired();
+
+        builder.Property(b => b.StudentCount)
             .IsRequired();
 
         // 3. Cấu hình các thuộc tính từ IAuditable & IUserTrackable
@@ -64,6 +70,12 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
             .WithOne(bg => bg.Booking)
             .HasForeignKey(bg => bg.BookingId)
             .OnDelete(DeleteBehavior.Cascade); // Xóa Booking thì xóa các nhóm liên quan
+
+        // Booking - SlotType (1-n)
+        builder.HasOne(b => b.SlotType)
+            .WithMany()
+            .HasForeignKey(b => b.SlotTypeId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         // 5. Cấu hình Hiệu năng (Performance & Index)
 

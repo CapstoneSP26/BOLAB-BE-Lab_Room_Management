@@ -14,12 +14,20 @@ public class ScheduleConfiguration : IEntityTypeConfiguration<Schedule>
 
         // 2. Cấu hình các thuộc tính cơ bản
         builder.Property(s => s.ScheduleType)
-            .HasMaxLength(50)
+            .HasConversion<string>()
+            .HasMaxLength(20)
             .IsRequired();
 
         builder.Property(s => s.ScheduleStatus)
-            .HasMaxLength(50)
+            .HasConversion<string>()
+            .HasMaxLength(20)
             .IsRequired();
+
+        builder.Property(s => s.StudentCount)
+            .IsRequired(); 
+        
+        builder.Property(s => s.SubjectCode)
+            .HasMaxLength(20);
 
         builder.Property(s => s.CalendarEventId)
             .HasMaxLength(255)
@@ -56,6 +64,24 @@ public class ScheduleConfiguration : IEntityTypeConfiguration<Schedule>
         builder.HasOne(s => s.LabRoom)
             .WithMany()
             .HasForeignKey(s => s.LabRoomId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Schedule - LabRoom (N-1)
+        builder.HasOne(s => s.Booking)
+            .WithOne()
+            .HasForeignKey<Schedule>(s => s.BookingId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Schedule - Group (N-1)
+        builder.HasOne(s => s.Group)
+            .WithMany()
+            .HasForeignKey(s => s.GroupId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Schedule - SlotType (N-1)
+        builder.HasOne(s => s.SlotType)
+            .WithMany()
+            .HasForeignKey(s => s.SlotTypeId)
             .OnDelete(DeleteBehavior.Restrict);
 
         // Schedule - Report (1-N)

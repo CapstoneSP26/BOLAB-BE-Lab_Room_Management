@@ -6,7 +6,10 @@ using BookLAB.Application.Common.Interfaces.Persistence;
 using BookLAB.Application.Common.Interfaces.Services;
 using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Infrastructure.Persistence;
-using BookLAB.Infrastructure.Services;
+using BookLAB.Application.Common.Interfaces.Identity;
+using BookLAB.Infrastructure.Identity;
+using BookLAB.Application.Common.Interfaces.Repositories;
+using BookLAB.Infrastructure.Repositories;
 
 
 namespace BookLAB.Infrastructure
@@ -22,7 +25,7 @@ namespace BookLAB.Infrastructure
                 options.UseNpgsql(
                     configuration.GetConnectionString("DefaultConnection")));
 
-            services.AddScoped<IBookLABDbContext>(provider =>
+            services.AddScoped<BookLABDbContext>(provider =>
                 provider.GetRequiredService<BookLABDbContext>());
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
