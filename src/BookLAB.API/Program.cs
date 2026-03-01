@@ -1,6 +1,7 @@
 using BookLAB.API.Middlewares;
 using BookLAB.Application;
 using BookLAB.Infrastructure;
+using BookLAB.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;

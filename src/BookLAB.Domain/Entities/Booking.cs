@@ -14,7 +14,8 @@ namespace BookLAB.Domain.Entities
         public int StudentCount { get; set; }
         public int Recur {  get; set; }
         public string Reason {  get; set; } = string.Empty;
-        public int PurposeTypeId { get; set; } 
+        public int PurposeTypeId { get; set; }
+        public Guid? ScheduleId { get; set; }
         public DateTimeOffset CreatedAt { get; set; }
         public DateTimeOffset? UpdatedAt { get; set; }
         public Guid? CreatedBy { get; set; }
@@ -22,6 +23,7 @@ namespace BookLAB.Domain.Entities
 
         public virtual LabRoom LabRoom { get; set; } = new LabRoom();
         public virtual PurposeType PurposeType { get; set; } = new PurposeType();
+        public virtual Schedule? Schedule { get; set; }
         public virtual SlotType SlotType { get; set; } = new SlotType();
         public ICollection<BookingGroup> BookingGroups { get; set; } = new List<BookingGroup>();
     }
