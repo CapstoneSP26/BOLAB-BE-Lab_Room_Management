@@ -59,6 +59,12 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
             .HasForeignKey(b => b.PurposeTypeId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // Booking - Schedule (N-1, optional)
+        builder.HasOne(b => b.Schedule)
+            .WithMany()
+            .HasForeignKey(b => b.ScheduleId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         // Booking - BookingGroups (1-n)
         builder.HasMany(b => b.BookingGroups)
             .WithOne(bg => bg.Booking)

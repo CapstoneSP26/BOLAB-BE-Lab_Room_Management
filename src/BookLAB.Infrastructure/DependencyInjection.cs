@@ -1,6 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+
+using BookLAB.Application.Common.Interfaces.Persistence;
+using BookLAB.Application.Common.Interfaces.Services;
+using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Infrastructure.Persistence;
 using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Infrastructure.Identity;
@@ -28,12 +32,13 @@ namespace BookLAB.Infrastructure
 
             // ===== IDENTITY =====
             services.AddHttpContextAccessor();
-            services.AddScoped<ICurrentUserService, CurrentUserService>();
+            services.AddScoped<ICurrentUserService, Identity.CurrentUserService>();
 
             // ===== SERVICES =====
             //services.AddScoped<IDateTime, DateTimeService>();
             //services.AddScoped<IEmailService, EmailService>();
             // services.AddScoped<IFileStorageService, LocalFileStorageService>();
+            services.AddScoped<ICalendarSyncService, GoogleCalendarSyncService>();
 
             return services;
         }
