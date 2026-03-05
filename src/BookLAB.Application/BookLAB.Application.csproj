@@ -16,8 +16,6 @@
 
   <ItemGroup>
     <Folder Include="Common\Mappings\" />
-    <Folder Include="Features\Attendance\Commands\" />
-    <Folder Include="Features\Attendance\Queries\" />
     <Folder Include="Features\Auth\Commands\" />
     <Folder Include="Features\Auth\Queries\" />
     <Folder Include="Features\Equipments\Commands\" />
