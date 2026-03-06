@@ -6,10 +6,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
 
-namespace BookLAB.API.Migrations
+namespace BookLAB.Infrastructure.Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class AlterSeedData : Migration
+    public partial class AlterSeedDate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -119,6 +119,7 @@ namespace BookLAB.API.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Email = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
                     FullName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    UserCode = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     UserImageUrl = table.Column<string>(type: "character varying(2048)", maxLength: 2048, nullable: true),
                     Provider = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     ProviderId = table.Column<string>(type: "character varying(1024)", maxLength: 1024, nullable: true),
@@ -148,10 +149,12 @@ namespace BookLAB.API.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     BuildingId = table.Column<int>(type: "integer", nullable: false),
-                    RoomName = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    RoomName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    RoomNo = table.Column<string>(type: "text", nullable: false),
                     Location = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
                     OverrideNumber = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
                     HasEquipment = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                    Capacity = table.Column<int>(type: "integer", nullable: false, defaultValue: 1),
                     Description = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
                     CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
@@ -242,41 +245,6 @@ namespace BookLAB.API.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Bookings",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    LabRoomId = table.Column<int>(type: "integer", nullable: false),
-                    StartTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    EndTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    BookingStatus = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
-                    BookingType = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
-                    Recur = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
-                    Reason = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
-                    PurposeTypeId = table.Column<int>(type: "integer", nullable: false),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
-                    CreatedBy = table.Column<Guid>(type: "uuid", nullable: false),
-                    UpdatedBy = table.Column<Guid>(type: "uuid", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Bookings", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Bookings_LabRooms_LabRoomId",
-                        column: x => x.LabRoomId,
-                        principalTable: "LabRooms",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Bookings_PurposeTypes_PurposeTypeId",
-                        column: x => x.PurposeTypeId,
-                        principalTable: "PurposeTypes",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "LabImages",
                 columns: table => new
                 {
@@ -349,41 +317,6 @@ namespace BookLAB.API.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Schedules",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    LecturerId = table.Column<Guid>(type: "uuid", nullable: false),
-                    LabRoomId = table.Column<int>(type: "integer", nullable: false),
-                    ScheduleType = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    ScheduleStatus = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    StartTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    EndTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
-                    CreatedBy = table.Column<Guid>(type: "uuid", nullable: false),
-                    UpdatedBy = table.Column<Guid>(type: "uuid", nullable: true),
-                    IsActive = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
-                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Schedules", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Schedules_LabRooms_LabRoomId",
-                        column: x => x.LabRoomId,
-                        principalTable: "LabRooms",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Schedules_Users_LecturerId",
-                        column: x => x.LecturerId,
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "GroupMembers",
                 columns: table => new
                 {
@@ -413,7 +346,7 @@ namespace BookLAB.API.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    BookingId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ScheduleId = table.Column<Guid>(type: "uuid", nullable: false),
                     UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     CheckInTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     CheckOutTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
@@ -427,12 +360,6 @@ namespace BookLAB.API.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Attendances", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Attendances_Bookings_BookingId",
-                        column: x => x.BookingId,
-                        principalTable: "Bookings",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Attendances_Users_UserId",
                         column: x => x.UserId,
@@ -452,12 +379,6 @@ namespace BookLAB.API.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_BookingGroups", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_BookingGroups_Bookings_BookingId",
-                        column: x => x.BookingId,
-                        principalTable: "Bookings",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_BookingGroups_Groups_GroupId",
                         column: x => x.GroupId,
@@ -485,12 +406,6 @@ namespace BookLAB.API.Migrations
                 {
                     table.PrimaryKey("PK_BookingRequests", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_BookingRequests_Bookings_BookingId",
-                        column: x => x.BookingId,
-                        principalTable: "Bookings",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
                         name: "FK_BookingRequests_Users_RequestedByUserId",
                         column: x => x.RequestedByUserId,
                         principalTable: "Users",
@@ -499,6 +414,109 @@ namespace BookLAB.API.Migrations
                     table.ForeignKey(
                         name: "FK_BookingRequests_Users_ResponsedByUserId",
                         column: x => x.ResponsedByUserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Bookings",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    LabRoomId = table.Column<int>(type: "integer", nullable: false),
+                    StartTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    EndTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    SlotTypeId = table.Column<int>(type: "integer", nullable: false),
+                    BookingStatus = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    BookingType = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    StudentCount = table.Column<int>(type: "integer", nullable: false),
+                    Recur = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
+                    Reason = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
+                    PurposeTypeId = table.Column<int>(type: "integer", nullable: false),
+                    ScheduleId = table.Column<Guid>(type: "uuid", nullable: true),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    CreatedBy = table.Column<Guid>(type: "uuid", nullable: false),
+                    UpdatedBy = table.Column<Guid>(type: "uuid", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Bookings", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Bookings_LabRooms_LabRoomId",
+                        column: x => x.LabRoomId,
+                        principalTable: "LabRooms",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Bookings_PurposeTypes_PurposeTypeId",
+                        column: x => x.PurposeTypeId,
+                        principalTable: "PurposeTypes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Bookings_SlotTypes_SlotTypeId",
+                        column: x => x.SlotTypeId,
+                        principalTable: "SlotTypes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Schedules",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    LecturerId = table.Column<Guid>(type: "uuid", nullable: false),
+                    LabRoomId = table.Column<int>(type: "integer", nullable: false),
+                    BookingId = table.Column<Guid>(type: "uuid", nullable: true),
+                    GroupId = table.Column<Guid>(type: "uuid", nullable: true),
+                    SlotTypeId = table.Column<int>(type: "integer", nullable: false),
+                    CalendarEventId = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
+                    ScheduleType = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    ScheduleStatus = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    StudentCount = table.Column<int>(type: "integer", nullable: false),
+                    SubjectCode = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
+                    StartTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    EndTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    CreatedBy = table.Column<Guid>(type: "uuid", nullable: false),
+                    UpdatedBy = table.Column<Guid>(type: "uuid", nullable: true),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Schedules", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Schedules_Bookings_BookingId",
+                        column: x => x.BookingId,
+                        principalTable: "Bookings",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Schedules_Groups_GroupId",
+                        column: x => x.GroupId,
+                        principalTable: "Groups",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Schedules_LabRooms_LabRoomId",
+                        column: x => x.LabRoomId,
+                        principalTable: "LabRooms",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Schedules_SlotTypes_SlotTypeId",
+                        column: x => x.SlotTypeId,
+                        principalTable: "SlotTypes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Schedules_Users_LecturerId",
+                        column: x => x.LecturerId,
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
@@ -537,8 +555,7 @@ namespace BookLAB.API.Migrations
                     ReportId = table.Column<Guid>(type: "uuid", nullable: false),
                     ImageUrl = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
                     Size = table.Column<int>(type: "integer", nullable: false),
-                    FileType = table.Column<int>(type: "integer", nullable: false),
-                    IsAvatar = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false)
+                    FileType = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -613,12 +630,12 @@ namespace BookLAB.API.Migrations
 
             migrationBuilder.InsertData(
                 table: "Users",
-                columns: new[] { "Id", "CampusId", "CreatedAt", "CreatedBy", "Email", "FullName", "IsActive", "Provider", "ProviderId", "UpdatedAt", "UpdatedBy", "UserImageUrl" },
+                columns: new[] { "Id", "CampusId", "CreatedAt", "CreatedBy", "Email", "FullName", "IsActive", "Provider", "ProviderId", "UpdatedAt", "UpdatedBy", "UserCode", "UserImageUrl" },
                 values: new object[,]
                 {
-                    { new Guid("11111111-1111-1111-1111-111111111111"), 1, new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), null, "alice@example.edu", "Alice Tran", true, null, null, null, null, "" },
-                    { new Guid("22222222-2222-2222-2222-222222222222"), 1, new DateTimeOffset(new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), null, "bob@example.edu", "Bob Nguyen", true, null, null, null, null, "" },
-                    { new Guid("33333333-3333-3333-3333-333333333333"), 2, new DateTimeOffset(new DateTime(2025, 1, 3, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), null, "carol@example.edu", "Carol Le", true, null, null, null, null, "" }
+                    { new Guid("11111111-1111-1111-1111-111111111111"), 1, new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), null, "alice@example.edu", "Alice Tran", true, null, null, null, null, "AliceT", "" },
+                    { new Guid("22222222-2222-2222-2222-222222222222"), 1, new DateTimeOffset(new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), null, "bob@example.edu", "Bob Nguyen", true, null, null, null, null, "BobN", "" },
+                    { new Guid("33333333-3333-3333-3333-333333333333"), 2, new DateTimeOffset(new DateTime(2025, 1, 3, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), null, "carol@example.edu", "Carol Le", true, null, null, null, null, "CarolL", "" }
                 });
 
             migrationBuilder.InsertData(
@@ -633,17 +650,17 @@ namespace BookLAB.API.Migrations
 
             migrationBuilder.InsertData(
                 table: "LabRooms",
-                columns: new[] { "Id", "BuildingId", "CreatedAt", "CreatedBy", "Description", "HasEquipment", "IsActive", "Location", "RoomName", "UpdatedAt", "UpdatedBy" },
+                columns: new[] { "Id", "BuildingId", "CreatedAt", "CreatedBy", "Description", "HasEquipment", "IsActive", "Location", "RoomName", "RoomNo", "UpdatedAt", "UpdatedBy" },
                 values: new object[,]
                 {
-                    { 1, 1, new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), new Guid("11111111-1111-1111-1111-111111111111"), "General purpose lab", true, true, "Floor 1", "Lab A1", null, null },
-                    { 2, 1, new DateTimeOffset(new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), new Guid("11111111-1111-1111-1111-111111111111"), "Hardware lab", true, true, "Floor 2", "Lab A2", null, null }
+                    { 1, 1, new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), new Guid("11111111-1111-1111-1111-111111111111"), "General purpose lab", true, true, "Floor 1", "Lab A1", "Gamma 101", null, null },
+                    { 2, 1, new DateTimeOffset(new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), new Guid("11111111-1111-1111-1111-111111111111"), "Hardware lab", true, true, "Floor 2", "Lab A2", "Gamma 102", null, null }
                 });
 
             migrationBuilder.InsertData(
                 table: "LabRooms",
-                columns: new[] { "Id", "BuildingId", "CreatedAt", "CreatedBy", "Description", "IsActive", "Location", "RoomName", "UpdatedAt", "UpdatedBy" },
-                values: new object[] { 3, 2, new DateTimeOffset(new DateTime(2025, 1, 3, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), new Guid("11111111-1111-1111-1111-111111111111"), "Software lab", true, "Floor 3", "Lab B1", null, null });
+                columns: new[] { "Id", "BuildingId", "CreatedAt", "CreatedBy", "Description", "IsActive", "Location", "RoomName", "RoomNo", "UpdatedAt", "UpdatedBy" },
+                values: new object[] { 3, 2, new DateTimeOffset(new DateTime(2025, 1, 3, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), new Guid("11111111-1111-1111-1111-111111111111"), "Software lab", true, "Floor 3", "Lab B1", "Alpha 101", null, null });
 
             migrationBuilder.InsertData(
                 table: "SlotFrames",
@@ -667,12 +684,12 @@ namespace BookLAB.API.Migrations
 
             migrationBuilder.InsertData(
                 table: "Bookings",
-                columns: new[] { "Id", "BookingStatus", "BookingType", "CreatedAt", "CreatedBy", "EndTime", "LabRoomId", "PurposeTypeId", "Reason", "StartTime", "UpdatedAt", "UpdatedBy" },
+                columns: new[] { "Id", "BookingStatus", "BookingType", "CreatedAt", "CreatedBy", "EndTime", "LabRoomId", "PurposeTypeId", "Reason", "ScheduleId", "SlotTypeId", "StartTime", "StudentCount", "UpdatedAt", "UpdatedBy" },
                 values: new object[,]
                 {
-                    { new Guid("44444444-4444-4444-4444-444444444444"), "PendingApproval", "0", new DateTimeOffset(new DateTime(2025, 1, 10, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), new Guid("11111111-1111-1111-1111-111111111111"), new DateTimeOffset(new DateTime(2025, 2, 1, 10, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), 1, 1, "Intro lecture", new DateTimeOffset(new DateTime(2025, 2, 1, 8, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), null, null },
-                    { new Guid("55555555-5555-5555-5555-555555555555"), "PendingApproval", "0", new DateTimeOffset(new DateTime(2025, 1, 11, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), new Guid("22222222-2222-2222-2222-222222222222"), new DateTimeOffset(new DateTime(2025, 2, 2, 15, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), 2, 2, "Practical session", new DateTimeOffset(new DateTime(2025, 2, 2, 13, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), null, null },
-                    { new Guid("66666666-6666-6666-6666-666666666666"), "Approved", "0", new DateTimeOffset(new DateTime(2025, 1, 12, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), new Guid("33333333-3333-3333-3333-333333333333"), new DateTimeOffset(new DateTime(2025, 2, 3, 10, 30, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), 3, 3, "Workshop", new DateTimeOffset(new DateTime(2025, 2, 3, 9, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), null, null }
+                    { new Guid("44444444-4444-4444-4444-444444444444"), "PendingApproval", "0", new DateTimeOffset(new DateTime(2025, 1, 10, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), new Guid("11111111-1111-1111-1111-111111111111"), new DateTimeOffset(new DateTime(2025, 2, 1, 10, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), 1, 1, "Intro lecture", null, 1, new DateTimeOffset(new DateTime(2025, 2, 1, 8, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), 10, null, null },
+                    { new Guid("55555555-5555-5555-5555-555555555555"), "PendingApproval", "0", new DateTimeOffset(new DateTime(2025, 1, 11, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), new Guid("22222222-2222-2222-2222-222222222222"), new DateTimeOffset(new DateTime(2025, 2, 2, 15, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), 2, 2, "Practical session", null, 2, new DateTimeOffset(new DateTime(2025, 2, 2, 13, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), 20, null, null },
+                    { new Guid("66666666-6666-6666-6666-666666666666"), "Approved", "0", new DateTimeOffset(new DateTime(2025, 1, 12, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), new Guid("33333333-3333-3333-3333-333333333333"), new DateTimeOffset(new DateTime(2025, 2, 3, 10, 30, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), 3, 3, "Workshop", null, 3, new DateTimeOffset(new DateTime(2025, 2, 3, 9, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), 10, null, null }
                 });
 
             migrationBuilder.InsertData(
@@ -680,9 +697,9 @@ namespace BookLAB.API.Migrations
                 columns: new[] { "Id", "GroupId", "UserId" },
                 values: new object[,]
                 {
-                    { new Guid("41414141-4141-4141-4141-414141414141"), new Guid("18181818-1818-1818-1818-181818181818"), new Guid("22222222-2222-2222-2222-222222222222") },
-                    { new Guid("42424242-4242-4242-4242-424242424242"), new Guid("19191919-1919-1919-1919-191919191919"), new Guid("33333333-3333-3333-3333-333333333333") },
-                    { new Guid("43434343-4343-4343-4343-434343434343"), new Guid("20202020-2020-2020-2020-202020202020"), new Guid("11111111-1111-1111-1111-111111111111") }
+                    { new Guid("36363636-3636-3636-3636-363636363636"), new Guid("18181818-1818-1818-1818-181818181818"), new Guid("22222222-2222-2222-2222-222222222222") },
+                    { new Guid("37373737-3737-3737-3737-373737373737"), new Guid("19191919-1919-1919-1919-191919191919"), new Guid("33333333-3333-3333-3333-333333333333") },
+                    { new Guid("38383838-3838-3838-3838-383838383838"), new Guid("20202020-2020-2020-2020-202020202020"), new Guid("11111111-1111-1111-1111-111111111111") }
                 });
 
             migrationBuilder.InsertData(
@@ -720,26 +737,6 @@ namespace BookLAB.API.Migrations
                 });
 
             migrationBuilder.InsertData(
-                table: "Schedules",
-                columns: new[] { "Id", "CreatedAt", "CreatedBy", "EndTime", "IsActive", "LabRoomId", "LecturerId", "ScheduleStatus", "ScheduleType", "StartTime", "UpdatedAt", "UpdatedBy" },
-                values: new object[,]
-                {
-                    { new Guid("27272727-2727-2727-2727-272727272727"), new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), new Guid("11111111-1111-1111-1111-111111111111"), new DateTimeOffset(new DateTime(2025, 2, 1, 10, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), true, 1, new Guid("11111111-1111-1111-1111-111111111111"), "Active", "Lecture", new DateTimeOffset(new DateTime(2025, 2, 1, 8, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), null, null },
-                    { new Guid("28282828-2828-2828-2828-282828282828"), new DateTimeOffset(new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), new Guid("22222222-2222-2222-2222-222222222222"), new DateTimeOffset(new DateTime(2025, 2, 2, 15, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), true, 2, new Guid("22222222-2222-2222-2222-222222222222"), "Active", "Lab", new DateTimeOffset(new DateTime(2025, 2, 2, 13, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), null, null },
-                    { new Guid("29292929-2929-2929-2929-292929292929"), new DateTimeOffset(new DateTime(2025, 1, 3, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), new Guid("33333333-3333-3333-3333-333333333333"), new DateTimeOffset(new DateTime(2025, 2, 3, 10, 30, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), true, 3, new Guid("33333333-3333-3333-3333-333333333333"), "Active", "Workshop", new DateTimeOffset(new DateTime(2025, 2, 3, 9, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), null, null }
-                });
-
-            migrationBuilder.InsertData(
-                table: "Attendances",
-                columns: new[] { "Id", "AttendanceStatus", "BookingId", "CheckInMethod", "CheckInTime", "CheckOutTime", "CreatedAt", "CreatedBy", "UpdatedAt", "UpdatedBy", "UserId" },
-                values: new object[,]
-                {
-                    { new Guid("15151515-1515-1515-1515-151515151515"), "NotYet", new Guid("44444444-4444-4444-4444-444444444444"), "FaceId", null, null, new DateTimeOffset(new DateTime(2025, 1, 16, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), new Guid("11111111-1111-1111-1111-111111111111"), null, null, new Guid("22222222-2222-2222-2222-222222222222") },
-                    { new Guid("16161616-1616-1616-1616-161616161616"), "NotYet", new Guid("55555555-5555-5555-5555-555555555555"), "QR", null, null, new DateTimeOffset(new DateTime(2025, 1, 17, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), new Guid("22222222-2222-2222-2222-222222222222"), null, null, new Guid("33333333-3333-3333-3333-333333333333") },
-                    { new Guid("17171717-1717-1717-1717-171717171717"), "NotYet", new Guid("66666666-6666-6666-6666-666666666666"), "Manual", null, null, new DateTimeOffset(new DateTime(2025, 1, 18, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), new Guid("33333333-3333-3333-3333-333333333333"), null, null, new Guid("11111111-1111-1111-1111-111111111111") }
-                });
-
-            migrationBuilder.InsertData(
                 table: "BookingGroups",
                 columns: new[] { "Id", "BookingId", "GroupId" },
                 values: new object[,]
@@ -760,6 +757,26 @@ namespace BookLAB.API.Migrations
                 });
 
             migrationBuilder.InsertData(
+                table: "Schedules",
+                columns: new[] { "Id", "BookingId", "CalendarEventId", "CreatedAt", "CreatedBy", "EndTime", "GroupId", "IsActive", "LabRoomId", "LecturerId", "ScheduleStatus", "ScheduleType", "SlotTypeId", "StartTime", "StudentCount", "SubjectCode", "UpdatedAt", "UpdatedBy" },
+                values: new object[,]
+                {
+                    { new Guid("27272727-2727-2727-2727-272727272727"), new Guid("44444444-4444-4444-4444-444444444444"), null, new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), new Guid("11111111-1111-1111-1111-111111111111"), new DateTimeOffset(new DateTime(2025, 2, 1, 10, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), new Guid("18181818-1818-1818-1818-181818181818"), true, 1, new Guid("11111111-1111-1111-1111-111111111111"), "Active", "Booking", 1, new DateTimeOffset(new DateTime(2025, 2, 1, 8, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), 10, null, null, null },
+                    { new Guid("28282828-2828-2828-2828-282828282828"), new Guid("55555555-5555-5555-5555-555555555555"), null, new DateTimeOffset(new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), new Guid("22222222-2222-2222-2222-222222222222"), new DateTimeOffset(new DateTime(2025, 2, 2, 15, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), new Guid("19191919-1919-1919-1919-191919191919"), true, 2, new Guid("22222222-2222-2222-2222-222222222222"), "Active", "Booking", 2, new DateTimeOffset(new DateTime(2025, 2, 2, 13, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), 20, null, null, null },
+                    { new Guid("29292929-2929-2929-2929-292929292929"), new Guid("66666666-6666-6666-6666-666666666666"), null, new DateTimeOffset(new DateTime(2025, 1, 3, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), new Guid("33333333-3333-3333-3333-333333333333"), new DateTimeOffset(new DateTime(2025, 2, 3, 10, 30, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), new Guid("20202020-2020-2020-2020-202020202020"), true, 3, new Guid("33333333-3333-3333-3333-333333333333"), "Active", "Academic", 3, new DateTimeOffset(new DateTime(2025, 2, 3, 9, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), 10, null, null, null }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Attendances",
+                columns: new[] { "Id", "AttendanceStatus", "CheckInMethod", "CheckInTime", "CheckOutTime", "CreatedAt", "CreatedBy", "ScheduleId", "UpdatedAt", "UpdatedBy", "UserId" },
+                values: new object[,]
+                {
+                    { new Guid("15151515-1515-1515-1515-151515151515"), "NotYet", "FaceId", null, null, new DateTimeOffset(new DateTime(2025, 1, 16, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), new Guid("11111111-1111-1111-1111-111111111111"), new Guid("27272727-2727-2727-2727-272727272727"), null, null, new Guid("22222222-2222-2222-2222-222222222222") },
+                    { new Guid("16161616-1616-1616-1616-161616161616"), "NotYet", "QR", null, null, new DateTimeOffset(new DateTime(2025, 1, 17, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), new Guid("22222222-2222-2222-2222-222222222222"), new Guid("28282828-2828-2828-2828-282828282828"), null, null, new Guid("33333333-3333-3333-3333-333333333333") },
+                    { new Guid("17171717-1717-1717-1717-171717171717"), "NotYet", "Manual", null, null, new DateTimeOffset(new DateTime(2025, 1, 18, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), new Guid("33333333-3333-3333-3333-333333333333"), new Guid("29292929-2929-2929-2929-292929292929"), null, null, new Guid("11111111-1111-1111-1111-111111111111") }
+                });
+
+            migrationBuilder.InsertData(
                 table: "Reports",
                 columns: new[] { "Id", "CreatedAt", "CreatedBy", "Description", "ReportType", "ScheduleId", "UpdatedAt", "UpdatedBy" },
                 values: new object[,]
@@ -775,13 +792,9 @@ namespace BookLAB.API.Migrations
                 values: new object[,]
                 {
                     { new Guid("24242424-2424-2424-2424-242424242424"), 0, "https://cdn.example/report1.jpg", new Guid("21212121-2121-2121-2121-212121212121"), 1200 },
-                    { new Guid("25252525-2525-2525-2525-252525252525"), 0, "https://cdn.example/report2.jpg", new Guid("22222222-2222-2222-2222-222222222221"), 800 }
+                    { new Guid("25252525-2525-2525-2525-252525252525"), 0, "https://cdn.example/report2.jpg", new Guid("22222222-2222-2222-2222-222222222221"), 800 },
+                    { new Guid("26262626-2626-2626-2626-262626262626"), 0, "https://cdn.example/report3.jpg", new Guid("23232323-2323-2323-2323-232323232323"), 600 }
                 });
-
-            migrationBuilder.InsertData(
-                table: "ReportImages",
-                columns: new[] { "Id", "FileType", "ImageUrl", "IsAvatar", "ReportId", "Size" },
-                values: new object[] { new Guid("26262626-2626-2626-2626-262626262626"), 0, "https://cdn.example/report3.jpg", true, new Guid("23232323-2323-2323-2323-232323232323"), 600 });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Attendances_AttendanceStatus",
@@ -789,9 +802,9 @@ namespace BookLAB.API.Migrations
                 column: "AttendanceStatus");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Attendances_BookingId",
+                name: "IX_Attendances_ScheduleId",
                 table: "Attendances",
-                column: "BookingId");
+                column: "ScheduleId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Attendances_UserId",
@@ -801,7 +814,7 @@ namespace BookLAB.API.Migrations
             migrationBuilder.CreateIndex(
                 name: "UQ_Attendance_Booking_User",
                 table: "Attendances",
-                columns: new[] { "BookingId", "UserId" },
+                columns: new[] { "ScheduleId", "UserId" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -850,6 +863,16 @@ namespace BookLAB.API.Migrations
                 name: "IX_Bookings_PurposeTypeId",
                 table: "Bookings",
                 column: "PurposeTypeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Bookings_ScheduleId",
+                table: "Bookings",
+                column: "ScheduleId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Bookings_SlotTypeId",
+                table: "Bookings",
+                column: "SlotTypeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Buildings_CampusId",
@@ -956,11 +979,6 @@ namespace BookLAB.API.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_ReportImage_Report_Avatar",
-                table: "ReportImages",
-                columns: new[] { "ReportId", "IsAvatar" });
-
-            migrationBuilder.CreateIndex(
                 name: "IX_ReportImage_ReportId",
                 table: "ReportImages",
                 column: "ReportId");
@@ -1009,6 +1027,17 @@ namespace BookLAB.API.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_Schedules_BookingId",
+                table: "Schedules",
+                column: "BookingId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Schedules_GroupId",
+                table: "Schedules",
+                column: "GroupId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Schedules_LabRoomId",
                 table: "Schedules",
                 column: "LabRoomId");
@@ -1022,6 +1051,11 @@ namespace BookLAB.API.Migrations
                 name: "IX_Schedules_ScheduleStatus",
                 table: "Schedules",
                 column: "ScheduleStatus");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Schedules_SlotTypeId",
+                table: "Schedules",
+                column: "SlotTypeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_SlotFrames_SlotTypeId",
@@ -1072,15 +1106,57 @@ namespace BookLAB.API.Migrations
                 column: "FullName");
 
             migrationBuilder.CreateIndex(
+                name: "UQ_User_Code",
+                table: "Users",
+                column: "UserCode",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "UQ_User_Email",
                 table: "Users",
                 column: "Email",
                 unique: true);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Attendances_Schedules_ScheduleId",
+                table: "Attendances",
+                column: "ScheduleId",
+                principalTable: "Schedules",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_BookingGroups_Bookings_BookingId",
+                table: "BookingGroups",
+                column: "BookingId",
+                principalTable: "Bookings",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_BookingRequests_Bookings_BookingId",
+                table: "BookingRequests",
+                column: "BookingId",
+                principalTable: "Bookings",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Bookings_Schedules_ScheduleId",
+                table: "Bookings",
+                column: "ScheduleId",
+                principalTable: "Schedules",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Restrict);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropForeignKey(
+                name: "FK_Bookings_Schedules_ScheduleId",
+                table: "Bookings");
+
             migrationBuilder.DropTable(
                 name: "Attendances");
 
@@ -1115,28 +1191,28 @@ namespace BookLAB.API.Migrations
                 name: "UserRoles");
 
             migrationBuilder.DropTable(
+                name: "Reports");
+
+            migrationBuilder.DropTable(
+                name: "roles");
+
+            migrationBuilder.DropTable(
+                name: "Schedules");
+
+            migrationBuilder.DropTable(
                 name: "Bookings");
 
             migrationBuilder.DropTable(
                 name: "Groups");
 
             migrationBuilder.DropTable(
-                name: "Reports");
-
-            migrationBuilder.DropTable(
-                name: "SlotTypes");
-
-            migrationBuilder.DropTable(
-                name: "roles");
+                name: "LabRooms");
 
             migrationBuilder.DropTable(
                 name: "PurposeTypes");
 
             migrationBuilder.DropTable(
-                name: "Schedules");
-
-            migrationBuilder.DropTable(
-                name: "LabRooms");
+                name: "SlotTypes");
 
             migrationBuilder.DropTable(
                 name: "Users");

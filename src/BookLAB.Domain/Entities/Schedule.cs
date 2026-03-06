@@ -25,11 +25,11 @@ namespace BookLAB.Domain.Entities
         public bool IsActive { get; set; } = true;
         public bool IsDeleted { get; set; }
 
-        public virtual User User { get; set; } = new User();
-        public virtual LabRoom LabRoom { get; set; } = new LabRoom();
+        public virtual User User { get; set; } 
+        public virtual LabRoom LabRoom { get; set; } 
         public virtual Booking? Booking { get; set; }
         public virtual Group? Group { get; set; }
-        public virtual SlotType SlotType { get; set; } = new SlotType();
+        public virtual SlotType SlotType { get; set; } 
         public virtual ICollection<Report> Reports { get; set; } = new List<Report>();
     }
 }

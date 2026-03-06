@@ -21,10 +21,10 @@ namespace BookLAB.Domain.Entities
         public Guid? CreatedBy { get; set; }
         public Guid? UpdatedBy { get; set; }
 
-        public virtual LabRoom LabRoom { get; set; } = new LabRoom();
-        public virtual PurposeType PurposeType { get; set; } = new PurposeType();
+        public virtual LabRoom LabRoom { get; set; }
+        public virtual PurposeType PurposeType { get; set; } 
         public virtual Schedule? Schedule { get; set; }
-        public virtual SlotType SlotType { get; set; } = new SlotType();
+        public virtual SlotType SlotType { get; set; } 
         public ICollection<BookingGroup> BookingGroups { get; set; } = new List<BookingGroup>();
     }
 }

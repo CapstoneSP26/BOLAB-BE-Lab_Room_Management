@@ -58,6 +58,10 @@ namespace BookLAB.Infrastructure.Persistence
             var labImage2Id = Guid.Parse("34343434-3434-3434-3434-343434343434");
             var labImage3Id = Guid.Parse("35353535-3535-3535-3535-353535353535");
 
+            var groupMember1Id = Guid.Parse("36363636-3636-3636-3636-363636363636");
+            var groupMember2Id = Guid.Parse("37373737-3737-3737-3737-373737373737");
+            var groupMember3Id = Guid.Parse("38383838-3838-3838-3838-383838383838");
+
             // Int keys
             // Campuses
             modelBuilder.Entity<Campus>().HasData(
@@ -152,9 +156,9 @@ namespace BookLAB.Infrastructure.Persistence
 
             // GroupMembers
             modelBuilder.Entity<GroupMember>().HasData(
-                new GroupMember { GroupId = group1Id, UserId = user2Id },
-                new GroupMember { GroupId = group2Id, UserId = user3Id },
-                new GroupMember { GroupId = group3Id, UserId = user1Id }
+                new GroupMember { Id = groupMember1Id, GroupId = group1Id, UserId = user2Id },
+                new GroupMember { Id = groupMember2Id, GroupId = group2Id, UserId = user3Id },
+                new GroupMember { Id = groupMember3Id, GroupId = group3Id, UserId = user1Id }
             );
 
             // Bookings
@@ -172,7 +176,7 @@ namespace BookLAB.Infrastructure.Persistence
                     Recur = 0,
                     Reason = "Intro lecture",
                     PurposeTypeId = 1,
-                    ScheduleId = schedule1Id,
+                    //ScheduleId = schedule1Id,
                     CreatedAt = new DateTimeOffset(2025, 1, 10, 0, 0, 0, TimeSpan.Zero),
                     CreatedBy = user1Id
                 },
@@ -189,7 +193,7 @@ namespace BookLAB.Infrastructure.Persistence
                     Recur = 0,
                     Reason = "Practical session",
                     PurposeTypeId = 2,
-                    ScheduleId = schedule2Id,
+                    //ScheduleId = schedule2Id,
                     CreatedAt = new DateTimeOffset(2025, 1, 11, 0, 0, 0, TimeSpan.Zero),
                     CreatedBy = user2Id
                 },
@@ -206,7 +210,7 @@ namespace BookLAB.Infrastructure.Persistence
                     Recur = 0,
                     Reason = "Workshop",
                     PurposeTypeId = 3,
-                    ScheduleId = schedule3Id,
+                    //ScheduleId = schedule3Id,
                     CreatedAt = new DateTimeOffset(2025, 1, 12, 0, 0, 0, TimeSpan.Zero),
                     CreatedBy = user3Id
                 }
