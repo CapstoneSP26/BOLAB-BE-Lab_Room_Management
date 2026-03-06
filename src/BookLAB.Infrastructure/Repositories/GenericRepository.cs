@@ -14,7 +14,15 @@ namespace BookLAB.Infrastructure.Repositories
         public async Task<T?> GetByIdAsync(object id) => await _context.Set<T>().FindAsync(id);
 
         public async Task AddAsync(T entity) => await _context.Set<T>().AddAsync(entity);
-
+        public async Task UpdateAsync(T entity)
+        {
+            _context.Set<T>().Update(entity);
+            await _context.SaveChangesAsync();
+        }
+        public async Task AddRangeAsync(IEnumerable<T> entities)
+        {
+            await _context.Set<T>().AddRangeAsync(entities);
+        }
         public void Update(T entity) => _context.Set<T>().Update(entity);
 
         public void Delete(T entity) => _context.Set<T>().Remove(entity);
