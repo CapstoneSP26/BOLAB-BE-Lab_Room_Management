@@ -2,6 +2,7 @@ using BookLAB.Application;
 using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Interfaces.Services;
+using BookLAB.Domain.Managements;
 using BookLAB.Infrastructure;
 using BookLAB.Infrastructure.Identity;
 using BookLAB.Infrastructure.Persistence;
@@ -12,6 +13,7 @@ using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using QRCoder;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -94,6 +96,8 @@ builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<QRCodeGenerator>();
+builder.Services.AddScoped<QrManagements>();
 
 var app = builder.Build();
 

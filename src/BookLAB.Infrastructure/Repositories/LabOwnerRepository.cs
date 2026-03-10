@@ -1,16 +1,17 @@
-﻿using BookLAB.Application.Common.Interfaces.Persistence;
+﻿using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Domain.Entities;
+using BookLAB.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
-namespace BookLAB.Infrastructure.Persistence.Repositories
+namespace BookLAB.Infrastructure.Repositories
 {
     public class LabOwnerRepository : GenericRepository<LabOwner>, ILabOwnerRepository
     {
         private readonly BookLABDbContext _context;
 
-        public LabOwnerRepository(BookLABDbContext context) : base(context)
+        public LabOwnerRepository(BookLABDbContext context) : base(context) 
         {
-            _context = context;
+            _context = context;       
         }
 
         public async Task<List<Guid>> GetOwnerIdsByLabRoomIdAsync(int labRoomId)
