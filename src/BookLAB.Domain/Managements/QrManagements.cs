@@ -85,6 +85,11 @@ namespace BookLAB.Domain.Managements
             }
             return null;
         }
+
+        public bool CheckQrCodeExist(Guid qrId)
+        {
+            return _qrList.ContainsKey(qrId);
+        }
     }
 
     public class Qr

@@ -18,7 +18,7 @@ namespace BookLAB.API.Controllers
         }
 
         [HttpGet("generate-qrcode")]
-        public async Task<IActionResult> GenerateAttendanceQRCode([FromQuery]string scheduleId)
+        public async Task<IActionResult> GenerateAttendanceQRCode([FromQuery] string scheduleId)
         {
             try
             {
@@ -35,11 +35,38 @@ namespace BookLAB.API.Controllers
                 }
 
                 return File(qrCodeImage, "image/png");
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred while generating the QR code: {ex.Message}");
             }
-            
+
+        }
+
+        [HttpPost("scan-qrcode")]
+        public async Task<IActionResult> ScanAttendanceQRCode([FromQuery] string qrId, string scheduleId, string studentId)
+        {
+            try
+            {
+                ScanAttendanceQrCodeCommand command = new ScanAttendanceQrCodeCommand
+                {
+                    qrId = qrId,
+                    scheduleId = scheduleId,
+                    studentId = studentId
+                };
+
+                var result = await _mediator.Send(command);
+
+                if (!result)
+                {
+                    return BadRequest("Failed to scan the QR code. Please ensure the QR code is valid and try again.");
+                }
+
+                return Ok("QR code scanned successfully.");
+            } catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred while scanning the QR code: {ex.Message}");
+            }
         }
     }
 }

@@ -51,5 +51,10 @@ namespace BookLAB.Infrastructure.Repositories
             return await _context.Users
                 .FirstOrDefaultAsync(u => u.ProviderId == providerId && !u.IsDeleted);
         }
+
+        public async Task<bool> IfExisted(Guid usreId)
+        {
+            return await _context.Users.AnyAsync(u => u.Id == usreId && !u.IsDeleted && u.IsActive);
+        }
     }
 }

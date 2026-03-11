@@ -23,8 +23,8 @@ namespace BookLAB.Application.Features.Attendance.Commands.GenerateAttendanceQrC
         public async Task<byte[]> Handle(GenerateAttendanceQrCodeCommand request, CancellationToken cancellationToken)
         {
             // Check if the schedule exists
-            //await _unitOfWork.Repository<Schedule>().Entities.AnyAsync(x => x.Id == Guid.Parse(request.ScheduleId));
-            //if (!await _unitOfWork.Repository<Schedule>().Entities.AnyAsync(x => x.Id == Guid.Parse(request.ScheduleId))) return null;
+            await _unitOfWork.Repository<Schedule>().Entities.AnyAsync(x => x.Id == Guid.Parse(request.ScheduleId));
+            if (!await _unitOfWork.Repository<Schedule>().Entities.AnyAsync(x => x.Id == Guid.Parse(request.ScheduleId))) return null;
 
             var attendanceToken = Guid.NewGuid();
 
