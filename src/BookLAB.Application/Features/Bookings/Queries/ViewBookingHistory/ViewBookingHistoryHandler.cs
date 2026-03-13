@@ -2,7 +2,7 @@
 using BookLAB.Domain.Entities;
 using MediatR;
 
-namespace BookLAB.Application.Features.Bookings
+namespace BookLAB.Application.Features.Bookings.Queries.ViewBookingHistory
 {
     public class ViewBookingHistoryHandler : IRequestHandler<ViewBookingHistoryCommand, List<Booking>>
     {

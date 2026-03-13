@@ -1,7 +1,6 @@
 using BookLAB.API.Middlewares;
 using BookLAB.Application;
 using BookLAB.Infrastructure;
-using BookLAB.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -64,15 +63,16 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddControllers();
 // Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
-//builder.Services.AddSwaggerGen();
+
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 // Middleware pipeline
 if (app.Environment.IsDevelopment())
 {
-    //app.UseSwagger();
-    //app.UseSwaggerUI();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 app.UseCors("CorsPolicy");
 app.UseHttpsRedirection();

@@ -23,12 +23,12 @@ public class HealthController : ControllerBase
         try
         {
             var canConnect = await _context.Database.CanConnectAsync(cancellationToken);
-            
+
             if (!canConnect)
             {
-                return StatusCode(503, new 
-                { 
-                    Status = "Unhealthy", 
+                return StatusCode(503, new
+                {
+                    Status = "Unhealthy",
                     Error = "Cannot connect to database"
                 });
             }
@@ -53,9 +53,9 @@ public class HealthController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Health check failed");
-            return StatusCode(500, new 
-            { 
-                Status = "Unhealthy", 
+            return StatusCode(500, new
+            {
+                Status = "Unhealthy",
                 Error = ex.Message
             });
         }
