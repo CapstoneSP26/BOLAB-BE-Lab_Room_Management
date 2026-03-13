@@ -23,9 +23,6 @@ namespace BookLAB.Infrastructure
                 options.UseNpgsql(
                     configuration.GetConnectionString("DefaultConnection")));
 
-            services.AddScoped<BookLABDbContext>(provider =>
-                provider.GetRequiredService<BookLABDbContext>());
-
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             // ===== IDENTITY =====
