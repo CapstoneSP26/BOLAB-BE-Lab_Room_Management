@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using BookLAB.Application.Common.Behaviors;
 using BookLAB.Application.Common.Interfaces.Services;
+using BookLAB.Application.Common.Mappings;
 using BookLAB.Application.Common.Policies;
 using FluentValidation;
 using MediatR;
@@ -14,6 +15,7 @@ public static class DependencyInjection
     {
         // 1. Đăng ký AutoMapper (Tự động tìm các Profile ánh xạ DTO)
         services.AddAutoMapper(Assembly.GetExecutingAssembly());
+        services.AddAutoMapper(typeof(MappingProfile));
 
         // 2. Đăng ký FluentValidation (Tự động tìm các file Validator cụ thể cho từng Command/Query)
         services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());

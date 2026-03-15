@@ -2,6 +2,7 @@
 using BookLAB.Application.Features.Schedules.Commands.ImportSchedule;
 using BookLAB.Application.Features.Schedules.Commands.ValidateImport;
 using BookLAB.Application.Features.Schedules.Common;
+using BookLAB.Application.Features.Schedules.Queries.GetAvailableSlots;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -55,5 +56,24 @@ public class SchedulesController : ControllerBase
         }
 
         return BadRequest(result);
+    }
+
+    [AllowAnonymous]
+    [HttpGet("get-available-slots")]
+    public async Task<IActionResult> GetAvailableSlots([FromQuery] AvailableScheduleRequest query)
+    {
+        GetAvailableSlotsCommand command = new GetAvailableSlotsCommand()
+        {
+            query = query
+        };
+
+        var result = await _mediator.Send(command);
+        return Ok(
+            new
+            {
+                slots = result,
+                total = result.Count
+            }
+        );
     }
 }

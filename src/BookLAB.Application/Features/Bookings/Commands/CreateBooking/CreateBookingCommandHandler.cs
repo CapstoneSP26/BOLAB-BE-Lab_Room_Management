@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BookLAB.Application.Features.Bookings.Commands.CreateBooking
 {
-    public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand, Guid>
+    public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand, CreateBookingResponse>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IPolicyEngine _policyEngine;
@@ -25,11 +25,14 @@ namespace BookLAB.Application.Features.Bookings.Commands.CreateBooking
             _currentUserService = currentUserService;
         }
 
-        public async Task<Guid> Handle(CreateBookingCommand request, CancellationToken cancellationToken)
+        public async Task<CreateBookingResponse> Handle(CreateBookingCommand request, CancellationToken cancellationToken)
         {
+            await _unitOfWork.Repository<Attendance>().Entities.ToListAsync();
+
             // 1. check the existence of LabRoom
             var room = await _unitOfWork.Repository<LabRoom>().Entities
                 .Include(r => r.RoomPolicies)
+                .Include(r => r.Building)
                 .FirstOrDefaultAsync(r => r.Id == request.LabRoomId, cancellationToken);
             if (room == null || !room.IsActive)
                 throw new NotFoundException("LabRoom is not existed or inactive");
@@ -106,7 +109,26 @@ namespace BookLAB.Application.Features.Bookings.Commands.CreateBooking
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
                 await _unitOfWork.CommitTransactionAsync();
 
-                return booking.Id;
+                CreateBookingResponse response = new CreateBookingResponse
+                {
+                    success = true,
+                    bookingId = booking.Id.ToString(),
+                    summary = new BookingSummary
+                    {
+                        Id = booking.Id.ToString(),
+                        RoomName = room.RoomName,
+                        Building = room.Building.BuildingName,
+                        Date = booking.StartTime.ToString("yyyy-MM-dd"),
+                        StartTime = booking.StartTime.ToString("HH:mm"),
+                        EndTime = booking.EndTime.ToString("HH:mm"),
+                        RepeatWeekly = booking.Recur > 0,
+                        Status = booking.BookingStatus,
+                        CreatedAt = booking.CreatedAt.ToString("yyyy-MM-dd HH:mm")
+                    },
+                    message = "Booking request is created successfully"
+                };
+
+                return response;
             }
             catch (Exception)
             {
