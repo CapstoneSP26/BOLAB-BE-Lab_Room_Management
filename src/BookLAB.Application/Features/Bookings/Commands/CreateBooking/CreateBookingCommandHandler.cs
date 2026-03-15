@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BookLAB.Application.Features.Bookings.Commands.CreateBooking
 {
-    public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand, CreateBookingResponse>
+    public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand, Guid>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IPolicyEngine _policyEngine;
@@ -25,14 +25,11 @@ namespace BookLAB.Application.Features.Bookings.Commands.CreateBooking
             _currentUserService = currentUserService;
         }
 
-        public async Task<CreateBookingResponse> Handle(CreateBookingCommand request, CancellationToken cancellationToken)
+        public async Task<Guid> Handle(CreateBookingCommand request, CancellationToken cancellationToken)
         {
-            await _unitOfWork.Repository<Attendance>().Entities.ToListAsync();
-
             // 1. check the existence of LabRoom
             var room = await _unitOfWork.Repository<LabRoom>().Entities
                 .Include(r => r.RoomPolicies)
-                .Include(r => r.Building)
                 .FirstOrDefaultAsync(r => r.Id == request.LabRoomId, cancellationToken);
             if (room == null || !room.IsActive)
                 throw new NotFoundException("LabRoom is not existed or inactive");
@@ -84,7 +81,9 @@ namespace BookLAB.Application.Features.Bookings.Commands.CreateBooking
                 BookingStatus = BookingStatus.PendingApproval,
                 BookingType = request.BookingType,
                 PurposeTypeId = request.PurposeTypeId,
-                Reason = request.Reason
+                Reason = request.Reason,
+                CreatedAt = DateTimeOffset.UtcNow,
+                CreatedBy = currentUserId
             };
             // 4. POLICY VALIDATION
             var activePolicies = room.RoomPolicies.Where(p => p.IsActive).ToList();
@@ -102,33 +101,16 @@ namespace BookLAB.Application.Features.Bookings.Commands.CreateBooking
                     Id = Guid.NewGuid(),
                     BookingId = booking.Id,
                     RequestedByUserId = currentUserId,
-                    BookingRequestStatus = BookingRequestStatus.Pending
+                    BookingRequestStatus = BookingRequestStatus.Pending,
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    CreatedBy = currentUserId
                 };
                 await _unitOfWork.Repository<BookingRequest>().AddAsync(bookingRequest);
 
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
                 await _unitOfWork.CommitTransactionAsync();
 
-                CreateBookingResponse response = new CreateBookingResponse
-                {
-                    success = true,
-                    bookingId = booking.Id.ToString(),
-                    summary = new BookingSummary
-                    {
-                        Id = booking.Id.ToString(),
-                        RoomName = room.RoomName,
-                        Building = room.Building.BuildingName,
-                        Date = booking.StartTime.ToString("yyyy-MM-dd"),
-                        StartTime = booking.StartTime.ToString("HH:mm"),
-                        EndTime = booking.EndTime.ToString("HH:mm"),
-                        RepeatWeekly = booking.Recur > 0,
-                        Status = booking.BookingStatus,
-                        CreatedAt = booking.CreatedAt.ToString("yyyy-MM-dd HH:mm")
-                    },
-                    message = "Booking request is created successfully"
-                };
-
-                return response;
+                return booking.Id;
             }
             catch (Exception)
             {

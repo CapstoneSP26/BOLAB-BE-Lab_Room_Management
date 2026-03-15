@@ -167,61 +167,22 @@ public class BookingsController : ControllerBase
         return BadRequest("Unable to reject this booking. It may have been processed or already cancelled.");
     }
 
-    [HttpPost("create-booking")]
+    [HttpPost]
     [ProducesResponseType(typeof(Guid), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    //public async Task<IActionResult> CreateBooking([FromBody] CreateBookingCommand command)
-    public async Task<IActionResult> CreateBooking([FromBody] CreateBookingRequest request)
+    public async Task<IActionResult> CreateBooking([FromBody] CreateBookingCommand command)
     {
-        //// Execute command and get the resulting Guid
-        //var bookingId = await _mediator.Send(command);
+        // Execute command and get the resulting Guid
+        var bookingId = await _mediator.Send(command);
 
-        //// If Guid is empty, it means the logic in Handler failed (e.g., overlapping schedule)
-        //if (bookingId == Guid.Empty)
-        //{
-        //    return BadRequest(new { Message = "Unable to create booking. Room may be unavailable." });
-        //}
-
-        //// Return just the ID - Simple and Independent
-        //return Ok(new { Id = bookingId });
-
-        int.TryParse(request.roomId, out int labRoomId);
-
-        var date = DateTimeOffset.ParseExact(request.date, "yyyy-MM-dd", CultureInfo.InvariantCulture);
-
-        var startTime = DateTimeOffset.ParseExact(request.startTime, "HH:mm", CultureInfo.InvariantCulture);
-        var endTime = DateTimeOffset.ParseExact(request.endTime, "HH:mm", CultureInfo.InvariantCulture);
-
-        // Ghép ngày với giờ phút
-        var startTimeNew = new DateTimeOffset(
-            date.Year, date.Month, date.Day,
-            startTime.Hour, startTime.Minute, 0,
-            date.Offset // giữ nguyên offset của date
-        );
-
-        var endTimeNew = new DateTimeOffset(
-            date.Year, date.Month, date.Day,
-            endTime.Hour, endTime.Minute, 0,
-            date.Offset
-        );
-
-        CreateBookingCommand command = new CreateBookingCommand
+        // If Guid is empty, it means the logic in Handler failed (e.g., overlapping schedule)
+        if (bookingId == Guid.Empty)
         {
-            LabRoomId = labRoomId,
-            SlotTypeId = 1,
-            PurposeTypeId = 1,
-            StartTime = startTimeNew,
-            EndTime = endTimeNew,
-            StudentCount = 0,
-            RecurringCount = request.repeatWeekly ? 1 : 0,
-            BookingType = Domain.Enums.BookingType.Type2,
-            Reason = request.notes ?? string.Empty,
-        };
+            return BadRequest(new { Message = "Unable to create booking. Room may be unavailable." });
+        }
 
-        var result = _mediator.Send( command );
-
-        return Ok(result);
-
+        // Return just the ID - Simple and Independent
+        return Ok(new { Id = bookingId });
     }
 
     [HttpGet]
