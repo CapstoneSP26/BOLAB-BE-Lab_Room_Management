@@ -81,7 +81,9 @@ namespace BookLAB.Application.Features.Bookings.Commands.CreateBooking
                 BookingStatus = BookingStatus.PendingApproval,
                 BookingType = request.BookingType,
                 PurposeTypeId = request.PurposeTypeId,
-                Reason = request.Reason
+                Reason = request.Reason,
+                CreatedAt = DateTimeOffset.UtcNow,
+                CreatedBy = currentUserId
             };
             // 4. POLICY VALIDATION
             var activePolicies = room.RoomPolicies.Where(p => p.IsActive).ToList();
@@ -99,7 +101,9 @@ namespace BookLAB.Application.Features.Bookings.Commands.CreateBooking
                     Id = Guid.NewGuid(),
                     BookingId = booking.Id,
                     RequestedByUserId = currentUserId,
-                    BookingRequestStatus = BookingRequestStatus.Pending
+                    BookingRequestStatus = BookingRequestStatus.Pending,
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    CreatedBy = currentUserId
                 };
                 await _unitOfWork.Repository<BookingRequest>().AddAsync(bookingRequest);
 
