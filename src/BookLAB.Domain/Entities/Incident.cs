@@ -19,6 +19,6 @@ namespace BookLAB.Domain.Entities
         public Guid? CreatedBy { get; set; }
         public Guid? UpdatedBy { get; set; }
 
-        public User ReportedByUser { get; set; } = null!;
+        public virtual User ReportedByUser { get; set; } = null!;
     }
 }

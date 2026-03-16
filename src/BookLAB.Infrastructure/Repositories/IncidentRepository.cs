@@ -17,6 +17,7 @@ namespace BookLAB.Infrastructure.Repositories
         public async Task<List<Incident>> GetByReportedByAsync(Guid reportedBy, CancellationToken cancellationToken = default)
         {
             return await _context.Incidents
+                .AsNoTracking()
                 .Where(incident => incident.ReportedBy == reportedBy)
                 .OrderByDescending(incident => incident.CreatedAt)
                 .ToListAsync(cancellationToken);

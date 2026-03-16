@@ -3,21 +3,25 @@ using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
+using BookLAB.Application.Common.Interfaces;
 
 namespace BookLAB.Application.Features.IncidentReports.Commands.CreateIncidentReport
 {
     public class CreateIncidentCommandHandler : IRequestHandler<CreateIncidentCommand, CreateIncidentResponse>
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ICurrentUserService _currentUserService;
 
-        public CreateIncidentCommandHandler(IUnitOfWork unitOfWork)
+        public CreateIncidentCommandHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService)
         {
             _unitOfWork = unitOfWork;
+            _currentUserService = currentUserService;
         }
 
         public async Task<CreateIncidentResponse> Handle(CreateIncidentCommand request, CancellationToken cancellationToken)
         {
-            var reporterId = request.ReportedBy;
+            var reporterId = _currentUserService.UserId;
 
             var reporterExists = await _unitOfWork.Repository<User>().Entities
                 .AnyAsync(user => user.Id == reporterId, cancellationToken);
@@ -34,7 +38,7 @@ namespace BookLAB.Application.Features.IncidentReports.Commands.CreateIncidentRe
                 Description = request.Description.Trim(),
                 Severity = request.Severity,
                 Environment = string.IsNullOrWhiteSpace(request.Environment) ? null : request.Environment.Trim(),
-                StepsToReproduce = request.StepsToReproduce
+                StepsToReproduce = ( request.StepsToReproduce ?? Enumerable.Empty<string>() )
                     .Where(step => !string.IsNullOrWhiteSpace(step))
                     .Select(step => step.Trim())
                     .ToList(),

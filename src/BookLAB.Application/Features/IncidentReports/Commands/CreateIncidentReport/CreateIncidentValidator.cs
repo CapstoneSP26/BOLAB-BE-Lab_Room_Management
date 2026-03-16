@@ -36,6 +36,7 @@ namespace BookLAB.Application.Features.IncidentReports.Commands.CreateIncidentRe
                 .WithMessage("AttachmentUrl must be a valid absolute URL.");
 
             RuleFor(x => x.StepsToReproduce)
+                .NotNull()
                 .Must(steps => steps.Count <= 20)
                 .WithMessage("StepsToReproduce cannot contain more than 20 items.");
 
@@ -46,7 +47,27 @@ namespace BookLAB.Application.Features.IncidentReports.Commands.CreateIncidentRe
 
         private static bool BeAValidAbsoluteUrl(string? value)
         {
-            return Uri.TryCreate(value, UriKind.Absolute, out _);
+            if (!Uri.TryCreate(value, UriKind.Absolute, out var uri))
+            {
+                return false;
+            }
+
+            if (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)
+            {
+                return false;
+            }
+
+            if (!string.IsNullOrEmpty(uri.UserInfo))
+            {
+                return false;
+            }
+
+            if (!string.IsNullOrEmpty(uri.Fragment))
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }

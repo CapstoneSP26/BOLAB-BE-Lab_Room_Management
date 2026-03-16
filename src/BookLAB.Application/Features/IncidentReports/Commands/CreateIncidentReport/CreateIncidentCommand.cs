@@ -6,6 +6,7 @@ namespace BookLAB.Application.Features.IncidentReports.Commands.CreateIncidentRe
 {
     public record CreateIncidentCommand : IRequest<CreateIncidentResponse>
     {
+        [JsonIgnore]
         public Guid ReportedBy { get; init; }
         public string Title { get; init; } = string.Empty;
         public string Description { get; init; } = string.Empty;
