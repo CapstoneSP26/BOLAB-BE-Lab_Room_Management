@@ -17,6 +17,7 @@ public class UnitOfWork : IUnitOfWork
 
     // Explicit repository for specialized Booking logic
     private IBookingRepository? _bookingRepository;
+    private IIncidentRepository? _incidentRepository;
     private ILabOwnerRepository? _labOwnerRepository;
 
     public UnitOfWork(BookLABDbContext context)
@@ -28,6 +29,7 @@ public class UnitOfWork : IUnitOfWork
     /// Specialized repository for Booking with custom business logic (e.g., IsOverlappedAsync)
     /// </summary>
     public IBookingRepository Bookings => _bookingRepository ??= new BookingRepository(_context);
+    public IIncidentRepository Incidents => _incidentRepository ??= new IncidentRepository(_context);
     public ILabOwnerRepository LabOwners => _labOwnerRepository ??= new LabOwnerRepository(_context);
 
     /// <summary>

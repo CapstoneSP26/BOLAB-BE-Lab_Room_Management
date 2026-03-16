@@ -24,6 +24,7 @@ namespace BookLAB.Infrastructure.Persistence
         public DbSet<Group> StudentGroups => Set<Group>();
         public DbSet<GroupMember> GroupMembers => Set<GroupMember>();
         public DbSet<Attendance> Attendances => Set<Attendance>();
+        public DbSet<Incident> Incidents => Set<Incident>();
         public DbSet<Report> Feedbacks => Set<Report>();
         public DbSet<LabOwner> LabOwners => Set<LabOwner>();
         public DbSet<SlotFrame> SlotFrames => Set<SlotFrame>();

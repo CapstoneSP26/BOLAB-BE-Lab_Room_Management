@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using BookLAB.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BookLAB.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(BookLABDbContext))]
-    partial class BookLABDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260316033750_AddIncidentReporting")]
+    partial class AddIncidentReporting
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
