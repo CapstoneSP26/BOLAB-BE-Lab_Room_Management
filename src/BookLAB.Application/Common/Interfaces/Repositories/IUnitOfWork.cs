@@ -7,7 +7,6 @@
 
         // Specialized Repository
         IBookingRepository Bookings { get; }
-        IIncidentRepository Incidents { get; }
         ILabOwnerRepository LabOwners { get; }
         Task<int> SaveChangesAsync(CancellationToken cancellationToken);
         Task BeginTransactionAsync();

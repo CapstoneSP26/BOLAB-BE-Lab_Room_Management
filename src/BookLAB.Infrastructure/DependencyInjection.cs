@@ -40,7 +40,6 @@ namespace BookLAB.Infrastructure
             services.AddScoped<IUserRoleRepository, UserRoleRepository>();
             services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
             services.AddScoped<IBookingRepository, BookingRepository>();
-            services.AddScoped<IIncidentRepository, IncidentRepository>();
 
             return services;
         }

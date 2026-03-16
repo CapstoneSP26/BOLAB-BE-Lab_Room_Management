@@ -1,59 +1,56 @@
 using BookLAB.Application.Common.Exceptions;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Domain.Entities;
+using BookLAB.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
-using BookLAB.Application.Common.Interfaces;
 
 namespace BookLAB.Application.Features.IncidentReports.Commands.CreateIncidentReport
 {
     public class CreateIncidentCommandHandler : IRequestHandler<CreateIncidentCommand, CreateIncidentResponse>
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly ICurrentUserService _currentUserService;
 
-        public CreateIncidentCommandHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService)
+        public CreateIncidentCommandHandler(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
-            _currentUserService = currentUserService;
         }
 
         public async Task<CreateIncidentResponse> Handle(CreateIncidentCommand request, CancellationToken cancellationToken)
         {
-            var reporterId = _currentUserService.UserId;
+            // Verify Schedule exists
+            var scheduleExists = await _unitOfWork.Repository<Schedule>().Entities
+                .AnyAsync(s => s.Id == request.ScheduleId, cancellationToken);
 
-            var reporterExists = await _unitOfWork.Repository<User>().Entities
-                .AnyAsync(user => user.Id == reporterId, cancellationToken);
-
-            if (!reporterExists)
+            if (!scheduleExists)
             {
-                throw new NotFoundException("User", reporterId);
+                throw new NotFoundException("Schedule", request.ScheduleId);
             }
 
-            var incident = new Incident
+            // Verify Creator exists
+            var creatorExists = await _unitOfWork.Repository<User>().Entities
+                .AnyAsync(u => u.Id == request.CreatedBy, cancellationToken);
+
+            if (!creatorExists)
+            {
+                throw new NotFoundException("User", request.CreatedBy);
+            }
+
+            var report = new Report
             {
                 Id = Guid.NewGuid(),
-                Title = request.Title.Trim(),
+                ScheduleId = request.ScheduleId,
+                ReportType = ReportType.Incident,
                 Description = request.Description.Trim(),
-                Severity = request.Severity,
-                Environment = string.IsNullOrWhiteSpace(request.Environment) ? null : request.Environment.Trim(),
-                StepsToReproduce = ( request.StepsToReproduce ?? Enumerable.Empty<string>() )
-                    .Where(step => !string.IsNullOrWhiteSpace(step))
-                    .Select(step => step.Trim())
-                    .ToList(),
-                ExpectedResult = string.IsNullOrWhiteSpace(request.ExpectedResult) ? null : request.ExpectedResult.Trim(),
-                ActualResult = string.IsNullOrWhiteSpace(request.ActualResult) ? null : request.ActualResult.Trim(),
-                AttachmentUrl = string.IsNullOrWhiteSpace(request.AttachmentUrl) ? null : request.AttachmentUrl.Trim(),
-                ReportedBy = reporterId,
+                IsResolved = false,
                 CreatedAt = DateTimeOffset.UtcNow,
-                CreatedBy = reporterId
+                CreatedBy = request.CreatedBy
             };
 
-            await _unitOfWork.Incidents.AddAsync(incident);
+            await _unitOfWork.Repository<Report>().AddAsync(report);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            return new CreateIncidentResponse(incident.Id);
+            return new CreateIncidentResponse(report.Id);
         }
     }
 }
