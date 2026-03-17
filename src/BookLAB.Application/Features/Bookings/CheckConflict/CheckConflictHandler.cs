@@ -19,7 +19,7 @@ namespace BookLAB.Application.Features.Bookings.CheckConflict
         {
             if (request.booking == null) return true;
 
-            var isConflict = await _scheduleService.CheckConflictAsync(request.booking.LabRoomId, request.booking.StartTime, request.booking.EndTime);
+            var isConflict = await _scheduleService.CheckConflictAsync(request.booking.LabRoomId, request.booking.StartTime.ToUniversalTime(), request.booking.EndTime.ToUniversalTime());
 
             if (isConflict) return true;
 

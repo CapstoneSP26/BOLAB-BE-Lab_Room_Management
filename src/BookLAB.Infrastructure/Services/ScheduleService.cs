@@ -16,7 +16,12 @@ namespace BookLAB.Infrastructure.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IScheduleRepository _scheduleRepository;
 
-        public ScheduleService(IUnitOfWork unitOfWork) => _unitOfWork = unitOfWork;
+        public ScheduleService(IUnitOfWork unitOfWork,
+            IScheduleRepository scheduleRepository)
+        {
+            _unitOfWork = unitOfWork;
+            _scheduleRepository = scheduleRepository;
+        }
 
         public RowResult<ScheduleImportDto> CheckSingleRowAsync(
             ScheduleImportDto item,
@@ -80,6 +85,20 @@ namespace BookLAB.Infrastructure.Services
             }
 
             return rowResult;
+        }
+
+        public async Task<bool> AddScheduleAsync(Schedule schedule)
+        {
+            return await _scheduleRepository.AddScheduleAsync(schedule);
+        }
+
+        public async Task<bool> CheckConflictAsync(int roomId, DateTimeOffset startTime, DateTimeOffset endTime)
+        {
+            if (startTime > endTime) return true;
+
+            var conflicts = await _scheduleRepository.CheckConflictAsync(roomId, startTime, endTime);
+
+            return conflicts;
         }
 
         public Schedule ConvertToScheduleEntity(

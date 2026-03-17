@@ -10,6 +10,8 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
+using BookLAB.Domain.Enums;
+using BookLAB.Application.Features.Bookings.Commands.CreateBooking;
 
 namespace BookLAB.Api.Controllers;
 
@@ -60,5 +62,65 @@ public class SchedulesController : ControllerBase
         }
 
         return BadRequest(result);
+    }
+
+    [HttpPost("check-conflict")]
+    public async Task<IActionResult> CheckConflictAsync([FromBody] CreateBookingCommand booking)
+    {
+        if (booking == null) return Ok(new
+        {
+            success = false,
+            mesage = "Invalid booking data"
+        });
+
+        CheckConflictCommand command = new CheckConflictCommand
+        {
+            booking = booking
+        };
+
+        var isConflict = await _mediator.Send(command);
+
+        if (isConflict) return Ok(new
+        {
+            success = true,
+            mesage = "No conflict"
+        });
+
+        return Ok(new
+        {
+            success = false,
+            mesage = "Booking is conflict"
+        });
+    }
+
+    [HttpPost("add")]
+    public async Task<bool> AddScheduleAsync([FromBody] AddScheduleDTO dtos)
+    {
+        if (dtos.lecturerId == null || dtos.labRoomId == null || dtos.scheduleType == null || dtos.startTime == null || dtos.endTime == null) return false;
+
+        Schedule schedule = new Schedule
+        {
+            LecturerId = dtos.lecturerId,
+            LabRoomId = dtos.labRoomId,
+            ScheduleType = dtos.scheduleType,
+            ScheduleStatus = (ScheduleStatus)Enum.Parse(typeof(ScheduleStatus), "Not yet"),
+            StartTime = dtos.startTime,
+            EndTime = dtos.endTime,
+            CreatedAt = DateTimeOffset.UtcNow,
+            CreatedBy = dtos.createdBy,
+            IsActive = true,
+            IsDeleted = false
+        };
+
+        AddScheduleCommand command = new AddScheduleCommand
+        {
+            Schedule = schedule,
+        };
+
+        var isSuccess = await _mediator.Send(command);
+
+        if (isSuccess) return true;
+
+        return false;
     }
 }
