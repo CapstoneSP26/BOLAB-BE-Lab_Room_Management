@@ -38,9 +38,9 @@ public class AttendanceConfiguration : IEntityTypeConfiguration<Attendance>
         // 5. Cấu hình Quan hệ (Relationships)
 
         // Attendance - Booking (N-1)
-        builder.HasOne(a => a.Booking)
+        builder.HasOne(a => a.Schedule)
             .WithMany() // Một buổi Booking có nhiều bản ghi điểm danh
-            .HasForeignKey(a => a.BookingId)
+            .HasForeignKey(a => a.ScheduleId)
             .OnDelete(DeleteBehavior.Cascade);
         // Nếu hủy buổi Booking thì xóa luôn dữ liệu điểm danh liên quan
 
@@ -53,12 +53,12 @@ public class AttendanceConfiguration : IEntityTypeConfiguration<Attendance>
         // 6. Cấu hình Hiệu năng & Ràng buộc (Performance & Constraints)
 
         // Quan trọng: Một sinh viên chỉ có duy nhất 1 bản ghi điểm danh trong 1 buổi Booking
-        builder.HasIndex(a => new { a.BookingId, a.UserId })
+        builder.HasIndex(a => new { a.ScheduleId, a.UserId })
             .IsUnique()
             .HasDatabaseName("UQ_Attendance_Booking_User");
 
         // Index để giảng viên xuất báo cáo điểm danh theo buổi nhanh hơn
-        builder.HasIndex(a => a.BookingId);
+        builder.HasIndex(a => a.ScheduleId);
 
         // Index phục vụ việc thống kê tình trạng đi học của sinh viên
         builder.HasIndex(a => a.AttendanceStatus);

@@ -5,7 +5,7 @@ namespace BookLAB.Domain.Entities
 {
     public class Attendance : BaseEntity, IAuditable, IUserTrackable
     {
-        public Guid BookingId { get; set; }
+        public Guid ScheduleId { get; set; }
         public Guid UserId { get; set; }
         public DateTimeOffset? CheckInTime { get; set; }
         public DateTimeOffset? CheckOutTime { get; set; }
@@ -15,7 +15,7 @@ namespace BookLAB.Domain.Entities
         public DateTimeOffset? UpdatedAt { get; set; }
         public Guid? CreatedBy { get; set; }
         public Guid? UpdatedBy { get; set; }
-        public virtual Booking Booking { get; set; }
+        public virtual Schedule Schedule { get; set; }
         public virtual User User { get; set; }
 
     }

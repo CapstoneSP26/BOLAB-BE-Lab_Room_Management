@@ -58,6 +58,10 @@ namespace BookLAB.Infrastructure.Persistence
             var labImage2Id = Guid.Parse("34343434-3434-3434-3434-343434343434");
             var labImage3Id = Guid.Parse("35353535-3535-3535-3535-353535353535");
 
+            var groupMember1Id = Guid.Parse("36363636-3636-3636-3636-363636363636");
+            var groupMember2Id = Guid.Parse("37373737-3737-3737-3737-373737373737");
+            var groupMember3Id = Guid.Parse("38383838-3838-3838-3838-383838383838");
+
             // Int keys
             // Campuses
             modelBuilder.Entity<Campus>().HasData(
@@ -75,9 +79,9 @@ namespace BookLAB.Infrastructure.Persistence
 
             // LabRooms (int PK)
             modelBuilder.Entity<LabRoom>().HasData(
-                new LabRoom { Id = 1, BuildingId = 1, RoomName = "Lab A1", Location = "Floor 1", Description = "General purpose lab", OverrideNumber = 0, HasEquipment = true, CreatedAt = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero), CreatedBy = user1Id, IsActive = true, IsDeleted = false },
-                new LabRoom { Id = 2, BuildingId = 1, RoomName = "Lab A2", Location = "Floor 2", Description = "Hardware lab", OverrideNumber = 0, HasEquipment = true, CreatedAt = new DateTimeOffset(2025, 1, 2, 0, 0, 0, TimeSpan.Zero), CreatedBy = user1Id, IsActive = true, IsDeleted = false },
-                new LabRoom { Id = 3, BuildingId = 2, RoomName = "Lab B1", Location = "Floor 3", Description = "Software lab", OverrideNumber = 0, HasEquipment = false, CreatedAt = new DateTimeOffset(2025, 1, 3, 0, 0, 0, TimeSpan.Zero), CreatedBy = user1Id, IsActive = true, IsDeleted = false }
+                new LabRoom { Id = 1, BuildingId = 1, RoomName = "Lab A1", RoomNo = "Gamma 101", Location = "Floor 1", Description = "General purpose lab", OverrideNumber = 0, HasEquipment = true, CreatedAt = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero), CreatedBy = user1Id, IsActive = true, IsDeleted = false },
+                new LabRoom { Id = 2, BuildingId = 1, RoomName = "Lab A2", RoomNo = "Gamma 102", Location = "Floor 2", Description = "Hardware lab", OverrideNumber = 0, HasEquipment = true, CreatedAt = new DateTimeOffset(2025, 1, 2, 0, 0, 0, TimeSpan.Zero), CreatedBy = user1Id, IsActive = true, IsDeleted = false },
+                new LabRoom { Id = 3, BuildingId = 2, RoomName = "Lab B1", RoomNo = "Alpha 101", Location = "Floor 3", Description = "Software lab", OverrideNumber = 0, HasEquipment = false, CreatedAt = new DateTimeOffset(2025, 1, 3, 0, 0, 0, TimeSpan.Zero), CreatedBy = user1Id, IsActive = true, IsDeleted = false }
             );
 
             // PurposeTypes
@@ -110,9 +114,9 @@ namespace BookLAB.Infrastructure.Persistence
 
             // Users (Guid PK)
             modelBuilder.Entity<User>().HasData(
-                new User { Id = user1Id, Email = "alice@example.edu", FullName = "Alice Tran", CampusId = 1, CreatedAt = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero), CreatedBy = null, IsDeleted = false, IsActive = true },
-                new User { Id = user2Id, Email = "bob@example.edu", FullName = "Bob Nguyen", CampusId = 1, CreatedAt = new DateTimeOffset(2025, 1, 2, 0, 0, 0, TimeSpan.Zero), CreatedBy = null, IsDeleted = false, IsActive = true },
-                new User { Id = user3Id, Email = "carol@example.edu", FullName = "Carol Le", CampusId = 2, CreatedAt = new DateTimeOffset(2025, 1, 3, 0, 0, 0, TimeSpan.Zero), CreatedBy = null, IsDeleted = false, IsActive = true }
+                new User { Id = user1Id, Email = "alice@example.edu", FullName = "Alice Tran", UserCode= "AliceT", CampusId = 1, CreatedAt = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero), CreatedBy = null, IsDeleted = false, IsActive = true },
+                new User { Id = user2Id, Email = "bob@example.edu", FullName = "Bob Nguyen", UserCode = "BobN", CampusId = 1, CreatedAt = new DateTimeOffset(2025, 1, 2, 0, 0, 0, TimeSpan.Zero), CreatedBy = null, IsDeleted = false, IsActive = true },
+                new User { Id = user3Id, Email = "carol@example.edu", FullName = "Carol Le", UserCode = "CarolL", CampusId = 2, CreatedAt = new DateTimeOffset(2025, 1, 3, 0, 0, 0, TimeSpan.Zero), CreatedBy = null, IsDeleted = false, IsActive = true }
             );
 
             // UserRoles (composite)
@@ -152,9 +156,9 @@ namespace BookLAB.Infrastructure.Persistence
 
             // GroupMembers
             modelBuilder.Entity<GroupMember>().HasData(
-                new GroupMember { Id = Guid.Parse("41414141-4141-4141-4141-414141414141"), GroupId = group1Id, UserId = user2Id },
-                new GroupMember { Id = Guid.Parse("42424242-4242-4242-4242-424242424242"), GroupId = group2Id, UserId = user3Id },
-                new GroupMember { Id = Guid.Parse("43434343-4343-4343-4343-434343434343"), GroupId = group3Id, UserId = user1Id }
+                new GroupMember { Id = groupMember1Id, GroupId = group1Id, UserId = user2Id },
+                new GroupMember { Id = groupMember2Id, GroupId = group2Id, UserId = user3Id },
+                new GroupMember { Id = groupMember3Id, GroupId = group3Id, UserId = user1Id }
             );
 
             // Bookings
@@ -165,11 +169,14 @@ namespace BookLAB.Infrastructure.Persistence
                     LabRoomId = 1,
                     StartTime = new DateTimeOffset(2025, 2, 1, 8, 0, 0, TimeSpan.Zero),
                     EndTime = new DateTimeOffset(2025, 2, 1, 10, 0, 0, TimeSpan.Zero),
+                    SlotTypeId = 1,
                     BookingStatus = BookingStatus.PendingApproval,
                     BookingType = (BookingType)0,
+                    StudentCount = 10,
                     Recur = 0,
                     Reason = "Intro lecture",
                     PurposeTypeId = 1,
+                    //ScheduleId = schedule1Id,
                     CreatedAt = new DateTimeOffset(2025, 1, 10, 0, 0, 0, TimeSpan.Zero),
                     CreatedBy = user1Id
                 },
@@ -179,11 +186,14 @@ namespace BookLAB.Infrastructure.Persistence
                     LabRoomId = 2,
                     StartTime = new DateTimeOffset(2025, 2, 2, 13, 0, 0, TimeSpan.Zero),
                     EndTime = new DateTimeOffset(2025, 2, 2, 15, 0, 0, TimeSpan.Zero),
+                    SlotTypeId = 2,
                     BookingStatus = BookingStatus.PendingApproval,
                     BookingType = (BookingType)0,
+                    StudentCount = 20,
                     Recur = 0,
                     Reason = "Practical session",
                     PurposeTypeId = 2,
+                    //ScheduleId = schedule2Id,
                     CreatedAt = new DateTimeOffset(2025, 1, 11, 0, 0, 0, TimeSpan.Zero),
                     CreatedBy = user2Id
                 },
@@ -193,11 +203,14 @@ namespace BookLAB.Infrastructure.Persistence
                     LabRoomId = 3,
                     StartTime = new DateTimeOffset(2025, 2, 3, 9, 0, 0, TimeSpan.Zero),
                     EndTime = new DateTimeOffset(2025, 2, 3, 10, 30, 0, TimeSpan.Zero),
+                    SlotTypeId = 3,
                     BookingStatus = BookingStatus.Approved,
                     BookingType = (BookingType)0,
+                    StudentCount = 10,
                     Recur = 0,
                     Reason = "Workshop",
                     PurposeTypeId = 3,
+                    //ScheduleId = schedule3Id,
                     CreatedAt = new DateTimeOffset(2025, 1, 12, 0, 0, 0, TimeSpan.Zero),
                     CreatedBy = user3Id
                 }
@@ -219,9 +232,9 @@ namespace BookLAB.Infrastructure.Persistence
 
             // Attendances
             modelBuilder.Entity<Attendance>().HasData(
-                new Attendance { Id = attendance1Id, BookingId = booking1Id, UserId = user2Id, CheckInTime = null, CheckOutTime = null, CheckInMethod = AttendanceCheckInMethod.FaceId, AttendanceStatus = AttendanceStatus.NotYet, CreatedAt = new DateTimeOffset(2025, 1, 16, 0, 0, 0, TimeSpan.Zero), CreatedBy = user1Id },
-                new Attendance { Id = attendance2Id, BookingId = booking2Id, UserId = user3Id, CheckInTime = null, CheckOutTime = null, CheckInMethod = AttendanceCheckInMethod.QR, AttendanceStatus = AttendanceStatus.NotYet, CreatedAt = new DateTimeOffset(2025, 1, 17, 0, 0, 0, TimeSpan.Zero), CreatedBy = user2Id },
-                new Attendance { Id = attendance3Id, BookingId = booking3Id, UserId = user1Id, CheckInTime = null, CheckOutTime = null, CheckInMethod = AttendanceCheckInMethod.Manual, AttendanceStatus = AttendanceStatus.NotYet, CreatedAt = new DateTimeOffset(2025, 1, 18, 0, 0, 0, TimeSpan.Zero), CreatedBy = user3Id }
+                new Attendance { Id = attendance1Id, ScheduleId = schedule1Id, UserId = user2Id, CheckInTime = null, CheckOutTime = null, CheckInMethod = AttendanceCheckInMethod.FaceId, AttendanceStatus = AttendanceStatus.NotYet, CreatedAt = new DateTimeOffset(2025, 1, 16, 0, 0, 0, TimeSpan.Zero), CreatedBy = user1Id },
+                new Attendance { Id = attendance2Id, ScheduleId = schedule2Id, UserId = user3Id, CheckInTime = null, CheckOutTime = null, CheckInMethod = AttendanceCheckInMethod.QR, AttendanceStatus = AttendanceStatus.NotYet, CreatedAt = new DateTimeOffset(2025, 1, 17, 0, 0, 0, TimeSpan.Zero), CreatedBy = user2Id },
+                new Attendance { Id = attendance3Id, ScheduleId = schedule3Id, UserId = user1Id, CheckInTime = null, CheckOutTime = null, CheckInMethod = AttendanceCheckInMethod.Manual, AttendanceStatus = AttendanceStatus.NotYet, CreatedAt = new DateTimeOffset(2025, 1, 18, 0, 0, 0, TimeSpan.Zero), CreatedBy = user3Id }
             );
 
             // EmailTemplates (int PK)
@@ -233,9 +246,9 @@ namespace BookLAB.Infrastructure.Persistence
 
             // Schedules
             modelBuilder.Entity<Schedule>().HasData(
-                new Schedule { Id = schedule1Id, LecturerId = user1Id, LabRoomId = 1, ScheduleType = "Lecture", ScheduleStatus = "Active", StartTime = new DateTimeOffset(2025, 2, 1, 8, 0, 0, TimeSpan.Zero), EndTime = new DateTimeOffset(2025, 2, 1, 10, 0, 0, TimeSpan.Zero), CreatedAt = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero), CreatedBy = user1Id, IsActive = true, IsDeleted = false },
-                new Schedule { Id = schedule2Id, LecturerId = user2Id, LabRoomId = 2, ScheduleType = "Lab", ScheduleStatus = "Active", StartTime = new DateTimeOffset(2025, 2, 2, 13, 0, 0, TimeSpan.Zero), EndTime = new DateTimeOffset(2025, 2, 2, 15, 0, 0, TimeSpan.Zero), CreatedAt = new DateTimeOffset(2025, 1, 2, 0, 0, 0, TimeSpan.Zero), CreatedBy = user2Id, IsActive = true, IsDeleted = false },
-                new Schedule { Id = schedule3Id, LecturerId = user3Id, LabRoomId = 3, ScheduleType = "Workshop", ScheduleStatus = "Active", StartTime = new DateTimeOffset(2025, 2, 3, 9, 0, 0, TimeSpan.Zero), EndTime = new DateTimeOffset(2025, 2, 3, 10, 30, 0, TimeSpan.Zero), CreatedAt = new DateTimeOffset(2025, 1, 3, 0, 0, 0, TimeSpan.Zero), CreatedBy = user3Id, IsActive = true, IsDeleted = false }
+                new Schedule { Id = schedule1Id, LecturerId = user1Id, LabRoomId = 1, BookingId = booking1Id, GroupId = group1Id, SlotTypeId = 1, ScheduleType = ScheduleType.Booking, ScheduleStatus = ScheduleStatus.Active, StudentCount = 10, StartTime = new DateTimeOffset(2025, 2, 1, 8, 0, 0, TimeSpan.Zero), EndTime = new DateTimeOffset(2025, 2, 1, 10, 0, 0, TimeSpan.Zero), CreatedAt = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero), CreatedBy = user1Id, IsActive = true, IsDeleted = false },
+                new Schedule { Id = schedule2Id, LecturerId = user2Id, LabRoomId = 2, BookingId = booking2Id, GroupId = group2Id, SlotTypeId = 2, ScheduleType = ScheduleType.Booking, ScheduleStatus = ScheduleStatus.Active, StudentCount = 20, StartTime = new DateTimeOffset(2025, 2, 2, 13, 0, 0, TimeSpan.Zero), EndTime = new DateTimeOffset(2025, 2, 2, 15, 0, 0, TimeSpan.Zero), CreatedAt = new DateTimeOffset(2025, 1, 2, 0, 0, 0, TimeSpan.Zero), CreatedBy = user2Id, IsActive = true, IsDeleted = false },
+                new Schedule { Id = schedule3Id, LecturerId = user3Id, LabRoomId = 3, BookingId = booking3Id, GroupId = group3Id, SlotTypeId = 3, ScheduleType = ScheduleType.Academic, ScheduleStatus = ScheduleStatus.Active, StudentCount = 10, StartTime = new DateTimeOffset(2025, 2, 3, 9, 0, 0, TimeSpan.Zero), EndTime = new DateTimeOffset(2025, 2, 3, 10, 30, 0, TimeSpan.Zero), CreatedAt = new DateTimeOffset(2025, 1, 3, 0, 0, 0, TimeSpan.Zero), CreatedBy = user3Id, IsActive = true, IsDeleted = false }
             );
 
             // Reports
@@ -247,9 +260,9 @@ namespace BookLAB.Infrastructure.Persistence
 
             // ReportImages
             modelBuilder.Entity<ReportImage>().HasData(
-                new ReportImage { Id = reportImage1Id, ReportId = report1Id, ImageUrl = "https://cdn.example/report1.jpg", Size = 1200, FileType = (FileType)0, IsAvatar = false },
-                new ReportImage { Id = reportImage2Id, ReportId = report2Id, ImageUrl = "https://cdn.example/report2.jpg", Size = 800, FileType = (FileType)0, IsAvatar = false },
-                new ReportImage { Id = reportImage3Id, ReportId = report3Id, ImageUrl = "https://cdn.example/report3.jpg", Size = 600, FileType = (FileType)0, IsAvatar = true }
+                new ReportImage { Id = reportImage1Id, ReportId = report1Id, ImageUrl = "https://cdn.example/report1.jpg", Size = 1200, FileType = (FileType)0 },
+                new ReportImage { Id = reportImage2Id, ReportId = report2Id, ImageUrl = "https://cdn.example/report2.jpg", Size = 800, FileType = (FileType)0 },
+                new ReportImage { Id = reportImage3Id, ReportId = report3Id, ImageUrl = "https://cdn.example/report3.jpg", Size = 600, FileType = (FileType)0 }
             );
         }
     }

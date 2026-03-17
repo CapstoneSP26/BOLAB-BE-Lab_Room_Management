@@ -1,4 +1,7 @@
-﻿using BookLAB.Domain.Entities;
+﻿
+using BookLAB.Application.Common.Models;
+using BookLAB.Application.Features.Schedules.Common;
+using BookLAB.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -7,6 +10,23 @@ namespace BookLAB.Application.Common.Interfaces.Services
 {
     public interface IScheduleService
     {
+        RowResult<ScheduleImportDto> CheckSingleRowAsync(
+            ScheduleImportDto item,
+            Dictionary<string, LabRoom> roomMap,
+            Dictionary<string, User> lecturerMap,
+            Dictionary<string, Group> groupMap,
+            Dictionary<string, List<SlotFrame>> slotTypeMap,
+            CancellationToken ct
+        );
+
+        public Schedule ConvertToScheduleEntity(
+            ScheduleImportDto item,
+            Dictionary<string, LabRoom> roomMap,
+            Dictionary<string, User> lecturerMap,
+            Dictionary<string, Group> groupMap,
+            Dictionary<string, List<SlotFrame>> slotTypeMap,
+            CancellationToken ct
+        );
         Task<bool> CheckConflictAsync(int roomId, DateTimeOffset startTime, DateTimeOffset endTime);
         Task<bool> AddScheduleAsync(Schedule schedule);
     }
