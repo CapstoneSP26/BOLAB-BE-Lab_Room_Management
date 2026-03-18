@@ -73,9 +73,9 @@ Content-Type: application/json
 
 POST {{BookLAB.API_HostAddress}}/api/incidents/report
 Content-Type: application/json
+Authorization: Bearer {{accessToken}}
 
 {
-	"reportedBy": "11111111-1111-1111-1111-111111111111",
 	"title": "App crashes after schedule import",
 	"description": "The testing portal crashes immediately after I confirm a schedule import with a malformed row.",
 	"severity": "Critical",
