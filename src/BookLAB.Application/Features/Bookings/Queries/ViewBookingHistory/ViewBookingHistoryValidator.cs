@@ -10,9 +10,7 @@ namespace BookLAB.Application.Features.Bookings.Queries.ViewBookingHistory
         public ViewBookingHistoryValidator()
         {
             RuleFor(x => x.userId)
-                .NotEmpty().WithMessage("User ID is required.")
-                .Must(userId => Guid.TryParse(userId, out _)).WithMessage("User ID must be a valid GUID.");
-
+                .NotEmpty().WithMessage("User ID is required.");
             RuleFor(x => x.page)
                 .NotEmpty().WithMessage("Page number is required.")
                 .GreaterThan(0).WithMessage("Page number must be greater than 0.");

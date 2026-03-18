@@ -35,7 +35,7 @@ namespace BookLAB.Infrastructure.Repositories
 
         public async Task<List<Booking>> GetBookingHistoryByUserIdAsync(Guid userId, int page, int limit, string status, DateTimeOffset startDate, DateTimeOffset endDate)
         {
-            return await _context.Bookings.Include(x => x.LabRoom).Include(x => x.LabRoom.Building).Include(x => x.PurposeType).Include(x => x.CreatedByUser)
+            return await _context.Bookings.Include(x => x.LabRoom).Include(x => x.LabRoom.Building).Include(x => x.PurposeType)
                 .Where(b => b.CreatedBy == userId && (b.BookingStatus.ToString() == status || status.Equals("all")) && b.StartTime >= startDate && b.EndTime <= endDate)
                 .Skip((page - 1) * limit)
                 .Take(limit)
