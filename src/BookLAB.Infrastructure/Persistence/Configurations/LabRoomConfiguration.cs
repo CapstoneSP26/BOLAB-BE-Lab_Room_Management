@@ -17,6 +17,10 @@ public class LabRoomConfiguration : IEntityTypeConfiguration<LabRoom>
             .HasMaxLength(50)
             .IsRequired();
 
+        builder.Property(lr => lr.RoomName)
+            .HasMaxLength(100)
+            .IsRequired();
+
         builder.Property(lr => lr.Location)
             .HasMaxLength(200);
 

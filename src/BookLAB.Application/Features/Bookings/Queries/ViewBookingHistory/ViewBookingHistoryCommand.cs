@@ -9,6 +9,7 @@ namespace BookLAB.Application.Features.Bookings.Queries.ViewBookingHistory
 {
     public class ViewBookingHistoryCommand : IRequest<List<Booking>>
     {
+        public Guid UserId { get; set; }
         public string userId { get; set; }
         public int page { get; set; }
         public int limit { get; set; }
