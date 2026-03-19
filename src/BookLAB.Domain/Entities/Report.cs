@@ -1,6 +1,5 @@
 ﻿using BookLAB.Domain.Common;
 using BookLAB.Domain.Enums;
-using System.ComponentModel;
 
 namespace BookLAB.Domain.Entities
 {

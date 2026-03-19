@@ -1,10 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using BookLAB.Domain.Entities;
-using BookLAB.Application.Common.Interfaces.Persistence;
 
 namespace BookLAB.Infrastructure.Persistence
 {
-    public class BookLABDbContext : DbContext, IBookLABDbContext
+    public class BookLABDbContext : DbContext
     {
         public BookLABDbContext(DbContextOptions<BookLABDbContext> options)
             : base(options)
@@ -36,7 +35,7 @@ namespace BookLAB.Infrastructure.Persistence
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(BookLABDbContext).Assembly);
-            //modelBuilder.Seed();
+            modelBuilder.Seed();
             base.OnModelCreating(modelBuilder);
         }
     }

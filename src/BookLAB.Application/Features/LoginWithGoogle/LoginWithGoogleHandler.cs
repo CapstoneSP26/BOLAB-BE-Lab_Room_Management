@@ -1,5 +1,4 @@
 ﻿using BookLAB.Application.Common.Interfaces.Identity;
-using BookLAB.Application.Common.Interfaces.Persistence;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Interfaces.Services;
 using BookLAB.Domain.Entities;

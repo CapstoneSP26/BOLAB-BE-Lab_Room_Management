@@ -27,9 +27,6 @@ public class ReportImageConfiguration : IEntityTypeConfiguration<ReportImage>
             .HasConversion<int>()
             .IsRequired();
 
-        builder.Property(ri => ri.IsAvatar)
-            .HasDefaultValue(false);
-
         // 4. Cấu hình Quan hệ (N-1) với Report (Khóa ngoại Guid)
         builder.HasOne(ri => ri.Report)
             .WithMany(r => r.ReportImages)
@@ -42,8 +39,5 @@ public class ReportImageConfiguration : IEntityTypeConfiguration<ReportImage>
         builder.HasIndex(ri => ri.ReportId)
             .HasDatabaseName("IX_ReportImage_ReportId");
 
-        // Index bổ sung nếu bạn thường xuyên lọc ảnh chính của báo cáo
-        builder.HasIndex(ri => new { ri.ReportId, ri.IsAvatar })
-            .HasDatabaseName("IX_ReportImage_Report_Avatar");
     }
 }
