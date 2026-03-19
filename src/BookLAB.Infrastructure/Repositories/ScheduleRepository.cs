@@ -17,7 +17,7 @@ namespace BookLAB.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<bool> CheckConflictAsync(int roomId, DateTimeOffset startTime, DateTimeOffset endTime)
+        public async Task<bool> CheckConflictAsync(int roomId, DateTimeOffset startTime, DateTimeOffset endTime, CancellationToken cancellationToken)
         {
             return await _context.Schedules.AnyAsync(s => 
                 s.LabRoomId.Equals(roomId) &&                                   // Check for the same room

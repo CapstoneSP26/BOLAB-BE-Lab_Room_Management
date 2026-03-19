@@ -2,7 +2,6 @@
 using BookLAB.Application.Features.Schedules.Commands.ImportSchedule;
 using BookLAB.Application.Features.Schedules.Commands.ValidateImport;
 using BookLAB.Application.Features.Schedules.Common;
-using BookLAB.Application.Features.Bookings.AddSchedule;
 using BookLAB.Application.Features.Bookings.CheckConflict;
 using BookLAB.Domain.DTOs;
 using BookLAB.Domain.Entities;
@@ -12,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using BookLAB.Domain.Enums;
 using BookLAB.Application.Features.Bookings.Commands.CreateBooking;
+using BookLAB.Application.Features.Schedules.Queries.AddSchedule;
 
 namespace BookLAB.Api.Controllers;
 
@@ -21,10 +21,12 @@ namespace BookLAB.Api.Controllers;
 public class SchedulesController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly ILogger<SchedulesController> _logger;
 
-    public SchedulesController(IMediator mediator)
+    public SchedulesController(IMediator mediator, ILogger<SchedulesController> logger)
     {
         _mediator = mediator;
+        _logger = logger;
     }
 
     /// <summary>
@@ -93,34 +95,70 @@ public class SchedulesController : ControllerBase
         });
     }
 
+    /// <summary>
+    /// Handles the HTTP POST request to add a new schedule.
+    /// The method maps the incoming DTO to a Schedule entity, 
+    /// sends an AddScheduleCommand through MediatR, 
+    /// and returns an appropriate HTTP response based on the outcome.
+    /// </summary>
+    /// <param name="dtos">The schedule data transfer object containing input details.</param>
+    /// <param name="cancellationToken">Token provided by ASP.NET Core to cancel the request if the client disconnects or times out.</param>
+    /// <returns>
+    /// An IActionResult indicating the result of the operation:
+    /// - 200 OK with success message if the schedule was added successfully.
+    /// - 409 Conflict if the schedule addition failed due to conflict or other business logic.
+    /// - 401 Unauthorized if the user identity is invalid.
+    /// - 500 Internal Server Error if an unexpected exception occurs.
+    /// </returns>
     [HttpPost("add")]
-    public async Task<bool> AddScheduleAsync([FromBody] AddScheduleDTO dtos)
+    public async Task<IActionResult> AddScheduleAsync([FromBody] ScheduleDto dtos, CancellationToken cancellationToken)
     {
-        if (dtos.lecturerId == null || dtos.labRoomId == null || dtos.scheduleType == null || dtos.startTime == null || dtos.endTime == null) return false;
-
-        Schedule schedule = new Schedule
+        try
         {
-            LecturerId = dtos.lecturerId,
-            LabRoomId = dtos.labRoomId,
-            ScheduleType = dtos.scheduleType,
-            ScheduleStatus = (ScheduleStatus)Enum.Parse(typeof(ScheduleStatus), "Not yet"),
-            StartTime = dtos.startTime,
-            EndTime = dtos.endTime,
-            CreatedAt = DateTimeOffset.UtcNow,
-            CreatedBy = dtos.createdBy,
-            IsActive = true,
-            IsDeleted = false
-        };
+            // Extract the current user's Id from JWT claims
+            if (!Guid.TryParse(HttpContext.User.FindFirst("Id")?.Value, out Guid userId))
+                return Unauthorized(new { success = false, message = "Invalid user identity" });
 
-        AddScheduleCommand command = new AddScheduleCommand
+            // Map the incoming DTO to a Schedule entity
+            var schedule = new Schedule
+            {
+                Id = Guid.NewGuid(),                        // Generate a new unique Id
+                LecturerId = dtos.LecturerId,               // Assign lecturer
+                LabRoomId = dtos.LabRoomId,                 // Assign lab room
+                SlotTypeId = dtos.SlotTypeId,               // Assign slot type
+                ScheduleType = dtos.ScheduleType,           // Set schedule type
+                ScheduleStatus = ScheduleStatus.Active,     // Default status is Active
+                StudentCount = dtos.StudentCount,           // Number of students
+                StartTime = dtos.StartTime.ToUniversalTime(), // Normalize start time
+                EndTime = dtos.EndTime.ToUniversalTime(),     // Normalize end time
+                CreatedAt = DateTimeOffset.UtcNow,          // Timestamp creation
+                CreatedBy = userId,                         // Track who created it
+                IsActive = true,                            // Mark as active
+                IsDeleted = false                           // Not deleted
+            };
+
+            // Wrap the schedule entity in a command object
+            var command = new AddScheduleCommand { Schedule = schedule };
+
+            // Send the command through MediatR pipeline
+            var result = await _mediator.Send(command, cancellationToken);
+
+            // Return success response if schedule was added successfully
+            if (result)
+                return Ok(new { success = true, message = "Schedule added successfully" });
+
+            // Return conflict response if schedule addition failed
+            return Conflict(new { success = false, message = "Schedule conflict or failed" });
+        }
+        catch (Exception ex)
         {
-            Schedule = schedule,
-        };
+            // Log the error for debugging
+            _logger.LogError(ex, "Error while adding schedule");
 
-        var isSuccess = await _mediator.Send(command);
-
-        if (isSuccess) return true;
-
-        return false;
+            // Return internal server error response
+            return StatusCode(500, new { success = false, message = "Internal server error" });
+        }
     }
+
+
 }

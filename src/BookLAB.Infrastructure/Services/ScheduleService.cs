@@ -92,11 +92,11 @@ namespace BookLAB.Infrastructure.Services
             return await _scheduleRepository.AddScheduleAsync(schedule);
         }
 
-        public async Task<bool> CheckConflictAsync(int roomId, DateTimeOffset startTime, DateTimeOffset endTime)
+        public async Task<bool> CheckConflictAsync(int roomId, DateTimeOffset startTime, DateTimeOffset endTime, CancellationToken cancellationToken)
         {
             if (startTime > endTime) return true;
 
-            var conflicts = await _scheduleRepository.CheckConflictAsync(roomId, startTime, endTime);
+            var conflicts = await _scheduleRepository.CheckConflictAsync(roomId, startTime, endTime, cancellationToken);
 
             return conflicts;
         }

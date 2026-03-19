@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace BookLAB.Application.Features.Bookings.AddSchedule
+namespace BookLAB.Application.Features.Schedules.Queries.AddSchedule
 {
     public class AddScheduleCommand : IRequest<bool>
     {
