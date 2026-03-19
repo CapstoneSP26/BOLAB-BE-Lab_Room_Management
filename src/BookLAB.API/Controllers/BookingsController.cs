@@ -1,4 +1,6 @@
+using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Models;
+using BookLAB.Application.Common.Security;
 using BookLAB.Application.Features.Bookings.Commands.ApproveBooking;
 using BookLAB.Application.Features.Bookings.Commands.CreateBooking;
 using BookLAB.Application.Features.Bookings.Commands.DeleteCalendarEvent;
@@ -6,22 +8,34 @@ using BookLAB.Application.Features.Bookings.Commands.RejectBooking;
 using BookLAB.Application.Features.Bookings.Commands.SyncToCalendar;
 using BookLAB.Application.Features.Bookings.Commands.UpdateCalendarEvent;
 using BookLAB.Application.Features.Bookings.Queries.GetBookings;
+using BookLAB.Application.Features.Bookings.Queries.GetBookingStats;
+using BookLAB.Application.Features.Bookings.Queries.ViewBookingHistory;
+using BookLAB.Domain.DTOs;
+using BookLAB.Domain.Entities;
+using BookLAB.Domain.Enums;
 using MediatR;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration.UserSecrets;
 
 namespace BookLAB.API.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class BookingsController : ControllerBase
 {
     private readonly IMediator _mediator;
     private readonly ILogger<BookingsController> _logger;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public BookingsController(IMediator mediator, ILogger<BookingsController> logger)
+    public BookingsController(IMediator mediator, 
+        ILogger<BookingsController> logger,
+        IUnitOfWork unitOfWork)
     {
         _mediator = mediator;
         _logger = logger;
+        _unitOfWork = unitOfWork;
     }
 
     /// <summary>
@@ -184,7 +198,7 @@ public class BookingsController : ControllerBase
     }
 
     [HttpGet]
-    [ProducesResponseType(typeof(PagedList<BookingDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PagedList<Application.Features.Bookings.Queries.GetBookings.BookingDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetBookings([FromQuery] GetBookingsQuery query)
     {
         // The Specification logic is encapsulated inside the Handler
@@ -193,4 +207,121 @@ public class BookingsController : ControllerBase
 
         return Ok(result);
     }
+
+    /// <summary>
+    /// Retrieves the booking history list for the current user.
+    /// </summary>
+    /// <param name="dto">
+    /// The filter and pagination parameters passed via query string, including page, limit, status, startDate, and endDate.
+    /// </param>
+    /// <returns>
+    /// Returns an HTTP 200 response with booking history data, total count, page, and limit.
+    /// If an error occurs, returns a 500 Internal Server Error.
+    /// </returns>
+    [HttpGet("get-booking-history")]
+    public async Task<IActionResult> GetBookingHistoryList([FromQuery] ViewBookingHistoryDTO dto)
+    {
+        try
+        {
+            // Try to parse the user Id from claims. If parsing fails, userId will be Guid.Empty.
+            Guid.TryParse(HttpContext.User.FindFirst("Id")?.Value, out var userId);
+
+            // Build the command object to send through Mediator, collecting parameters from the DTO.
+            ViewBookingHistoryCommand command = new ViewBookingHistoryCommand
+            {
+                userId = userId,
+                page = dto.page,
+                limit = dto.limit,
+                status = dto.status,
+                startDate = dto.startDate,
+                endDate = dto.endDate,
+            };
+
+            // Execute the command via Mediator to retrieve booking history.
+            var result = await _mediator.Send(command);
+
+            var username = string.Empty;
+
+            // Initialize the response DTO array with the same size as the result count.
+            ViewBookingHistoryResponseDTO[] data = new ViewBookingHistoryResponseDTO[result.Count];
+
+            // Loop through each booking record to map it into the response DTO.
+            for (int i = 0; i < result.Count; i++)
+            {
+                // Fetch the user who created the booking. 
+                // ⚠️ This can cause N+1 query problem since it queries the database inside a loop.
+                username = (await _unitOfWork.Repository<User>().GetByIdAsync(result[i].CreatedBy)).FullName;
+
+                // Map entity fields into the response DTO.
+                data[i] = new ViewBookingHistoryResponseDTO
+                {
+                    id = result[i].Id.ToString(),
+                    roomId = result[i].LabRoomId.ToString(),
+                    roomName = result[i].LabRoom.RoomName,
+                    buildingName = result[i].LabRoom.Building.BuildingName,
+                    startTime = result[i].StartTime.ToString("HH:mm"),
+                    endTime = result[i].EndTime.ToString("HH:mm"),
+                    date = result[i].StartTime.ToString("yyyy-MM-dd"),
+                    status = result[i].BookingStatus.ToString(),
+                    purpose = result[i].PurposeType.PurposeName,
+                    userName = username
+                };
+            }
+
+            // Return the response as JSON with pagination info.
+            return Ok(new
+            {
+                data = data,
+                total = result.Count,
+                page = dto.page,
+                limit = dto.limit
+            });
+        }
+        catch (Exception ex)
+        {
+            // Return a standardized 500 Internal Server Error response if something goes wrong.
+            return Problem("An internal server error occurred", statusCode: StatusCodes.Status500InternalServerError);
+        }
+    }
+
+    /// <summary>
+    /// Retrieves booking statistics for the current user within a specified date range.
+    /// </summary>
+    /// <param name="dto">
+    /// The request DTO containing startDate and endDate as query parameters.
+    /// These values are parsed into DateTimeOffset objects.
+    /// </param>
+    /// <returns>
+    /// Returns an HTTP 200 response with booking statistics if successful.
+    /// Returns a 500 Internal Server Error if an exception occurs.
+    /// </returns>
+    [HttpGet("get-booking-stats")]
+    public async Task<IActionResult> GetBookingStats([FromQuery] GetBookingStatsRequestDTO dto)
+    {
+        try
+        {
+            // Safely parse startDate and endDate from the query DTO.
+            // If parsing fails, the variables will be default(DateTimeOffset).
+            DateTimeOffset.TryParse(dto.startDate, out var startDate);
+            DateTimeOffset.TryParse(dto.endDate, out var endDate);
+
+            // Build the command object to send through Mediator.
+            GetBookingStatsCommand command = new GetBookingStatsCommand
+            {
+                userId = HttpContext.User.FindFirst("Id").Value, // Retrieve user Id from claims.
+                startDate = startDate.ToUniversalTime(),         // Convert to UTC for consistency.
+                endDate = endDate.ToUniversalTime(),
+            };
+
+            // Execute the command via Mediator and return the result.
+            var result = await _mediator.Send(command);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            // Return a standardized 500 Internal Server Error response if something goes wrong.
+            return Problem("An internal server error occurred", statusCode: StatusCodes.Status500InternalServerError);
+        }
+    }
+
 }
