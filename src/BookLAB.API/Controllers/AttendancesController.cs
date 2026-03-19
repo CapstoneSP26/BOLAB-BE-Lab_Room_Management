@@ -1,72 +1,65 @@
-﻿using BookLAB.Application.Features.Attendance.Commands.GenerateAttendanceQrCode;
+﻿using BookLAB.Application.Features.Attendances.Commands.SubmitTraditionalAttendance;
+using BookLAB.Application.Features.Attendances.Queries.GetAttendanceList;
+using BookLAB.Application.Features.Attendance.Commands.GenerateAttendanceQrCode;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using QRCoder;
 
-namespace BookLAB.API.Controllers
-{
-    [Route("api/[controller]")]
+namespace BookLAB.Api.Controllers;
+
+[Authorize] // Ensure only authenticated users can access attendance features
+[ApiController]
+[Route("api/[controller]")]
     [ApiController]
-    public class AttendancesController : ControllerBase
+public class AttendancesController : ControllerBase
+{
+    private readonly IMediator _mediator;
+
+    public AttendancesController(IMediator mediator)
     {
-        private readonly IMediator _mediator;
+        _mediator = mediator;
+    }
 
-        public AttendancesController(IMediator mediator)
-        {
-            _mediator = mediator;
-        }
+    /// <summary>
+    /// Gets the list of students for attendance based on Schedule (Group + Subject logic)
+    /// </summary>
+    /// <param name="scheduleId">The ID of the specific schedule slot</param>
+    /// <returns>A list of students with their current attendance status</returns>
+    [HttpGet("schedule/{scheduleId:guid}")]
+    [ProducesResponseType(typeof(List<AttendanceStudentDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetAttendanceList(Guid scheduleId)
+    {
+        var query = new GetAttendanceListQuery(scheduleId);
+        var result = await _mediator.Send(query);
+        return Ok(result);
+    }
 
-        [HttpGet("generate-qrcode")]
-        public async Task<IActionResult> GenerateAttendanceQRCode([FromQuery] string scheduleId)
-        {
-            try
-            {
-                GenerateAttendanceQrCodeCommand command = new GenerateAttendanceQrCodeCommand
-                {
-                    ScheduleId = scheduleId
-                };
-
-                var qrCodeImage = await _mediator.Send(command);
-
-                if (qrCodeImage == null || qrCodeImage.Length == 0)
-                {
-                    return NotFound("QR code could not be generated.");
-                }
-
-                return File(qrCodeImage, "image/png");
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred while generating the QR code: {ex.Message}");
-            }
-
-        }
-
-        [HttpPost("scan-qrcode")]
-        public async Task<IActionResult> ScanAttendanceQRCode([FromQuery] string qrId, string scheduleId, string studentId)
-        {
-            try
-            {
-                ScanAttendanceQrCodeCommand command = new ScanAttendanceQrCodeCommand
-                {
+    /// <summary>
+    /// Submits or updates the attendance list for a specific schedule
+    /// </summary>
+    /// <param name="command">The attendance data submitted by the lecturer</param>
+    /// <returns>Success status of the operation</returns>
+    [HttpPost("submit")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> SubmitAttendance([FromBody] SubmitAttendanceCommand command)
+    {
                     qrId = qrId,
                     scheduleId = scheduleId,
                     studentId = studentId
                 };
 
-                var result = await _mediator.Send(command);
+        var result = await _mediator.Send(command);
 
-                if (!result)
-                {
-                    return BadRequest("Failed to scan the QR code. Please ensure the QR code is valid and try again.");
-                }
-
-                return Ok("QR code scanned successfully.");
-            } catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred while scanning the QR code: {ex.Message}");
-            }
+        if (result)
+        {
+            return Ok(new { Message = "Attendance submitted successfully." });
         }
+
+        return BadRequest("Failed to submit attendance.");
     }
 }

@@ -12,6 +12,10 @@ public class GroupMemberConfiguration : IEntityTypeConfiguration<GroupMember>
         builder.ToTable("GroupMembers");
         builder.HasKey(gm => gm.Id);
 
+        builder.Property(gm => gm.SubjectCode)
+            .IsRequired(false)
+            .HasMaxLength(20);
+
         // 2. Cấu hình Quan hệ (Relationships)
 
         // GroupMember - Group (N-1)

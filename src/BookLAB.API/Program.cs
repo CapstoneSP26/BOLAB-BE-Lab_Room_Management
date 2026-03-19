@@ -1,20 +1,21 @@
+using BookLAB.API.Middlewares;
 using BookLAB.Application;
 using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Interfaces.Services;
 using BookLAB.Domain.Managements;
 using BookLAB.Infrastructure;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using QRCoder;
+using System.Text;
 using BookLAB.Infrastructure.Identity;
 using BookLAB.Infrastructure.Persistence;
 using BookLAB.Infrastructure.Repositories;
 using BookLAB.Infrastructure.Services;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.Google;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using QRCoder;
-using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -56,11 +57,6 @@ builder.Services.AddAuthentication(options =>
         };
     });
 
-builder.Services.AddDbContext<BookLABDbContext>(opt =>
-{
-    opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
-});
-
 builder.Services.AddCors(opt =>
 {
     opt.AddPolicy("CorsPolicy", options =>
@@ -74,42 +70,37 @@ builder.Services.AddApplicationServices();
 
 // Infrastructure layer
 builder.Services.AddInfrastructure(builder.Configuration);
-
-// Lifetime Services
-//builder.Services.AddScoped<IAccountRepository, AccountRepository>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IUserRoleRepository, UserRoleRepository>();
-builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
-
 builder.Services.AddControllers();
-// Swagger/OpenAPI
-builder.Services.AddEndpointsApiExplorer();
-//builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<BookLABDbContext>(opt =>
 {
     opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
         b => b.MigrationsAssembly("BookLAB.API"));
 });
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<IScheduleService, ScheduleService>();
+builder.Services.AddScoped<IScheduleRepository, ScheduleRepository>();
 
-builder.Services.AddScoped<IBookingService, BookingService>();
-builder.Services.AddScoped<IBookingRepository, BookingRepository>();
+// Swagger/OpenAPI
+builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<QRCodeGenerator>();
 builder.Services.AddScoped<QrManagements>();
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
-
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 // Middleware pipeline
 if (app.Environment.IsDevelopment())
 {
-    //app.UseSwagger();
-    //app.UseSwaggerUI();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 app.UseCors("CorsPolicy");
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

@@ -6,6 +6,7 @@ namespace BookLAB.Domain.Entities
     {
         public string Email { get; set; } = string.Empty;
         public string FullName { get; set; } = string.Empty;
+        public string UserCode { get; set; } = string.Empty;
         public string UserImageUrl { get; set; } = string.Empty;
         public string? Provider { get; set; } 
         public string? ProviderId { get; set; }
@@ -17,6 +18,7 @@ namespace BookLAB.Domain.Entities
         public bool IsDeleted { get; set; }
         public bool IsActive { get; set; } = true;
         public Campus Campus { get; set; }
+        public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
         public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
     }
 }

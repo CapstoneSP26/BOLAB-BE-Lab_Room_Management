@@ -21,6 +21,10 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasMaxLength(100)
             .IsRequired();
 
+        builder.Property(u => u.UserCode)
+            .HasMaxLength(100)
+            .IsRequired();
+
         builder.Property(u => u.UserImageUrl)
             .HasMaxLength(2048)
             .IsRequired(false);
@@ -69,6 +73,10 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasIndex(u => u.Email)
             .IsUnique()
             .HasDatabaseName("UQ_User_Email");
+
+        builder.HasIndex(u => u.UserCode)
+            .IsUnique()
+            .HasDatabaseName("UQ_User_Code");
 
         // Index để tìm kiếm nhanh User theo Campus
         builder.HasIndex(u => u.CampusId);
