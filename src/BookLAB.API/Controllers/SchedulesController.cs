@@ -2,6 +2,7 @@
 using BookLAB.Application.Features.Schedules.Commands.ImportSchedule;
 using BookLAB.Application.Features.Schedules.Commands.ValidateImport;
 using BookLAB.Application.Features.Schedules.Common;
+using BookLAB.Application.Features.Schedules.Queries.GetSchedules;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -55,5 +56,15 @@ public class SchedulesController : ControllerBase
         }
 
         return BadRequest(result);
+    }
+
+    [HttpGet]
+    [ProducesResponseType(typeof(PagedList<ScheduleDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetSchedules([FromQuery] GetSchedulesQuery query)
+    {
+        // MediatR sẽ chuyển hướng query này đến GetSchedulesQueryHandler
+        var result = await _mediator.Send(query);
+
+        return Ok(result);
     }
 }
