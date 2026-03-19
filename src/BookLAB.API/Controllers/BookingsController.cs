@@ -1,3 +1,5 @@
+using BookLAB.Application.Features.Bookings;
+using BookLAB.Application.Features.Bookings.Queries.ViewUncheckedBookingRequest;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Models;
 using BookLAB.Application.Common.Security;
@@ -17,7 +19,9 @@ using BookLAB.Domain.DTOs;
 using BookLAB.Domain.Entities;
 using BookLAB.Domain.Enums;
 using MediatR;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration.UserSecrets;
 
 namespace BookLAB.API.Controllers;
 

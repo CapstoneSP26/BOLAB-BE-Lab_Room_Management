@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using QRCoder;
 using System.Text;
 using BookLAB.Infrastructure.Identity;
 using BookLAB.Infrastructure.Persistence;

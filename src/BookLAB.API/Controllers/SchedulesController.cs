@@ -6,6 +6,10 @@ using BookLAB.Application.Features.Schedules.Queries.GetSchedules;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions;
+using BookLAB.Domain.Enums;
+using BookLAB.Application.Features.Bookings.Commands.CreateBooking;
+using BookLAB.Application.Features.Schedules.Queries.AddSchedule;
 
 namespace BookLAB.Api.Controllers;
 
