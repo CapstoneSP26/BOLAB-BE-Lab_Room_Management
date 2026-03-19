@@ -2,9 +2,7 @@
 using BookLAB.Application.Features.Schedules.Commands.ImportSchedule;
 using BookLAB.Application.Features.Schedules.Commands.ValidateImport;
 using BookLAB.Application.Features.Schedules.Common;
-using BookLAB.Application.Features.Bookings.CheckConflict;
-using BookLAB.Domain.DTOs;
-using BookLAB.Domain.Entities;
+using BookLAB.Application.Features.Schedules.Queries.GetSchedules;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -66,99 +64,12 @@ public class SchedulesController : ControllerBase
         return BadRequest(result);
     }
 
-    [HttpPost("check-conflict")]
-    public async Task<IActionResult> CheckConflictAsync([FromBody] CreateBookingCommand booking)
+    [HttpGet]
+    public async Task<IActionResult> GetSchedules([FromQuery] GetSchedulesQuery query)
     {
-        if (booking == null) return Ok(new
-        {
-            success = false,
-            mesage = "Invalid booking data"
-        });
+        // MediatR sẽ chuyển hướng query này đến GetSchedulesQueryHandler
+        var result = await _mediator.Send(query);
 
-        CheckConflictCommand command = new CheckConflictCommand
-        {
-            booking = booking
-        };
-
-        var isConflict = await _mediator.Send(command);
-
-        if (isConflict) return Ok(new
-        {
-            success = true,
-            mesage = "No conflict"
-        });
-
-        return Ok(new
-        {
-            success = false,
-            mesage = "Booking is conflict"
-        });
+        return Ok(result);
     }
-
-    /// <summary>
-    /// Handles the HTTP POST request to add a new schedule.
-    /// The method maps the incoming DTO to a Schedule entity, 
-    /// sends an AddScheduleCommand through MediatR, 
-    /// and returns an appropriate HTTP response based on the outcome.
-    /// </summary>
-    /// <param name="dtos">The schedule data transfer object containing input details.</param>
-    /// <param name="cancellationToken">Token provided by ASP.NET Core to cancel the request if the client disconnects or times out.</param>
-    /// <returns>
-    /// An IActionResult indicating the result of the operation:
-    /// - 200 OK with success message if the schedule was added successfully.
-    /// - 409 Conflict if the schedule addition failed due to conflict or other business logic.
-    /// - 401 Unauthorized if the user identity is invalid.
-    /// - 500 Internal Server Error if an unexpected exception occurs.
-    /// </returns>
-    [HttpPost("add")]
-    public async Task<IActionResult> AddScheduleAsync([FromBody] ScheduleDto dtos, CancellationToken cancellationToken)
-    {
-        try
-        {
-            // Extract the current user's Id from JWT claims
-            if (!Guid.TryParse(HttpContext.User.FindFirst("Id")?.Value, out Guid userId))
-                return Unauthorized(new { success = false, message = "Invalid user identity" });
-
-            // Map the incoming DTO to a Schedule entity
-            var schedule = new Schedule
-            {
-                Id = Guid.NewGuid(),                        // Generate a new unique Id
-                LecturerId = dtos.LecturerId,               // Assign lecturer
-                LabRoomId = dtos.LabRoomId,                 // Assign lab room
-                SlotTypeId = dtos.SlotTypeId,               // Assign slot type
-                ScheduleType = dtos.ScheduleType,           // Set schedule type
-                ScheduleStatus = ScheduleStatus.Active,     // Default status is Active
-                StudentCount = dtos.StudentCount,           // Number of students
-                StartTime = dtos.StartTime.ToUniversalTime(), // Normalize start time
-                EndTime = dtos.EndTime.ToUniversalTime(),     // Normalize end time
-                CreatedAt = DateTimeOffset.UtcNow,          // Timestamp creation
-                CreatedBy = userId,                         // Track who created it
-                IsActive = true,                            // Mark as active
-                IsDeleted = false                           // Not deleted
-            };
-
-            // Wrap the schedule entity in a command object
-            var command = new AddScheduleCommand { Schedule = schedule };
-
-            // Send the command through MediatR pipeline
-            var result = await _mediator.Send(command, cancellationToken);
-
-            // Return success response if schedule was added successfully
-            if (result)
-                return Ok(new { success = true, message = "Schedule added successfully" });
-
-            // Return conflict response if schedule addition failed
-            return Conflict(new { success = false, message = "Schedule conflict or failed" });
-        }
-        catch (Exception ex)
-        {
-            // Log the error for debugging
-            _logger.LogError(ex, "Error while adding schedule");
-
-            // Return internal server error response
-            return StatusCode(500, new { success = false, message = "Internal server error" });
-        }
-    }
-
-
 }
