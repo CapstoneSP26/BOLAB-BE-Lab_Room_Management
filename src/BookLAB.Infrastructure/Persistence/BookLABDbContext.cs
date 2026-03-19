@@ -35,7 +35,7 @@ namespace BookLAB.Infrastructure.Persistence
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(BookLABDbContext).Assembly);
-            modelBuilder.Seed();
+            //modelBuilder.Seed();
             base.OnModelCreating(modelBuilder);
         }
     }

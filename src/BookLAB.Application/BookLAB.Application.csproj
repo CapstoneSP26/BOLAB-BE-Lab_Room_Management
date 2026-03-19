@@ -15,7 +15,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Common\Mappings\" />
     <Folder Include="Features\Auth\Commands\" />
     <Folder Include="Features\Auth\Queries\" />
     <Folder Include="Features\Bookings\Commands\" />
@@ -28,7 +27,6 @@
     <Folder Include="Features\Groups\Queries\" />
     <Folder Include="Features\LabRooms\Commands\" />
     <Folder Include="Features\LabRooms\Queries\" />
-    <Folder Include="Features\Schedules\Queries\" />
     <Folder Include="Features\Users\Commands\" />
     <Folder Include="Features\Users\Queries\" />
   </ItemGroup>

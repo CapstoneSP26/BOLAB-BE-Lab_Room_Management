@@ -2,6 +2,9 @@
 using BookLAB.Application.Common.Models;
 using BookLAB.Application.Features.Schedules.Common;
 using BookLAB.Domain.Entities;
+using System;
+using System.Collections.Generic;
+using System.Text;
 
 namespace BookLAB.Application.Common.Interfaces.Services
 {
@@ -24,5 +27,7 @@ namespace BookLAB.Application.Common.Interfaces.Services
             Dictionary<string, List<SlotFrame>> slotTypeMap,
             CancellationToken ct
         );
+        Task<bool> CheckConflictAsync(int roomId, DateTimeOffset startTime, DateTimeOffset endTime, CancellationToken cancellationToken);
+        Task<bool> AddScheduleAsync(Schedule schedule);
     }
 }

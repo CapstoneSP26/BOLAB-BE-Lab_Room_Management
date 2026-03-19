@@ -12,6 +12,11 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using QRCoder;
 using System.Text;
+using BookLAB.Infrastructure.Identity;
+using BookLAB.Infrastructure.Persistence;
+using BookLAB.Infrastructure.Repositories;
+using BookLAB.Infrastructure.Services;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -67,6 +72,16 @@ builder.Services.AddApplicationServices();
 // Infrastructure layer
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddControllers();
+
+builder.Services.AddDbContext<BookLABDbContext>(opt =>
+{
+    opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
+        b => b.MigrationsAssembly("BookLAB.API"));
+});
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<IScheduleService, ScheduleService>();
+builder.Services.AddScoped<IScheduleRepository, ScheduleRepository>();
+
 // Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
 
@@ -86,6 +101,7 @@ if (app.Environment.IsDevelopment())
 app.UseCors("CorsPolicy");
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
