@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using QRCoder;
 using System.Text;
 using BookLAB.Infrastructure.Identity;
 using BookLAB.Infrastructure.Persistence;
@@ -63,6 +64,11 @@ builder.Services.AddCors(opt =>
     });
 });
 
+builder.Services.AddHttpClient("BackendApi", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["ApiSettings:BaseUrl"]);
+});
+
 // Application layer
 builder.Services.AddApplicationServices();
 
@@ -82,6 +88,7 @@ builder.Services.AddScoped<IScheduleRepository, ScheduleRepository>();
 // Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
 
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();

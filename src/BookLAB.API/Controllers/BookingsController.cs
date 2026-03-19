@@ -1,3 +1,5 @@
+using BookLAB.Application.Features.Bookings;
+using BookLAB.Application.Features.Bookings.Queries.ViewUncheckedBookingRequest;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Models;
 using BookLAB.Application.Common.Security;
@@ -323,5 +325,16 @@ public class BookingsController : ControllerBase
             return Problem("An internal server error occurred", statusCode: StatusCodes.Status500InternalServerError);
         }
     }
+    [HttpGet("get-unchecked-booking-request")]
+    public async Task<List<BookingRequest>> GetUncheckedBookingRequestList()
+    {
+        ViewUncheckedBookingRequestCommand command = new ViewUncheckedBookingRequestCommand
+        {
+            userId = HttpContext.User.FindFirst("Id")?.Value ?? "11111111-1111-1111-1111-111111111111"
+        };
 
+        var result = await _mediator.Send(command);
+
+        return result;
+    }
 }
