@@ -10,7 +10,7 @@ using BookLAB.Application.Features.Bookings.Commands.UpdateCalendarEvent;
 using BookLAB.Application.Features.Bookings.Queries.GetBookings;
 using BookLAB.Application.Features.Bookings.Queries.GetBookingStats;
 using BookLAB.Application.Features.Bookings.Queries.ViewBookingHistory;
-using BookLAB.Application.Features.Bookings.Queries.ViewUncheckedBookingRequest
+using BookLAB.Application.Features.Bookings.Queries.ViewUncheckedBookingRequest;
 using BookLAB.Domain.DTOs;
 using BookLAB.Domain.Entities;
 using BookLAB.Domain.Enums;
@@ -323,6 +323,57 @@ public class BookingsController : ControllerBase
         {
             // Return a standardized 500 Internal Server Error response if something goes wrong.
             return Problem("An internal server error occurred", statusCode: StatusCodes.Status500InternalServerError);
+        }
+    }
+
+    /// <summary>
+    /// Handles the HTTP GET request to retrieve unchecked booking requests for the current user.
+    /// The method extracts the user Id from JWT claims, 
+    /// sends a ViewUncheckedBookingRequestCommand through MediatR, 
+    /// and returns the list of unchecked booking requests.
+    /// </summary>
+    /// <param name="cancellationToken">
+    /// Token provided by ASP.NET Core to cancel the request if the client disconnects or times out.
+    /// </param>
+    /// <returns>
+    /// An IActionResult indicating the result of the operation:
+    /// - 200 OK with the list of unchecked booking requests if successful.
+    /// - 401 Unauthorized if the user identity is invalid.
+    /// - 500 Internal Server Error if an unexpected exception occurs.
+    /// </returns>
+    [HttpGet("get-unchecked-booking-request")]
+    public async Task<IActionResult> GetUncheckedBookingRequestList(CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Validate user identity from claims
+            if (!Guid.TryParse(HttpContext.User.FindFirst("Id")?.Value, out Guid userId))
+                return Unauthorized();
+
+            // Create command object with the userId
+            ViewUncheckedBookingRequestCommand command = new ViewUncheckedBookingRequestCommand
+            {
+                userId = userId
+            };
+
+            // Send the command through MediatR pipeline
+            var result = await _mediator.Send(command, cancellationToken);
+
+            // Return success response with the retrieved data
+            return Ok(new
+            {
+                success = true,
+                message = "Get unchecked booking request successfully!",
+                result = result
+            });
+        }
+        catch (Exception ex)
+        {
+            // Log the error with details for debugging
+            _logger.LogError(ex, "Something is wrong while getting unchecked booking requests: " + ex.Message);
+
+            // Return internal server error response
+            return Problem("Something is wrong while getting unchecked booking requests");
         }
     }
 
