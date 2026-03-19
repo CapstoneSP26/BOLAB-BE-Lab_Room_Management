@@ -3,7 +3,6 @@ using BookLAB.Application;
 using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Interfaces.Services;
-using BookLAB.Domain.Managements;
 using BookLAB.Infrastructure;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
@@ -65,6 +64,11 @@ builder.Services.AddCors(opt =>
     });
 });
 
+builder.Services.AddHttpClient("BackendApi", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["ApiSettings:BaseUrl"]);
+});
+
 // Application layer
 builder.Services.AddApplicationServices();
 
@@ -85,8 +89,6 @@ builder.Services.AddScoped<IScheduleRepository, ScheduleRepository>();
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
-builder.Services.AddScoped<QRCodeGenerator>();
-builder.Services.AddScoped<QrManagements>();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();

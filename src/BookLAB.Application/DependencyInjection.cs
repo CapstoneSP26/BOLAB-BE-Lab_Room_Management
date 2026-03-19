@@ -1,10 +1,11 @@
-﻿using System.Reflection;
-using BookLAB.Application.Common.Behaviors;
+﻿using BookLAB.Application.Common.Behaviors;
 using BookLAB.Application.Common.Interfaces.Services;
 using BookLAB.Application.Common.Policies;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
+using QRCoder;
+using System.Reflection;
 
 namespace BookLAB.Application;
 

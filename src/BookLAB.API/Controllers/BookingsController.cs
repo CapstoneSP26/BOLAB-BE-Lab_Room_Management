@@ -324,19 +324,17 @@ public class BookingsController : ControllerBase
             // Return a standardized 500 Internal Server Error response if something goes wrong.
             return Problem("An internal server error occurred", statusCode: StatusCodes.Status500InternalServerError);
         }
-
-        [HttpGet("get-unchecked-booking-request")]
-        public async Task<List<BookingRequest>> GetUncheckedBookingRequestList()
-        {
-            ViewUncheckedBookingRequestCommand command = new ViewUncheckedBookingRequestCommand
-            {
-                userId = HttpContext.User.FindFirst("Id")?.Value ?? "11111111-1111-1111-1111-111111111111"
-            };
-
-            var result = await _mediator.Send(command);
-
-            return result;
-        }
     }
+    [HttpGet("get-unchecked-booking-request")]
+    public async Task<List<BookingRequest>> GetUncheckedBookingRequestList()
+    {
+        ViewUncheckedBookingRequestCommand command = new ViewUncheckedBookingRequestCommand
+        {
+            userId = HttpContext.User.FindFirst("Id")?.Value ?? "11111111-1111-1111-1111-111111111111"
+        };
 
+        var result = await _mediator.Send(command);
+
+        return result;
+    }
 }
