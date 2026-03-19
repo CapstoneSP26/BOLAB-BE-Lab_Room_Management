@@ -1,11 +1,19 @@
 using BookLAB.API.Middlewares;
 using BookLAB.Application;
+using BookLAB.Application.Common.Interfaces.Identity;
+using BookLAB.Application.Common.Interfaces.Repositories;
+using BookLAB.Application.Common.Interfaces.Services;
 using BookLAB.Infrastructure;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using BookLAB.Infrastructure.Identity;
+using BookLAB.Infrastructure.Persistence;
+using BookLAB.Infrastructure.Repositories;
+using BookLAB.Infrastructure.Services;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -55,15 +63,31 @@ builder.Services.AddCors(opt =>
     });
 });
 
+builder.Services.AddHttpClient("BackendApi", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["ApiSettings:BaseUrl"]);
+});
+
 // Application layer
 builder.Services.AddApplicationServices();
 
 // Infrastructure layer
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddControllers();
+
+builder.Services.AddDbContext<BookLABDbContext>(opt =>
+{
+    opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
+        b => b.MigrationsAssembly("BookLAB.API"));
+});
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<IScheduleService, ScheduleService>();
+builder.Services.AddScoped<IScheduleRepository, ScheduleRepository>();
+
 // Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
 
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
@@ -77,6 +101,7 @@ if (app.Environment.IsDevelopment())
 app.UseCors("CorsPolicy");
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

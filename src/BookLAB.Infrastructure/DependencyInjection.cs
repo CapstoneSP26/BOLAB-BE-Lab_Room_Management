@@ -1,14 +1,14 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-
-using BookLAB.Application.Common.Interfaces.Services;
-using BookLAB.Application.Common.Interfaces.Identity;
-using BookLAB.Infrastructure.Persistence;
-using BookLAB.Infrastructure.Identity;
+﻿using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Application.Common.Interfaces.Repositories;
+using BookLAB.Application.Common.Interfaces.Services;
+using BookLAB.Infrastructure.Identity;
+using BookLAB.Infrastructure.Persistence;
 using BookLAB.Infrastructure.Repositories;
 using BookLAB.Infrastructure.Services;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using QRCoder;
 
 namespace BookLAB.Infrastructure
 {
@@ -34,12 +34,16 @@ namespace BookLAB.Infrastructure
             //services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IScheduleService, ScheduleService>();
             services.AddScoped<ICalendarSyncService, GoogleCalendarSyncService>();
+            services.AddScoped<QRCodeGenerator>();
+            services.AddScoped<IQrManagements, QrManagements>();
 
             // ===== REPOSITORIES =====
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IUserRoleRepository, UserRoleRepository>();
             services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
             services.AddScoped<IBookingRepository, BookingRepository>();
+
+
 
             return services;
         }

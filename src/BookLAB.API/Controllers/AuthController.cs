@@ -41,50 +41,53 @@ namespace BookLAB.API.Controllers
 
         // front-end sẽ vào đây đầu tiên
         [HttpGet("login/google")]
-        public async Task<IResult> GoogleLogin([FromQuery] string returnUrl)
+        public async Task<IActionResult> GoogleLogin([FromQuery] string returnUrl)
         {
             var redirectUrl = _linkGenerator.GetPathByName(HttpContext, "GoogleLoginCallback") + $"?returnUrl={returnUrl}";
 
-            // Tạo AuthenticationProperties thủ công
             var properties = new AuthenticationProperties
             {
                 RedirectUri = redirectUrl
             };
 
-            return Results.Challenge(properties, ["Google"]); // Result.Challenge() chính là thứ yêu cầu đăng nhập bằng bên thứ 3, 
+            // Challenge sẽ yêu cầu xác thực bằng Google
+            return Challenge(properties, GoogleDefaults.AuthenticationScheme);
         }
 
         [HttpGet("login/google/callback", Name = "GoogleLoginCallback")]
-        public async Task<IResult> GoogleLoginCallback([FromQuery] string returnUrl)
+        public async Task<IActionResult> GoogleLoginCallback([FromQuery] string returnUrl)
         {
             var result = await HttpContext.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
 
             if (!result.Succeeded)
             {
-                return Results.Unauthorized();
+                return Unauthorized();
             }
 
-            var account = await _userRepository.GetByProviderUserIdAsync(result.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var account = await _userRepository.GetByProviderUserIdAsync(
+                result.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value);
 
             if (account == null)
             {
-                return Results.NotFound();
+                return NotFound();
             }
-            var userId = account.Id;
 
+            var userId = account.Id;
             var role = await _userRoleRepository.GetAsync(userId);
 
             IConfiguration configuration = new ConfigurationBuilder()
-                    .SetBasePath(Directory.GetCurrentDirectory())
-                    .AddJsonFile("appsettings.json", true, true).Build();
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", true, true)
+                .Build();
 
             var claims = new List<Claim>
-                {
-                    new Claim("Id", account.Id.ToString()),
-                    new Claim("Role", role.RoleId.ToString()),
-                };
+    {
+        new Claim("Id", account.Id.ToString()),
+        new Claim("Role", role.RoleId.ToString()),
+    };
 
-            var symetricKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:SecretKey"]));
+            var symetricKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(configuration["JWT:SecretKey"]));
             var signCredential = new SigningCredentials(symetricKey, SecurityAlgorithms.HmacSha256);
 
             var preparedToken = new JwtSecurityToken(
@@ -106,7 +109,24 @@ namespace BookLAB.API.Controllers
                     SameSite = SameSiteMode.None
                 });
 
-            return Results.Redirect($"{returnUrl}");
+            return Ok(new
+            {
+                Role = role.RoleId.ToString(),
+                Token = generatedToken,
+                AccountId = account.Id.ToString()
+            });
+        }
+
+
+        [HttpGet("sign-out")]
+        public async Task<IActionResult> SignOut()
+        {
+            await HttpContext.SignOutAsync("Cookies");
+            return Ok(new
+            {
+                success = true,
+                message = "Sign out successfully!"
+            });
         }
     }
 }

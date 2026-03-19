@@ -626,18 +626,21 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         {
                             Id = new Guid("36363636-3636-3636-3636-363636363636"),
                             GroupId = new Guid("18181818-1818-1818-1818-181818181818"),
+                            SubjectCode = "",
                             UserId = new Guid("22222222-2222-2222-2222-222222222222")
                         },
                         new
                         {
                             Id = new Guid("37373737-3737-3737-3737-373737373737"),
                             GroupId = new Guid("19191919-1919-1919-1919-191919191919"),
+                            SubjectCode = "",
                             UserId = new Guid("33333333-3333-3333-3333-333333333333")
                         },
                         new
                         {
                             Id = new Guid("38383838-3838-3838-3838-383838383838"),
                             GroupId = new Guid("20202020-2020-2020-2020-202020202020"),
+                            SubjectCode = "",
                             UserId = new Guid("11111111-1111-1111-1111-111111111111")
                         });
                 });
@@ -881,6 +884,67 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                             RoomName = "Lab B1",
                             RoomNo = "Alpha 101"
                         });
+                });
+
+            modelBuilder.Entity("BookLAB.Domain.Entities.Notification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<bool>("IsGlobal")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("IsRead")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Metadata")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<DateTimeOffset?>("ReadAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId1")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsGlobal");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserId1");
+
+                    b.ToTable("Notifications", (string)null);
                 });
 
             modelBuilder.Entity("BookLAB.Domain.Entities.PurposeType", b =>
@@ -1766,6 +1830,22 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                     b.Navigation("Building");
                 });
 
+            modelBuilder.Entity("BookLAB.Domain.Entities.Notification", b =>
+                {
+                    b.HasOne("BookLAB.Domain.Entities.User", null)
+                        .WithMany("Notifications")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("BookLAB.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId1")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("BookLAB.Domain.Entities.Report", b =>
                 {
                     b.HasOne("BookLAB.Domain.Entities.Schedule", "Schedule")
@@ -1928,6 +2008,8 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("BookLAB.Domain.Entities.User", b =>
                 {
+                    b.Navigation("Notifications");
+
                     b.Navigation("UserRoles");
                 });
 #pragma warning restore 612, 618

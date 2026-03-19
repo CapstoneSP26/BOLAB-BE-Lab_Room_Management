@@ -15,10 +15,12 @@ namespace BookLAB.Api.Controllers;
 public class SchedulesController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly ILogger<SchedulesController> _logger;
 
-    public SchedulesController(IMediator mediator)
+    public SchedulesController(IMediator mediator, ILogger<SchedulesController> logger)
     {
         _mediator = mediator;
+        _logger = logger;
     }
 
     /// <summary>
@@ -59,7 +61,6 @@ public class SchedulesController : ControllerBase
     }
 
     [HttpGet]
-    [ProducesResponseType(typeof(PagedList<ScheduleDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetSchedules([FromQuery] GetSchedulesQuery query)
     {
         // MediatR sẽ chuyển hướng query này đến GetSchedulesQueryHandler
