@@ -18,9 +18,7 @@ namespace BookLAB.Application.Features.Bookings.Queries.ViewUncheckedBookingRequ
 
         public async Task<List<BookingRequest>> Handle(ViewUncheckedBookingRequestCommand request, CancellationToken cancellationToken)
         {
-            Guid.TryParse(request.userId, out var userId);
-
-           return await _unitOfWork.Repository<BookingRequest>().Entities.Where(x => x.ResponsedByUserId == null || x.ResponsedByUserId == userId).ToListAsync();
+           return await _unitOfWork.Repository<BookingRequest>().Entities.Where(x => x.ResponsedByUserId == null || x.ResponsedByUserId == request.userId).ToListAsync();
         }
     }
 }

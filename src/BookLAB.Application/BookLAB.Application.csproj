@@ -16,13 +16,6 @@
 
   <ItemGroup>
     <Folder Include="Common\Mappings\" />
-    <Folder Include="Common\Models\" />
-    <Folder Include="Features\Attendance\Queries\" />
-    <Folder Include="Features\Attendance\Queries\" />
-    <Folder Include="Features\Attendance\Queries\" />
-    <Folder Include="Features\Bookings\Commands\" />
-    <Folder Include="Features\Bookings\Queries\" />
-    <Folder Include="Features\Bookings\Queries\" />
     <Folder Include="Features\Auth\Commands\" />
     <Folder Include="Features\Auth\Queries\" />
     <Folder Include="Features\Bookings\Commands\" />

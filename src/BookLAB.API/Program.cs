@@ -5,6 +5,7 @@ using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Interfaces.Services;
 using BookLAB.Domain.Managements;
 using BookLAB.Infrastructure;
+using BookLAB.Infrastructure.Identity;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;

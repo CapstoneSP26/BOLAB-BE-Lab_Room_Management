@@ -12,6 +12,7 @@ using BookLAB.Domain.DTOs;
 using BookLAB.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using BookLAB.Application.Features.Bookings.Queries.ViewBookingHistory;
 
 namespace BookLAB.API.Controllers;
 
@@ -196,5 +197,39 @@ public class BookingsController : ControllerBase
         var result = await _mediator.Send(query);
 
         return Ok(result);
+    }
+
+    /// <summary>
+    /// This endpoint retrieves the booking history for a specific user.
+    /// </summary>
+    /// <param name="dto">Nessesary info for endpoint</param>
+    /// <returns>List of booking user has booked in the past</returns>
+    [HttpPost("get-booking-history")]
+    public async Task<List<Booking>> GetBookingHistoryList([FromBody] ViewBookingHistoryDTO dto)
+    {
+        ViewBookingHistoryCommand command = new ViewBookingHistoryCommand
+        {
+            UserId = dto.userId
+        };
+
+        var result = await _mediator.Send(command);
+
+        return result;
+    }
+
+    [HttpGet("get-unchecked-booking-request")]
+    public async Task<IActionResult> GetUncheckedBookingRequestList()
+    {
+        if (Guid.TryParse(HttpContext.User.FindFirst("Id")?.Value, out Guid userId))
+            return Unauthorized();
+
+        ViewUncheckedBookingRequestCommand command = new ViewUncheckedBookingRequestCommand
+        {
+            userId = userId
+        };
+
+        var result = await _mediator.Send(command);
+
+        return result;
     }
 }

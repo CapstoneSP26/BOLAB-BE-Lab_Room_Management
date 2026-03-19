@@ -1,6 +1,6 @@
-﻿using BookLAB.Application.Features.Attendances.Commands.SubmitTraditionalAttendance;
+﻿using BookLAB.Application.Features.Attendances.Commands.GenerateAttendanceQrCode;
+using BookLAB.Application.Features.Attendances.Commands.SubmitTraditionalAttendance;
 using BookLAB.Application.Features.Attendances.Queries.GetAttendanceList;
-using BookLAB.Application.Features.Attendance.Commands.GenerateAttendanceQrCode;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -55,5 +55,31 @@ public class AttendancesController : ControllerBase
         }
 
         return BadRequest("Failed to submit attendance.");
+    }
+
+    [HttpGet("generate-qrcode")]
+    public async Task<IActionResult> GenerateAttendanceQRCode([FromQuery] string scheduleId)
+    {
+        try
+        {
+            GenerateAttendanceQrCodeCommand command = new GenerateAttendanceQrCodeCommand
+            {
+                ScheduleId = scheduleId
+            };
+
+            var qrCodeImage = await _mediator.Send(command);
+
+            if (qrCodeImage == null || qrCodeImage.Length == 0)
+            {
+                return NotFound("QR code could not be generated.");
+            }
+
+            return File(qrCodeImage, "image/png");
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred while generating the QR code: {ex.Message}");
+        }
+
     }
 }

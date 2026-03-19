@@ -8,6 +8,6 @@ namespace BookLAB.Application.Features.Bookings.Queries.ViewUncheckedBookingRequ
 {
     public class ViewUncheckedBookingRequestCommand : IRequest<List<BookingRequest>>
     {
-        public string userId { get; set; }
+        public Guid userId { get; set; }
     }
 }

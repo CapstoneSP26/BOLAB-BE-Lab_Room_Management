@@ -8,7 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace BookLAB.Application.Features.Attendance.Commands.GenerateAttendanceQrCode
+namespace BookLAB.Application.Features.Attendances.Commands.GenerateAttendanceQrCode
 {
     public class GenerateAttendanceQrCodeHandler : IRequestHandler<GenerateAttendanceQrCodeCommand, byte[]>
     {
