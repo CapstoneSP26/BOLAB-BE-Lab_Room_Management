@@ -109,12 +109,13 @@ namespace BookLAB.API.Controllers
                     SameSite = SameSiteMode.None
                 });
 
-            return Ok(new
-            {
-                Role = role.RoleId.ToString(),
-                Token = generatedToken,
-                AccountId = account.Id.ToString()
-            });
+            //return Ok(new
+            //{
+            //    Role = role.RoleId.ToString(),
+            //    Token = generatedToken,
+            //    AccountId = account.Id.ToString()
+            //});
+            return Redirect(returnUrl);
         }
 
 

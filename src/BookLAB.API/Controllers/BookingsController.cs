@@ -220,14 +220,14 @@ public class BookingsController : ControllerBase
     /// Returns an HTTP 200 response with booking history data, total count, page, and limit.
     /// If an error occurs, returns a 500 Internal Server Error.
     /// </returns>
-    [HttpGet("get-booking-history")]
+    [HttpGet("history")]
     public async Task<IActionResult> GetBookingHistoryList([FromQuery] ViewBookingHistoryDTO dto)
     {
         try
         {
             // Try to parse the user Id from claims. If parsing fails, userId will be Guid.Empty.
             Guid.TryParse(HttpContext.User.FindFirst("Id")?.Value, out var userId);
-
+            
             // Build the command object to send through Mediator, collecting parameters from the DTO.
             ViewBookingHistoryCommand command = new ViewBookingHistoryCommand
             {
@@ -297,7 +297,7 @@ public class BookingsController : ControllerBase
     /// Returns an HTTP 200 response with booking statistics if successful.
     /// Returns a 500 Internal Server Error if an exception occurs.
     /// </returns>
-    [HttpGet("get-booking-stats")]
+    [HttpGet("stats")]
     public async Task<IActionResult> GetBookingStats([FromQuery] GetBookingStatsRequestDTO dto)
     {
         try
@@ -307,10 +307,12 @@ public class BookingsController : ControllerBase
             DateTimeOffset.TryParse(dto.startDate, out var startDate);
             DateTimeOffset.TryParse(dto.endDate, out var endDate);
 
+            var userId = HttpContext.User.FindFirst("Id").Value;
+
             // Build the command object to send through Mediator.
             GetBookingStatsCommand command = new GetBookingStatsCommand
             {
-                userId = HttpContext.User.FindFirst("Id").Value, // Retrieve user Id from claims.
+                userId = userId, // Retrieve user Id from claims.
                 startDate = startDate.ToUniversalTime(),         // Convert to UTC for consistency.
                 endDate = endDate.ToUniversalTime(),
             };
