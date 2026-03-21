@@ -5,14 +5,23 @@ using BookLAB.Application.Features.Schedules.Common;
 using BookLAB.Domain.Entities;
 using BookLAB.Domain.Enums;
 using System.Globalization;
+using System;
+using System.Collections.Generic;
+using System.Text;
 
 namespace BookLAB.Infrastructure.Services
 {
     public class ScheduleService : IScheduleService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IScheduleRepository _scheduleRepository;
 
-        public ScheduleService(IUnitOfWork unitOfWork) => _unitOfWork = unitOfWork;
+        public ScheduleService(IUnitOfWork unitOfWork,
+            IScheduleRepository scheduleRepository)
+        {
+            _unitOfWork = unitOfWork;
+            _scheduleRepository = scheduleRepository;
+        }
 
         public RowResult<ScheduleImportDto> CheckSingleRowAsync(
             ScheduleImportDto item,
@@ -76,6 +85,20 @@ namespace BookLAB.Infrastructure.Services
             }
 
             return rowResult;
+        }
+
+        public async Task<bool> AddScheduleAsync(Schedule schedule)
+        {
+            return await _scheduleRepository.AddScheduleAsync(schedule);
+        }
+
+        public async Task<bool> CheckConflictAsync(int roomId, DateTimeOffset startTime, DateTimeOffset endTime, CancellationToken cancellationToken)
+        {
+            if (startTime > endTime) return true;
+
+            var conflicts = await _scheduleRepository.CheckConflictAsync(roomId, startTime, endTime, cancellationToken);
+
+            return conflicts;
         }
 
         public Schedule ConvertToScheduleEntity(
