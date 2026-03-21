@@ -22,38 +22,38 @@ namespace BookLAB.Application.Common.Behaviors
             RequestHandlerDelegate<TResponse> next,
             CancellationToken cancellationToken)
         {
-            var authorizeAttributes = request.GetType()
-                .GetCustomAttributes(typeof(AuthorizeAttribute), true)
-                .Cast<AuthorizeAttribute>()
-                .ToList();
+            //var authorizeAttributes = request.GetType()
+            //    .GetCustomAttributes(typeof(AuthorizeAttribute), true)
+            //    .Cast<AuthorizeAttribute>()
+            //    .ToList();
 
-            // Không yêu cầu quyền → cho qua
-            if (!authorizeAttributes.Any())
-            {
-                return await next();
-            }
+            //// Không yêu cầu quyền → cho qua
+            //if (!authorizeAttributes.Any())
+            //{
+            //    return await next();
+            //}
 
-            if (!_currentUser.IsAuthenticated)
-            {
-                throw new ForbiddenException("User is not authenticated.");
-            }
+            //if (!_currentUser.IsAuthenticated)
+            //{
+            //    throw new ForbiddenException("User is not authenticated.");
+            //}
 
-            foreach (var attribute in authorizeAttributes)
-            {
-                if (attribute.Roles.Any())
-                {
-                    //var hasRequiredRole = attribute.Roles
-                    //    .Any(role => _currentUser.Roles.Any(r => r == role));
-                    var hasRequiredRole = true;
+            //foreach (var attribute in authorizeAttributes)
+            //{
+            //    if (attribute.Roles.Any())
+            //    {
+            //        //var hasRequiredRole = attribute.Roles
+            //        //    .Any(role => _currentUser.Roles.Any(r => r == role));
+            //        var hasRequiredRole = true;
 
-                    if (!hasRequiredRole)
-                    {
-                        throw new ForbiddenException(
-                            $"User does not have required role(s): {string.Join(", ", attribute.Roles)}"
-                        );
-                    }
-                }
-            }
+            //        if (!hasRequiredRole)
+            //        {
+            //            throw new ForbiddenException(
+            //                $"User does not have required role(s): {string.Join(", ", attribute.Roles)}"
+            //            );
+            //        }
+            //    }
+            //}
 
             return await next();
         }
