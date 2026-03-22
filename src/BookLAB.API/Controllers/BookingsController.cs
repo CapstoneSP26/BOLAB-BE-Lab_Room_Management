@@ -1,8 +1,7 @@
-using BookLAB.Application.Features.Bookings;
-using BookLAB.Application.Features.Bookings.Queries.ViewUncheckedBookingRequest;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Models;
 using BookLAB.Application.Common.Security;
+using BookLAB.Application.Features.Bookings;
 using BookLAB.Application.Features.Bookings.CheckConflict;
 using BookLAB.Application.Features.Bookings.Commands.ApproveBooking;
 using BookLAB.Application.Features.Bookings.Commands.CreateBooking;
@@ -14,18 +13,19 @@ using BookLAB.Application.Features.Bookings.Queries.GetBookings;
 using BookLAB.Application.Features.Bookings.Queries.GetBookingStats;
 using BookLAB.Application.Features.Bookings.Queries.ViewBookingHistory;
 using BookLAB.Application.Features.Bookings.Queries.ViewUncheckedBookingRequest;
+using BookLAB.Application.Features.Bookings.Queries.ViewUncheckedBookingRequest;
 using BookLAB.Application.Features.Schedules.Queries.AddSchedule;
 using BookLAB.Domain.DTOs;
 using BookLAB.Domain.Entities;
 using BookLAB.Domain.Enums;
 using MediatR;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration.UserSecrets;
 
 namespace BookLAB.API.Controllers;
 
-[Authorize]
+[Microsoft.AspNetCore.Authorization.Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
 [ApiController]
 [Route("api/[controller]")]
 public class BookingsController : ControllerBase
@@ -237,7 +237,7 @@ public class BookingsController : ControllerBase
                 userId = userId,
                 page = dto.page,
                 limit = dto.limit,
-                status = dto.status,
+                status = dto.status.ToLower(),
                 startDate = dto.startDate,
                 endDate = dto.endDate,
             };
