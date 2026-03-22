@@ -240,6 +240,7 @@ public class BookingsController : ControllerBase
                 status = dto.status.ToLower(),
                 startDate = dto.startDate,
                 endDate = dto.endDate,
+                labRoomId = dto.labRoomId,
             };
 
             // Execute the command via Mediator to retrieve booking history.
@@ -331,16 +332,27 @@ public class BookingsController : ControllerBase
         }
     }
     [HttpGet("get-unchecked-booking-request")]
-    public async Task<List<BookingRequest>> GetUncheckedBookingRequestList()
+    public async Task<IActionResult> GetUncheckedBookingRequestList()
     {
-        ViewUncheckedBookingRequestCommand command = new ViewUncheckedBookingRequestCommand
+        try
         {
-            userId = HttpContext.User.FindFirst("Id")?.Value ?? "11111111-1111-1111-1111-111111111111"
-        };
+            ViewUncheckedBookingRequestCommand command = new ViewUncheckedBookingRequestCommand
+            {
+                userId = HttpContext.User.FindFirst("Id")?.Value ?? "11111111-1111-1111-1111-111111111111"
+            };
 
-        var result = await _mediator.Send(command);
+            var result = await _mediator.Send(command);
 
-        return result;
+            return Ok(new
+            {
+                success = true,
+                result = result
+            });
+        } catch (Exception ex)
+        {
+            return Problem("Something is wrong");
+        }
+        
     }
 
 

@@ -42,29 +42,25 @@ namespace BookLAB.Application.Features.Bookings.Queries.ViewBookingHistory
                 // Query the Booking repository with eager loading of related entities:
                 // LabRoom, Building, and PurposeType.
 
-                var result = request.status.Equals("all") ?
-                    await _unitOfWork.Repository<Booking>().Entities
+                var query = _unitOfWork.Repository<Booking>().Entities
                     .Include(x => x.LabRoom)
                     .Include(x => x.LabRoom.Building)
                     .Include(x => x.PurposeType)
                     .Where(b =>
                         b.CreatedBy == request.userId &&
                         b.StartTime >= request.startDate &&
-                        b.EndTime <= request.endDate)
-                    .Skip((request.page - 1) * request.limit) // Apply pagination offset.
-                    .Take(request.limit)                      // Limit the number of results.
-                    .ToListAsync() :
-                    await _unitOfWork.Repository<Booking>().Entities
-                    .Include(x => x.LabRoom)
-                    .Include(x => x.LabRoom.Building)
-                    .Include(x => x.PurposeType)
-                    .Where(b =>
-                        b.CreatedBy == request.userId &&
-                        (b.BookingStatus.ToString().ToLower() == request.status.ToLower()) &&
-                        b.StartTime >= request.startDate &&
-                        b.EndTime <= request.endDate)
-                    .Skip((request.page - 1) * request.limit) // Apply pagination offset.
-                    .Take(request.limit)                      // Limit the number of results.
+                        b.EndTime <= request.endDate &&
+                        (request.labRoomId == null || b.LabRoomId == request.labRoomId) // thêm filter labRoomId
+                    );
+
+                if (!request.status.Equals("all", StringComparison.OrdinalIgnoreCase))
+                {
+                    query = query.Where(b => b.BookingStatus.ToString().ToLower() == request.status.ToLower());
+                }
+
+                var result = await query
+                    .Skip((request.page - 1) * request.limit)
+                    .Take(request.limit)
                     .ToListAsync();
 
                 return result;

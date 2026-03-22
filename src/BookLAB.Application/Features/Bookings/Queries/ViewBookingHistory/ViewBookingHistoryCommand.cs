@@ -16,5 +16,6 @@ namespace BookLAB.Application.Features.Bookings.Queries.ViewBookingHistory
         public string status { get; set; }
         public DateTimeOffset startDate { get; set; }
         public DateTimeOffset endDate { get; set; }
+        public int? labRoomId { get; set; }
     }
 }
