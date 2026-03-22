@@ -15,6 +15,12 @@ namespace BookLAB.Application.Features.Dashboard.Queries.GetDashboardStats
         
         public int TotalStudents { get; set; }
         public int TotalLecturers { get; set; }
+
+        // Check-in compliance (today)
+        public int ApprovedBookingsToday { get; set; }
+        public int CheckedInBookingsToday { get; set; }
+        public int NoCheckInBookingsToday { get; set; }
+        public decimal CheckInCompliancePercentage { get; set; }
         
         public decimal AverageBookingDuration { get; set; }
         public string MostBookedRoom { get; set; } = string.Empty;

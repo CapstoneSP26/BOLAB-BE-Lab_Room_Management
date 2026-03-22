@@ -20,6 +20,10 @@ namespace BookLAB.Application.Features.Dashboard.Queries.GetDashboardStats
             var now = DateTime.UtcNow;
             var thirtyDaysAgo = now.AddDays(-30);
             var twelveMonthsAgo = now.AddMonths(-12);
+            var todayStartUtc = new DateTime(now.Year, now.Month, now.Day, 0, 0, 0, DateTimeKind.Utc);
+            var tomorrowStartUtc = todayStartUtc.AddDays(1);
+            var todayStartOffset = new DateTimeOffset(todayStartUtc, TimeSpan.Zero);
+            var tomorrowStartOffset = new DateTimeOffset(tomorrowStartUtc, TimeSpan.Zero);
 
             // Booking Statistics
             var totalBookings = await _unitOfWork.Repository<Booking>().Entities.CountAsync(cancellationToken);
@@ -52,6 +56,42 @@ namespace BookLAB.Application.Features.Dashboard.Queries.GetDashboardStats
                 .CountAsync(u => !u.UserRoles.Any(ur => ur.Role.RoleName == "Admin" || ur.Role.RoleName == "Manager" || ur.Role.RoleName == "Lecturer"), cancellationToken);
             var totalLecturers = await _unitOfWork.Repository<User>().Entities
                 .CountAsync(u => u.UserRoles.Any(ur => ur.Role.RoleName == "Lecturer"), cancellationToken);
+
+            // Check-in compliance (today): approved bookings scheduled today that have at least one present attendance check-in today.
+            var approvedBookingsToday = await _unitOfWork.Repository<Booking>().Entities
+                .Where(b => b.BookingStatus == BookingStatus.Approved
+                            && b.StartTime >= todayStartOffset
+                            && b.StartTime < tomorrowStartOffset)
+                .Select(b => new { b.Id, b.ScheduleId })
+                .ToListAsync(cancellationToken);
+
+            var approvedBookingsTodayCount = approvedBookingsToday.Count;
+
+            var scheduleIdsToday = approvedBookingsToday
+                .Where(b => b.ScheduleId.HasValue)
+                .Select(b => b.ScheduleId!.Value)
+                .Distinct()
+                .ToList();
+
+            var checkedInScheduleIds = scheduleIdsToday.Any()
+                ? await _unitOfWork.Repository<Attendance>().Entities
+                    .AsNoTracking()
+                    .Where(a => scheduleIdsToday.Contains(a.ScheduleId)
+                                && a.AttendanceStatus == AttendanceStatus.Present
+                                && a.CheckInTime.HasValue
+                                && a.CheckInTime.Value >= todayStartOffset
+                                && a.CheckInTime.Value < tomorrowStartOffset)
+                    .Select(a => a.ScheduleId)
+                    .Distinct()
+                    .ToListAsync(cancellationToken)
+                : new List<Guid>();
+
+            var checkedInBookingsTodayCount = approvedBookingsToday
+                .Count(b => b.ScheduleId.HasValue && checkedInScheduleIds.Contains(b.ScheduleId.Value));
+            var noCheckInBookingsTodayCount = Math.Max(0, approvedBookingsTodayCount - checkedInBookingsTodayCount);
+            var checkInCompliancePercentage = approvedBookingsTodayCount > 0
+                ? Math.Round((decimal)checkedInBookingsTodayCount * 100m / approvedBookingsTodayCount, 2)
+                : 0m;
 
             // Booking Duration Average
             var bookingsForAvg = await _unitOfWork.Repository<Booking>().Entities
@@ -101,6 +141,10 @@ namespace BookLAB.Application.Features.Dashboard.Queries.GetDashboardStats
                 AvailableRooms = availableRooms,
                 TotalStudents = totalStudents,
                 TotalLecturers = totalLecturers,
+                ApprovedBookingsToday = approvedBookingsTodayCount,
+                CheckedInBookingsToday = checkedInBookingsTodayCount,
+                NoCheckInBookingsToday = noCheckInBookingsTodayCount,
+                CheckInCompliancePercentage = checkInCompliancePercentage,
                 AverageBookingDuration = (decimal)avgDuration,
                 MostBookedRoom = mostBookedRoom,
                 BusiestHourOfDay = busiestHour,
