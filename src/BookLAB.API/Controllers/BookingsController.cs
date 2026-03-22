@@ -1,6 +1,9 @@
+using BookLAB.Application.Features.Bookings;
+using BookLAB.Application.Features.Bookings.Queries.ViewUncheckedBookingRequest;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Models;
 using BookLAB.Application.Common.Security;
+using BookLAB.Application.Features.Bookings.CheckConflict;
 using BookLAB.Application.Features.Bookings.Commands.ApproveBooking;
 using BookLAB.Application.Features.Bookings.Commands.CreateBooking;
 using BookLAB.Application.Features.Bookings.Commands.DeleteCalendarEvent;
@@ -11,6 +14,7 @@ using BookLAB.Application.Features.Bookings.Queries.GetBookings;
 using BookLAB.Application.Features.Bookings.Queries.GetBookingStats;
 using BookLAB.Application.Features.Bookings.Queries.ViewBookingHistory;
 using BookLAB.Application.Features.Bookings.Queries.ViewUncheckedBookingRequest;
+using BookLAB.Application.Features.Schedules.Queries.AddSchedule;
 using BookLAB.Domain.DTOs;
 using BookLAB.Domain.Entities;
 using BookLAB.Domain.Enums;
@@ -220,14 +224,14 @@ public class BookingsController : ControllerBase
     /// Returns an HTTP 200 response with booking history data, total count, page, and limit.
     /// If an error occurs, returns a 500 Internal Server Error.
     /// </returns>
-    [HttpGet("get-booking-history")]
+    [HttpGet("history")]
     public async Task<IActionResult> GetBookingHistoryList([FromQuery] ViewBookingHistoryDTO dto)
     {
         try
         {
             // Try to parse the user Id from claims. If parsing fails, userId will be Guid.Empty.
             Guid.TryParse(HttpContext.User.FindFirst("Id")?.Value, out var userId);
-
+            
             // Build the command object to send through Mediator, collecting parameters from the DTO.
             ViewBookingHistoryCommand command = new ViewBookingHistoryCommand
             {
@@ -297,7 +301,7 @@ public class BookingsController : ControllerBase
     /// Returns an HTTP 200 response with booking statistics if successful.
     /// Returns a 500 Internal Server Error if an exception occurs.
     /// </returns>
-    [HttpGet("get-booking-stats")]
+    [HttpGet("stats")]
     public async Task<IActionResult> GetBookingStats([FromQuery] GetBookingStatsRequestDTO dto)
     {
         try
@@ -307,10 +311,12 @@ public class BookingsController : ControllerBase
             DateTimeOffset.TryParse(dto.startDate, out var startDate);
             DateTimeOffset.TryParse(dto.endDate, out var endDate);
 
+            var userId = HttpContext.User.FindFirst("Id").Value;
+
             // Build the command object to send through Mediator.
             GetBookingStatsCommand command = new GetBookingStatsCommand
             {
-                userId = HttpContext.User.FindFirst("Id").Value, // Retrieve user Id from claims.
+                userId = userId, // Retrieve user Id from claims.
                 startDate = startDate.ToUniversalTime(),         // Convert to UTC for consistency.
                 endDate = endDate.ToUniversalTime(),
             };
@@ -325,6 +331,114 @@ public class BookingsController : ControllerBase
             return Problem("An internal server error occurred", statusCode: StatusCodes.Status500InternalServerError);
         }
     }
+    [HttpGet("get-unchecked-booking-request")]
+    public async Task<List<BookingRequest>> GetUncheckedBookingRequestList()
+    {
+        ViewUncheckedBookingRequestCommand command = new ViewUncheckedBookingRequestCommand
+        {
+            userId = HttpContext.User.FindFirst("Id")?.Value ?? "11111111-1111-1111-1111-111111111111"
+        };
+
+        var result = await _mediator.Send(command);
+
+        return result;
+    }
+
+
+    [HttpPost("check-conflict")]
+    public async Task<IActionResult> CheckConflictAsync([FromBody] CreateBookingCommand booking)
+    {
+        if (booking == null) return Ok(new
+        {
+            success = false,
+            mesage = "Invalid booking data"
+        });
+
+        CheckConflictCommand command = new CheckConflictCommand
+        {
+            booking = booking
+        };
+
+        var isConflict = await _mediator.Send(command);
+
+        if (isConflict) return Ok(new
+        {
+            success = true,
+            mesage = "No conflict"
+        });
+
+        return Ok(new
+        {
+            success = false,
+            mesage = "Booking is conflict"
+        });
+    }
+
+    /// <summary>
+    /// Handles the HTTP POST request to add a new schedule.
+    /// The method maps the incoming DTO to a Schedule entity, 
+    /// sends an AddScheduleCommand through MediatR, 
+    /// and returns an appropriate HTTP response based on the outcome.
+    /// </summary>
+    /// <param name="dtos">The schedule data transfer object containing input details.</param>
+    /// <param name="cancellationToken">Token provided by ASP.NET Core to cancel the request if the client disconnects or times out.</param>
+    /// <returns>
+    /// An IActionResult indicating the result of the operation:
+    /// - 200 OK with success message if the schedule was added successfully.
+    /// - 409 Conflict if the schedule addition failed due to conflict or other business logic.
+    /// - 401 Unauthorized if the user identity is invalid.
+    /// - 500 Internal Server Error if an unexpected exception occurs.
+    /// </returns>
+    [HttpPost("add")]
+    public async Task<IActionResult> AddScheduleAsync([FromBody] ScheduleDto dtos, CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Extract the current user's Id from JWT claims
+            if (!Guid.TryParse(HttpContext.User.FindFirst("Id")?.Value, out Guid userId))
+                return Unauthorized(new { success = false, message = "Invalid user identity" });
+
+            // Map the incoming DTO to a Schedule entity
+            var schedule = new Schedule
+            {
+                Id = Guid.NewGuid(),                        // Generate a new unique Id
+                LecturerId = dtos.LecturerId,               // Assign lecturer
+                LabRoomId = dtos.LabRoomId,                 // Assign lab room
+                SlotTypeId = dtos.SlotTypeId,               // Assign slot type
+                ScheduleType = dtos.ScheduleType,           // Set schedule type
+                ScheduleStatus = ScheduleStatus.Active,     // Default status is Active
+                StudentCount = dtos.StudentCount,           // Number of students
+                StartTime = dtos.StartTime.ToUniversalTime(), // Normalize start time
+                EndTime = dtos.EndTime.ToUniversalTime(),     // Normalize end time
+                CreatedAt = DateTimeOffset.UtcNow,          // Timestamp creation
+                CreatedBy = userId,                         // Track who created it
+                IsActive = true,                            // Mark as active
+                IsDeleted = false                           // Not deleted
+            };
+
+            // Wrap the schedule entity in a command object
+            var command = new AddScheduleCommand { Schedule = schedule };
+
+            // Send the command through MediatR pipeline
+            var result = await _mediator.Send(command, cancellationToken);
+
+            // Return success response if schedule was added successfully
+            if (result)
+                return Ok(new { success = true, message = "Schedule added successfully" });
+
+            // Return conflict response if schedule addition failed
+            return Conflict(new { success = false, message = "Schedule conflict or failed" });
+        }
+        catch (Exception ex)
+        {
+            // Log the error for debugging
+            _logger.LogError(ex, "Error while adding schedule");
+
+            // Return internal server error response
+            return StatusCode(500, new { success = false, message = "Internal server error" });
+        }
+    }
+
 
     /// <summary>
     /// Handles the HTTP GET request to retrieve unchecked booking requests for the current user.

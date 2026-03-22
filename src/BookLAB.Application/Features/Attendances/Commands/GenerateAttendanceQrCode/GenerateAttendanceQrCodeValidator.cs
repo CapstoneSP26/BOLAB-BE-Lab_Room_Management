@@ -9,8 +9,8 @@ namespace BookLAB.Application.Features.Attendances.Commands.GenerateAttendanceQr
     {
         public GenerateAttendanceQrCodeValidator()
         {
-            RuleFor(x => x.ScheduleId).NotEmpty().WithMessage("ScheduleId is required")
-                .Must(x => Guid.TryParse(x, out _));
+            RuleFor(x => x.ScheduleId).NotEmpty()
+                .Must(x => x != Guid.Empty).WithMessage("ScheduleId is required");
         }
     }
 }

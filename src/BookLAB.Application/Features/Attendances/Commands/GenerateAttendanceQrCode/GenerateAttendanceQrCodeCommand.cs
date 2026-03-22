@@ -7,6 +7,7 @@ namespace BookLAB.Application.Features.Attendances.Commands.GenerateAttendanceQr
 {
     public class GenerateAttendanceQrCodeCommand : IRequest<byte[]>
     {
-        public string ScheduleId { get; set; }
+        public Guid ScheduleId { get; set; }
+        public bool IsCheckIn { get; set; }
     }
 }
