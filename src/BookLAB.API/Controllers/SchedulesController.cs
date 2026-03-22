@@ -2,9 +2,14 @@
 using BookLAB.Application.Features.Schedules.Commands.ImportSchedule;
 using BookLAB.Application.Features.Schedules.Commands.ValidateImport;
 using BookLAB.Application.Features.Schedules.Common;
+using BookLAB.Application.Features.Schedules.Queries.GetSchedules;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions;
+using BookLAB.Domain.Enums;
+using BookLAB.Application.Features.Bookings.Commands.CreateBooking;
+using BookLAB.Application.Features.Schedules.Queries.AddSchedule;
 
 namespace BookLAB.Api.Controllers;
 
@@ -14,10 +19,12 @@ namespace BookLAB.Api.Controllers;
 public class SchedulesController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly ILogger<SchedulesController> _logger;
 
-    public SchedulesController(IMediator mediator)
+    public SchedulesController(IMediator mediator, ILogger<SchedulesController> logger)
     {
         _mediator = mediator;
+        _logger = logger;
     }
 
     /// <summary>
@@ -55,5 +62,14 @@ public class SchedulesController : ControllerBase
         }
 
         return BadRequest(result);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetSchedules([FromQuery] GetSchedulesQuery query)
+    {
+        // MediatR sẽ chuyển hướng query này đến GetSchedulesQueryHandler
+        var result = await _mediator.Send(query);
+
+        return Ok(result);
     }
 }

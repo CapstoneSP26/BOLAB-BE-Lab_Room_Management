@@ -1,3 +1,4 @@
+using BookLAB.Application.Features.IncidentReports.Commands.CreateIncidentReport;
 using BookLAB.Application.Features.IncidentReports.Queries.GetUnresolvedIncidents;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -5,9 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BookLAB.API.Controllers;
 
-[Authorize]
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/incidents")]
 public class IncidentsController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -15,6 +15,15 @@ public class IncidentsController : ControllerBase
     public IncidentsController(IMediator mediator)
     {
         _mediator = mediator;
+    }
+
+    [HttpPost("report")]
+    [ProducesResponseType(typeof(CreateIncidentResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ReportIncident([FromBody] CreateIncidentCommand command, CancellationToken cancellationToken)
+    {
+        var response = await _mediator.Send(command, cancellationToken);
+        return StatusCode(StatusCodes.Status201Created, response);
     }
 
     /// <summary>
