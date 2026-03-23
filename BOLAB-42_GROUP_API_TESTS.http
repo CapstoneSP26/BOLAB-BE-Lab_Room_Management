@@ -1,0 +1,108 @@
+### Group Management API Tests - BOLAB-42
+
+@base = http://localhost:5047
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMTExMTExMS0xMTExLTExMTEtMTExMS0xMTExMTExMTExMTEiLCJlbWFpbCI6ImFsaWNlQGV4YW1wbGUuZWR1IiwibmFtZSI6IkFsaWNlIFRyYW4iLCJpc3MiOiJGVSBMYWIgSXNzdWVyIiwiYXVkIjoiRlUgTGFiIEF1ZGllbmNlIiwiZXhwIjo5OTk5OTk5OTk5fQ.Nk5QMhs0LNMvi64xuczLAMFtcKoK7nuCpcehJrAFUs0
+@groupId = 18181818-1818-1818-1818-181818181818
+@userId = 33333333-3333-3333-3333-333333333333
+
+### --- GROUP MANAGEMENT ENDPOINTS ---
+
+### 1. Create a new group
+POST {{base}}/api/groups
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "groupName": "Team Beta",
+  "description": "Optional group description"
+}
+
+### 2. Get all groups for current user
+GET {{base}}/api/groups
+Authorization: Bearer {{token}}
+
+### 3. Get specific group details
+GET {{base}}/api/groups/{{groupId}}
+Authorization: Bearer {{token}}
+
+### 4. Update group name
+PUT {{base}}/api/groups/{{groupId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "groupName": "Team Beta",
+  "description": "Updated description"
+}
+
+### 5. Delete group (soft delete)
+DELETE {{base}}/api/groups/{{groupId}}
+Authorization: Bearer {{token}}
+
+### --- GROUP MEMBER MANAGEMENT ENDPOINTS ---
+
+### 6. Add student to group
+POST {{base}}/api/groups/{{groupId}}/members
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "userId": "{{userId}}",
+  "subjectCode": "PRN211"
+}
+
+### 7. Get all members of a group
+GET {{base}}/api/groups/{{groupId}}/members
+Authorization: Bearer {{token}}
+
+### 8. Update member's subject code
+PUT {{base}}/api/groups/{{groupId}}/members/{{userId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "subjectCode": "SEP490"
+}
+
+### 9. Remove student from group
+DELETE {{base}}/api/groups/{{groupId}}/members/{{userId}}
+Authorization: Bearer {{token}}
+
+### --- ERROR HANDLING TESTS ---
+
+### Test: Duplicate group name (expect 400)
+POST {{base}}/api/groups
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "groupName": "Team Alpha"
+}
+
+### Test: Non-existent group (expect 404)
+GET {{base}}/api/groups/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{token}}
+
+### Test: Unauthorized access (expect 403)
+DELETE {{base}}/api/groups/{{groupId}}
+Authorization: Bearer INVALID_TOKEN
+Content-Type: application/json
+
+### Test: Missing required field (expect 400)
+POST {{base}}/api/groups
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "description": "No group name provided"
+}
+
+### Test: Add duplicate member (expect 409)
+POST {{base}}/api/groups/{{groupId}}/members
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "userId": "{{userId}}",
+  "subjectCode": "PRN211"
+}
