@@ -1,4 +1,3 @@
-using BookLAB.Application.Features.Bookings;
 using BookLAB.Application.Features.Bookings.Queries.ViewUncheckedBookingRequest;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Models;
@@ -13,13 +12,11 @@ using BookLAB.Application.Features.Bookings.Commands.UpdateCalendarEvent;
 using BookLAB.Application.Features.Bookings.Queries.GetBookings;
 using BookLAB.Application.Features.Bookings.Queries.GetBookingStats;
 using BookLAB.Application.Features.Bookings.Queries.ViewBookingHistory;
-using BookLAB.Application.Features.Bookings.Queries.ViewUncheckedBookingRequest;
 using BookLAB.Application.Features.Schedules.Queries.AddSchedule;
 using BookLAB.Domain.DTOs;
 using BookLAB.Domain.Entities;
 using BookLAB.Domain.Enums;
 using MediatR;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration.UserSecrets;
 using BookLAB.Application.Features.Bookings.Queries.ViewBookingHistory;

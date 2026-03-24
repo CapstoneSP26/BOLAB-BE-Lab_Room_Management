@@ -1,15 +1,7 @@
 ﻿using BookLAB.Application.Common.Interfaces.Repositories;
-using BookLAB.Application.Features.LoginWithGoogle;
-using BookLAB.Domain.Common;
-using BookLAB.Domain.Entities;
-using BookLAB.Infrastructure.Persistence;
-using BookLAB.Infrastructure.Repositories;
 using MediatR;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
