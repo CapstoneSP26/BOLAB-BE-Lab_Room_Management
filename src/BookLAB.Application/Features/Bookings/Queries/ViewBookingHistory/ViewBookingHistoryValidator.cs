@@ -29,7 +29,6 @@ namespace BookLAB.Application.Features.Bookings.Queries.ViewBookingHistory
                 .WithMessage("Start date must be less than or equal to end date.");
 
             RuleFor(x => x.labRoomId)
-                .NotEmpty()
                 .GreaterThan(0).WithMessage("Lab room id must be greater than 0.");
         }
     }

@@ -332,16 +332,56 @@ public class BookingsController : ControllerBase
         }
     }
     [HttpGet("get-unchecked-booking-request")]
-    public async Task<IActionResult> GetUncheckedBookingRequestList()
+    public async Task<IActionResult> GetUncheckedBookingRequestList([FromQuery] ViewBookingHistoryDTO dto)
     {
         try
         {
-            ViewUncheckedBookingRequestCommand command = new ViewUncheckedBookingRequestCommand
+            Guid.TryParse(HttpContext.User.FindFirst("Id")?.Value, out var userId);
+
+            ViewBookingHistoryCommand command = new ViewBookingHistoryCommand
             {
-                userId = HttpContext.User.FindFirst("Id")?.Value ?? "11111111-1111-1111-1111-111111111111"
+                userId = userId,
+                page = dto.page,
+                limit = dto.limit,
+                status = dto.status.ToLower(),
+                startDate = dto.startDate,
+                endDate = dto.endDate,
+                labRoomId = dto.labRoomId,
             };
 
             var result = await _mediator.Send(command);
+            List<BookingLabManager> list = new List<BookingLabManager>();
+
+            foreach ( var item in result )
+            {
+                list.Add(new BookingLabManager
+                {
+                    Id = item.Id,
+                    LabRoomId = item.LabRoomId,
+                    BuildingName = item.LabRoom.Building.BuildingName,
+                    BookedByUserId = item.CreatedBy ?? Guid.Empty,
+                    StartTime = item.StartTime,
+                    EndTime = item.EndTime,
+                    PurposeTypeName = item.PurposeType.PurposeName,
+                    Reason = item.Reason,
+                    BookingStatus = item.BookingStatus,
+                    BookingType = item.BookingType,
+                    StudentCount = item.StudentCount,
+                    Recur = item.Recur,
+                    CreatedAt = item.CreatedAt,
+                    UpdatedAt = item.UpdatedAt,
+                    CreatedBy = item.CreatedBy,
+                    UpdatedBy = item.UpdatedBy,
+                });
+                
+            }
+
+            //ViewUncheckedBookingRequestCommand command = new ViewUncheckedBookingRequestCommand
+            //{
+            //    userId = HttpContext.User.FindFirst("Id")?.Value ?? "11111111-1111-1111-1111-111111111111"
+            //};
+
+            //var result = await _mediator.Send(command);
 
             return Ok(new
             {
