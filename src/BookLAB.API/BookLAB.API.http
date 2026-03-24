@@ -68,3 +68,31 @@ Content-Type: application/json
 # }
 
 ###
+
+### ===== Incident Reporting API =====
+
+POST {{BookLAB.API_HostAddress}}/api/incidents/report
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+	"title": "App crashes after schedule import",
+	"description": "The testing portal crashes immediately after I confirm a schedule import with a malformed row.",
+	"severity": "Critical",
+	"environment": "UAT / Chrome 134 / Windows 11",
+	"stepsToReproduce": [
+		"Sign in with a student test account.",
+		"Open schedule import.",
+		"Upload a file containing an invalid room code.",
+		"Click confirm import."
+	],
+	"expectedResult": "The system should reject the file and show validation errors.",
+	"actualResult": "The API returns 500 and the page shows a generic error dialog.",
+	"attachmentUrl": "https://storage.example.com/incidents/crash-screenshot.png"
+}
+
+### Expected 201 Response
+# {
+#   "incidentId": "9d8f58b8-0c16-4fb7-a5b5-25d6f53d6f6a"
+# }
+

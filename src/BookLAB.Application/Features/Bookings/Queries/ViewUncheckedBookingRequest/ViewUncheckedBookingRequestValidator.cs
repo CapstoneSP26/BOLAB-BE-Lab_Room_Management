@@ -11,7 +11,7 @@ namespace BookLAB.Application.Features.Bookings.Queries.ViewUncheckedBookingRequ
         { 
             RuleFor(x => x.userId)
                 .NotEmpty().WithMessage("User ID is required.")
-                .Must(id => Guid.TryParse(id, out _)).WithMessage("User ID must be a valid GUID.");
+                .Must(id => id != Guid.Empty).WithMessage("User ID must be a valid GUID.");
         }
     }
 }

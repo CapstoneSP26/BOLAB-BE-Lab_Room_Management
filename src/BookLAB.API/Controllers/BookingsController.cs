@@ -18,6 +18,8 @@ using BookLAB.Domain.Entities;
 using BookLAB.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration.UserSecrets;
+using BookLAB.Application.Features.Bookings.Queries.ViewBookingHistory;
 
 namespace BookLAB.API.Controllers;
 
@@ -219,14 +221,14 @@ public class BookingsController : ControllerBase
     /// Returns an HTTP 200 response with booking history data, total count, page, and limit.
     /// If an error occurs, returns a 500 Internal Server Error.
     /// </returns>
-    [HttpGet("get-booking-history")]
+    [HttpGet("history")]
     public async Task<IActionResult> GetBookingHistoryList([FromQuery] ViewBookingHistoryDTO dto)
     {
         try
         {
             // Try to parse the user Id from claims. If parsing fails, userId will be Guid.Empty.
             Guid.TryParse(HttpContext.User.FindFirst("Id")?.Value, out var userId);
-
+            
             // Build the command object to send through Mediator, collecting parameters from the DTO.
             ViewBookingHistoryCommand command = new ViewBookingHistoryCommand
             {
@@ -296,7 +298,7 @@ public class BookingsController : ControllerBase
     /// Returns an HTTP 200 response with booking statistics if successful.
     /// Returns a 500 Internal Server Error if an exception occurs.
     /// </returns>
-    [HttpGet("get-booking-stats")]
+    [HttpGet("stats")]
     public async Task<IActionResult> GetBookingStats([FromQuery] GetBookingStatsRequestDTO dto)
     {
         try
@@ -306,10 +308,12 @@ public class BookingsController : ControllerBase
             DateTimeOffset.TryParse(dto.startDate, out var startDate);
             DateTimeOffset.TryParse(dto.endDate, out var endDate);
 
+            var userId = HttpContext.User.FindFirst("Id").Value;
+
             // Build the command object to send through Mediator.
             GetBookingStatsCommand command = new GetBookingStatsCommand
             {
-                userId = HttpContext.User.FindFirst("Id").Value, // Retrieve user Id from claims.
+                userId = userId, // Retrieve user Id from claims.
                 startDate = startDate.ToUniversalTime(),         // Convert to UTC for consistency.
                 endDate = endDate.ToUniversalTime(),
             };
@@ -432,5 +436,56 @@ public class BookingsController : ControllerBase
         }
     }
 
+
+    /// <summary>
+    /// Handles the HTTP GET request to retrieve unchecked booking requests for the current user.
+    /// The method extracts the user Id from JWT claims, 
+    /// sends a ViewUncheckedBookingRequestCommand through MediatR, 
+    /// and returns the list of unchecked booking requests.
+    /// </summary>
+    /// <param name="cancellationToken">
+    /// Token provided by ASP.NET Core to cancel the request if the client disconnects or times out.
+    /// </param>
+    /// <returns>
+    /// An IActionResult indicating the result of the operation:
+    /// - 200 OK with the list of unchecked booking requests if successful.
+    /// - 401 Unauthorized if the user identity is invalid.
+    /// - 500 Internal Server Error if an unexpected exception occurs.
+    /// </returns>
+    [HttpGet("get-unchecked-booking-request")]
+    public async Task<IActionResult> GetUncheckedBookingRequestList(CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Validate user identity from claims
+            if (!Guid.TryParse(HttpContext.User.FindFirst("Id")?.Value, out Guid userId))
+                return Unauthorized();
+
+            // Create command object with the userId
+            ViewUncheckedBookingRequestCommand command = new ViewUncheckedBookingRequestCommand
+            {
+                userId = userId
+            };
+
+            // Send the command through MediatR pipeline
+            var result = await _mediator.Send(command, cancellationToken);
+
+            // Return success response with the retrieved data
+            return Ok(new
+            {
+                success = true,
+                message = "Get unchecked booking request successfully!",
+                result = result
+            });
+        }
+        catch (Exception ex)
+        {
+            // Log the error with details for debugging
+            _logger.LogError(ex, "Something is wrong while getting unchecked booking requests: " + ex.Message);
+
+            // Return internal server error response
+            return Problem("Something is wrong while getting unchecked booking requests");
+        }
+    }
 
 }
