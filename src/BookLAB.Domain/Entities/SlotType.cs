@@ -1,6 +1,4 @@
-﻿using BookLAB.Domain.Common;
-
-namespace BookLAB.Domain.Entities
+﻿namespace BookLAB.Domain.Entities
 {
     public class SlotType
     {
