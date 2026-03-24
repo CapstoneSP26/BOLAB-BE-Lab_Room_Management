@@ -1,5 +1,6 @@
 using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Application.Common.Interfaces.Repositories;
+using BookLAB.Application.Features.Groups.DTOs;
 using BookLAB.Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;

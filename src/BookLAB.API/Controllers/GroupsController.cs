@@ -4,6 +4,7 @@ using BookLAB.Application.Features.Groups.Commands.DeleteGroup;
 using BookLAB.Application.Features.Groups.Commands.RemoveGroupMember;
 using BookLAB.Application.Features.Groups.Commands.UpdateGroup;
 using BookLAB.Application.Features.Groups.Commands.UpdateGroupMember;
+using BookLAB.Application.Features.Groups.DTOs;
 using BookLAB.Application.Features.Groups.Queries.GetGroupById;
 using BookLAB.Application.Features.Groups.Queries.GetGroupMembers;
 using BookLAB.Application.Features.Groups.Queries.GetGroups;
@@ -84,7 +85,7 @@ namespace BookLAB.API.Controllers
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>Group details</returns>
         [HttpGet("{id:guid}")]
-        [ProducesResponseType(typeof(GroupDetailDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(GroupDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]

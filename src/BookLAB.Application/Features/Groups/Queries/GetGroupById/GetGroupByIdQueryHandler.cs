@@ -1,26 +1,31 @@
+using AutoMapper;
 using BookLAB.Application.Common.Exceptions;
 using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Application.Common.Interfaces.Repositories;
+using BookLAB.Application.Features.Groups.DTOs;
 using BookLAB.Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace BookLAB.Application.Features.Groups.Queries.GetGroupById
 {
-    public class GetGroupByIdQueryHandler : IRequestHandler<GetGroupByIdQuery, GroupDetailDto>
+    public class GetGroupByIdQueryHandler : IRequestHandler<GetGroupByIdQuery, GroupDto>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IMapper _mapper;
 
         public GetGroupByIdQueryHandler(
             IUnitOfWork unitOfWork,
-            ICurrentUserService currentUserService)
+            ICurrentUserService currentUserService,
+            IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
+            _mapper = mapper;
         }
 
-        public async Task<GroupDetailDto> Handle(GetGroupByIdQuery request, CancellationToken cancellationToken)
+        public async Task<GroupDto> Handle(GetGroupByIdQuery request, CancellationToken cancellationToken)
         {
             var currentUserId = _currentUserService.UserId ?? Guid.Empty;
 
@@ -41,16 +46,11 @@ namespace BookLAB.Application.Features.Groups.Queries.GetGroupById
                 .Where(gm => gm.GroupId == request.GroupId)
                 .CountAsync(cancellationToken);
 
-            return new GroupDetailDto
-            {
-                Id = group.Id,
-                GroupName = group.GroupName,
-                OwnerId = group.OwnerId,
-                OwnerName = group.User.FullName,
-                MembersCount = membersCount,
-                CreatedAt = group.CreatedAt,
-                UpdatedAt = group.UpdatedAt
-            };
+            // Map entity to DTO
+            var dto = _mapper.Map<GroupDto>(group);
+            dto.MembersCount = membersCount;
+
+            return dto;
         }
     }
 }
