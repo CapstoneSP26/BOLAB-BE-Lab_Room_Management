@@ -1,11 +1,11 @@
-﻿using BookLAB.Application.Features.Attendances.Commands.SubmitTraditionalAttendance;
+﻿using BookLAB.Application.Features.Attendances.Commands.GenerateAttendanceQrCode;
+using BookLAB.Application.Features.Attendances.Commands.SubmitTraditionalAttendance;
 using BookLAB.Application.Features.Attendances.Queries.GetAttendanceList;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using QRCoder;
-using BookLAB.Application.Features.Attendances.Commands.GenerateAttendanceQrCode;
 using BookLAB.Application.Features.Attendances.Commands.ScanAttendanceQRCode;
 
 namespace BookLAB.Api.Controllers;

@@ -3,7 +3,9 @@ using BookLAB.Application;
 using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Interfaces.Services;
+using BookLAB.Domain.Managements;
 using BookLAB.Infrastructure;
+using BookLAB.Infrastructure.Identity;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -100,6 +102,9 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddSwaggerGen();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<QRCodeGenerator>();
+builder.Services.AddScoped<QrManagements>();
 
 var app = builder.Build();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
