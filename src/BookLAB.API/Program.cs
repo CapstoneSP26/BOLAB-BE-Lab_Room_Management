@@ -4,13 +4,13 @@ using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Interfaces.Services;
 using BookLAB.Infrastructure;
+using BookLAB.Infrastructure.Identity;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using QRCoder;
 using System.Text;
-using BookLAB.Infrastructure.Identity;
 using BookLAB.Infrastructure.Persistence;
 using BookLAB.Infrastructure.Repositories;
 using BookLAB.Infrastructure.Services;
@@ -61,8 +61,17 @@ builder.Services.AddCors(opt =>
 {
     opt.AddPolicy("CorsPolicy", options =>
     {
-        options.AllowAnyHeader().AllowAnyMethod().AllowCredentials()
-            .WithOrigins("https://localhost:5173");
+        options.AllowAnyHeader()
+               .AllowAnyMethod()
+               .AllowCredentials()
+               .WithOrigins(
+                   "https://localhost:5173",
+                   "http://localhost:5173",
+                   "http://localhost:5176",
+                   "http://localhost:5174",
+                   "http://localhost:5175",
+                   "http://localhost:3000"
+               );
     });
 });
 
@@ -92,6 +101,9 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddSwaggerGen();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<QRCodeGenerator>();
+builder.Services.AddScoped<QrManagements>();
 
 var app = builder.Build();
 app.UseMiddleware<ExceptionHandlingMiddleware>();

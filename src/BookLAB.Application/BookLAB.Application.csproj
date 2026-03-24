@@ -25,7 +25,6 @@
     <Folder Include="Features\Groups\Commands\" />
     <Folder Include="Features\Groups\Queries\" />
     <Folder Include="Features\LabRooms\Commands\" />
-    <Folder Include="Features\LabRooms\Queries\" />
     <Folder Include="Features\Users\Commands\" />
     <Folder Include="Features\Users\Queries\" />
   </ItemGroup>
