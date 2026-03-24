@@ -1,4 +1,5 @@
 ﻿using BookLAB.Application.Common.Exceptions;
+using FluentValidation;
 using System.Text.Json;
 
 namespace BookLAB.API.Middlewares
@@ -25,12 +26,22 @@ namespace BookLAB.API.Middlewares
         {
             var code = exception switch
             {
+                ValidationException => StatusCodes.Status400BadRequest,
                 BusinessException => StatusCodes.Status400BadRequest,
                 NotFoundException => StatusCodes.Status404NotFound,
                 _ => StatusCodes.Status500InternalServerError
             };
 
-            var result = JsonSerializer.Serialize(new { error = exception.Message });
+            var result = exception is ValidationException validationException
+                ? JsonSerializer.Serialize(new
+                {
+                    errors = validationException.Errors
+                        .GroupBy(error => error.PropertyName)
+                        .ToDictionary(
+                            group => group.Key,
+                            group => group.Select(error => error.ErrorMessage).ToArray())
+                })
+                : JsonSerializer.Serialize(new { error = exception.Message });
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = code;
             return context.Response.WriteAsync(result);
