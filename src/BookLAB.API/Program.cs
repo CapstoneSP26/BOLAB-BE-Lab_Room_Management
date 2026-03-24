@@ -37,10 +37,11 @@ builder.Services.AddAuthentication(options =>
         {
             ValidateIssuer = false,
             ValidateAudience = false,
-            ValidateLifetime = false,
+            ValidateLifetime = true,
             ValidIssuer = builder.Configuration.GetSection("JWT:Issuer").Value,
             ValidAudience = builder.Configuration.GetSection("JWT:Audience").Value,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration.GetSection("JWT:SecretKey").Value!))
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration.GetSection("JWT:SecretKey").Value)),
+            ClockSkew = TimeSpan.Zero
         };
 
         x.Events = new JwtBearerEvents

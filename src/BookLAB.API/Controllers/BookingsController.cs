@@ -2,6 +2,7 @@ using BookLAB.Application.Features.Bookings.Queries.ViewUncheckedBookingRequest;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Models;
 using BookLAB.Application.Common.Security;
+using BookLAB.Application.Features.Bookings;
 using BookLAB.Application.Features.Bookings.CheckConflict;
 using BookLAB.Application.Features.Bookings.Commands.ApproveBooking;
 using BookLAB.Application.Features.Bookings.Commands.CreateBooking;
@@ -17,13 +18,14 @@ using BookLAB.Domain.DTOs;
 using BookLAB.Domain.Entities;
 using BookLAB.Domain.Enums;
 using MediatR;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration.UserSecrets;
-using BookLAB.Application.Features.Bookings.Queries.ViewBookingHistory;
 
 namespace BookLAB.API.Controllers;
 
-[Authorize]
+[Microsoft.AspNetCore.Authorization.Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
 [ApiController]
 [Route("api/[controller]")]
 public class BookingsController : ControllerBase
@@ -235,9 +237,10 @@ public class BookingsController : ControllerBase
                 userId = userId,
                 page = dto.page,
                 limit = dto.limit,
-                status = dto.status,
+                status = dto.status.ToLower(),
                 startDate = dto.startDate,
                 endDate = dto.endDate,
+                labRoomId = dto.labRoomId,
             };
 
             // Execute the command via Mediator to retrieve booking history.
@@ -329,16 +332,67 @@ public class BookingsController : ControllerBase
         }
     }
     [HttpGet("get-unchecked-booking-request")]
-    public async Task<List<BookingRequest>> GetUncheckedBookingRequestList()
+    public async Task<IActionResult> GetUncheckedBookingRequestList([FromQuery] ViewBookingHistoryDTO dto)
     {
-        ViewUncheckedBookingRequestCommand command = new ViewUncheckedBookingRequestCommand
+        try
         {
-            userId = HttpContext.User.FindFirst("Id")?.Value ?? "11111111-1111-1111-1111-111111111111"
-        };
+            Guid.TryParse(HttpContext.User.FindFirst("Id")?.Value, out var userId);
 
-        var result = await _mediator.Send(command);
+            ViewBookingHistoryCommand command = new ViewBookingHistoryCommand
+            {
+                userId = userId,
+                page = dto.page,
+                limit = dto.limit,
+                status = dto.status.ToLower(),
+                startDate = dto.startDate,
+                endDate = dto.endDate,
+                labRoomId = dto.labRoomId,
+            };
 
-        return result;
+            var result = await _mediator.Send(command);
+            List<BookingLabManager> list = new List<BookingLabManager>();
+
+            foreach ( var item in result )
+            {
+                list.Add(new BookingLabManager
+                {
+                    Id = item.Id,
+                    LabRoomId = item.LabRoomId,
+                    BuildingName = item.LabRoom.Building.BuildingName,
+                    BookedByUserId = item.CreatedBy ?? Guid.Empty,
+                    StartTime = item.StartTime,
+                    EndTime = item.EndTime,
+                    PurposeTypeName = item.PurposeType.PurposeName,
+                    Reason = item.Reason,
+                    BookingStatus = item.BookingStatus,
+                    BookingType = item.BookingType,
+                    StudentCount = item.StudentCount,
+                    Recur = item.Recur,
+                    CreatedAt = item.CreatedAt,
+                    UpdatedAt = item.UpdatedAt,
+                    CreatedBy = item.CreatedBy,
+                    UpdatedBy = item.UpdatedBy,
+                });
+                
+            }
+
+            //ViewUncheckedBookingRequestCommand command = new ViewUncheckedBookingRequestCommand
+            //{
+            //    userId = HttpContext.User.FindFirst("Id")?.Value ?? "11111111-1111-1111-1111-111111111111"
+            //};
+
+            //var result = await _mediator.Send(command);
+
+            return Ok(new
+            {
+                success = true,
+                result = result
+            });
+        } catch (Exception ex)
+        {
+            return Problem("Something is wrong");
+        }
+        
     }
 
 
