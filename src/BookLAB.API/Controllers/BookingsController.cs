@@ -506,40 +506,40 @@ public class BookingsController : ControllerBase
     /// - 401 Unauthorized if the user identity is invalid.
     /// - 500 Internal Server Error if an unexpected exception occurs.
     /// </returns>
-    [HttpGet("get-unchecked-booking-request")]
-    public async Task<IActionResult> GetUncheckedBookingRequestList(CancellationToken cancellationToken)
-    {
-        try
-        {
-            // Validate user identity from claims
-            if (!Guid.TryParse(HttpContext.User.FindFirst("Id")?.Value, out Guid userId))
-                return Unauthorized();
+    //[HttpGet("get-unchecked-booking-request")]
+    //public async Task<IActionResult> GetUncheckedBookingRequestList(CancellationToken cancellationToken)
+    //{
+    //    try
+    //    {
+    //        // Validate user identity from claims
+    //        if (!Guid.TryParse(HttpContext.User.FindFirst("Id")?.Value, out Guid userId))
+    //            return Unauthorized();
 
-            // Create command object with the userId
-            ViewUncheckedBookingRequestCommand command = new ViewUncheckedBookingRequestCommand
-            {
-                userId = userId
-            };
+    //        // Create command object with the userId
+    //        ViewUncheckedBookingRequestCommand command = new ViewUncheckedBookingRequestCommand
+    //        {
+    //            userId = userId
+    //        };
 
-            // Send the command through MediatR pipeline
-            var result = await _mediator.Send(command, cancellationToken);
+    //        // Send the command through MediatR pipeline
+    //        var result = await _mediator.Send(command, cancellationToken);
 
-            // Return success response with the retrieved data
-            return Ok(new
-            {
-                success = true,
-                message = "Get unchecked booking request successfully!",
-                result = result
-            });
-        }
-        catch (Exception ex)
-        {
-            // Log the error with details for debugging
-            _logger.LogError(ex, "Something is wrong while getting unchecked booking requests: " + ex.Message);
+    //        // Return success response with the retrieved data
+    //        return Ok(new
+    //        {
+    //            success = true,
+    //            message = "Get unchecked booking request successfully!",
+    //            result = result
+    //        });
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        // Log the error with details for debugging
+    //        _logger.LogError(ex, "Something is wrong while getting unchecked booking requests: " + ex.Message);
 
-            // Return internal server error response
-            return Problem("Something is wrong while getting unchecked booking requests");
-        }
-    }
+    //        // Return internal server error response
+    //        return Problem("Something is wrong while getting unchecked booking requests");
+    //    }
+    //}
 
 }
