@@ -142,9 +142,9 @@ namespace BookLAB.Infrastructure.Persistence
 
             // RoomPolicies
             modelBuilder.Entity<RoomPolicy>().HasData(
-                new RoomPolicy { Id = roomPolicy1Id, LabRoomId = 1, PolicyKey = "MaxCapacity", PolicyValue = "30", CreatedAt = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero), CreatedBy = user1Id, IsActive = true },
-                new RoomPolicy { Id = roomPolicy2Id, LabRoomId = 2, PolicyKey = "Projector", PolicyValue = "Required", CreatedAt = new DateTimeOffset(2025, 1, 2, 0, 0, 0, TimeSpan.Zero), CreatedBy = user1Id, IsActive = true },
-                new RoomPolicy { Id = roomPolicy3Id, LabRoomId = 3, PolicyKey = "FoodAllowed", PolicyValue = "No", CreatedAt = new DateTimeOffset(2025, 1, 3, 0, 0, 0, TimeSpan.Zero), CreatedBy = user1Id, IsActive = true }
+                new RoomPolicy { Id = roomPolicy1Id, LabRoomId = 1, PolicyKey = PolicyType.CurfewTime, PolicyValue = "30", CreatedAt = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero), CreatedBy = user1Id, IsActive = true },
+                new RoomPolicy { Id = roomPolicy2Id, LabRoomId = 2, PolicyKey = PolicyType.CurfewTime, PolicyValue = "Required", CreatedAt = new DateTimeOffset(2025, 1, 2, 0, 0, 0, TimeSpan.Zero), CreatedBy = user1Id, IsActive = true },
+                new RoomPolicy { Id = roomPolicy3Id, LabRoomId = 3, PolicyKey = PolicyType.CurfewTime, PolicyValue = "No", CreatedAt = new DateTimeOffset(2025, 1, 3, 0, 0, 0, TimeSpan.Zero), CreatedBy = user1Id, IsActive = true }
             );
 
             // Groups

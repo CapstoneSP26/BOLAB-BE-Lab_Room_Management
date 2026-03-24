@@ -1,10 +1,9 @@
 ﻿using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Interfaces.Services;
 using Microsoft.Extensions.Logging;
-using QRCoder;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using MediatR;
+using BookLAB.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace BookLAB.Application.Features.Attendances.Commands.GenerateAttendanceQrCode
 {

@@ -16,7 +16,7 @@ namespace BookLAB.Application.Common.Policies
         {
             foreach (var policy in roomPolicies.Where(p => p.IsActive))
             {
-                var handler = _handlers.FirstOrDefault(h => h.PolicyKey == policy.PolicyKey);
+                var handler = _handlers.FirstOrDefault(h => h.PolicyKey == policy.PolicyKey.ToString());
                 if (handler != null)
                 {
                     // Execute the specific logic for this PolicyKey
