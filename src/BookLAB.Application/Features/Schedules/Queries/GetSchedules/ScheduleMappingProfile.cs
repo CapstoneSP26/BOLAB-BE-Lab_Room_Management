@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using BookLAB.Domain.Entities;
-using BookLAB.Domain.Enums;
 
 namespace BookLAB.Application.Features.Schedules.Queries.GetSchedules;
 
