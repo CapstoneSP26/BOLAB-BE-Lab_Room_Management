@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BookLAB.Api.Controllers;
 
-[Authorize]
+//[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class SchedulesController : ControllerBase
