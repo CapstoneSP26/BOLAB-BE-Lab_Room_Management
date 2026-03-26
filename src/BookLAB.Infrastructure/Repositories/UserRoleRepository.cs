@@ -18,5 +18,11 @@ namespace BookLAB.Infrastructure.Repositories
         {
             return await _context.UserRoles.FirstOrDefaultAsync(ur => ur.UserId == userId);
         }
+
+        public async Task AddAsync(UserRole userRole)
+        {
+            await _context.UserRoles.AddAsync(userRole);
+            await _context.SaveChangesAsync();
+        }
     }
 }

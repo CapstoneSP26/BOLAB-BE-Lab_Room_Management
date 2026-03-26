@@ -97,6 +97,14 @@ namespace BookLAB.API.Controllers
                 };
                 
                 await _userRepository.AddAsync(account);
+
+                // Create UserRole with default role (Lecturer - RoleId = 1)
+                var userRole = new UserRole
+                {
+                    UserId = account.Id,
+                    RoleId = 1 // Lecturer role
+                };
+                await _userRoleRepository.AddAsync(userRole);
             }
 
             var userId = account.Id;

@@ -20,7 +20,15 @@ public class CurrentUserService : ICurrentUserService
     {
         get
         {
-            var idClaim = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier);
+            // First try to find the "Id" claim (set by AuthController)
+            var idClaim = _httpContextAccessor.HttpContext?.User?.FindFirst("Id");
+            
+            // Fallback to ClaimTypes.NameIdentifier if "Id" not found
+            if (idClaim == null)
+            {
+                idClaim = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier);
+            }
+            
             if (idClaim == null) return null;
             
             return Guid.TryParse(idClaim.Value, out var userId) ? userId : null;

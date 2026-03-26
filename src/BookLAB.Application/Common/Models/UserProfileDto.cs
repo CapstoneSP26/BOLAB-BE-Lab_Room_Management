@@ -10,7 +10,7 @@ namespace BookLAB.Application.Common.Models
         public int CampusId { get; set; }
         public string CampusName { get; set; } = string.Empty;
         public bool IsActive { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public DateTimeOffset CreatedAt { get; set; }
         public List<string> Roles { get; set; } = new();
     }
 

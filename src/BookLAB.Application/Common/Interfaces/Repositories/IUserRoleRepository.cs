@@ -8,5 +8,6 @@ namespace BookLAB.Application.Common.Interfaces.Repositories
     public interface IUserRoleRepository
     {
         public Task<UserRole> GetAsync(Guid userId);
+        public Task AddAsync(UserRole userRole);
     }
 }
