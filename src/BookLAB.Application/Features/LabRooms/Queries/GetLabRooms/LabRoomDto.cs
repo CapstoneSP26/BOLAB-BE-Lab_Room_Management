@@ -12,5 +12,13 @@
 
         // Thông tin từ bảng liên quan
         public string BuildingName { get; init; } = null!;
+
+        public List<LabImageDto>? Images { get; init; }
+    }
+    public record LabImageDto
+    {
+        public Guid Id { get; init; }
+        public string Url { get; init; } = null!;
+        public bool IsPrimary { get; init; }
     }
 }

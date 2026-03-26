@@ -30,7 +30,14 @@ public class GetLabRoomsQueryHandler : IRequestHandler<GetLabRoomsQuery, PagedLi
             .AsNoTracking();
 
         // Thực hiện Projection sang DTO để giảm tải dữ liệu từ DB
-        var projectedQuery = queryable.ProjectTo<LabRoomDto>(_mapper.ConfigurationProvider);
+        var projectedQuery = queryable.SelectLabRoom(request.IncludeImages, request.IncludeBuilding);
+
+        if (request.PageSize <= 0)
+        {
+            var allItems = await projectedQuery.ToListAsync(ct);
+            // Trả về PagedList với TotalCount = số lượng thực tế, PageSize = TotalCount
+            return new PagedList<LabRoomDto>(allItems, allItems.Count, 1, allItems.Count);
+        }
 
         return await PagedList<LabRoomDto>.CreateAsync(
             projectedQuery,
