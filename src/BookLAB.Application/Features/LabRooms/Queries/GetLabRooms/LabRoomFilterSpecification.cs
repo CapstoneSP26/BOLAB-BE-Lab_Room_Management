@@ -8,8 +8,6 @@ namespace BookLAB.Application.Features.LabRooms.Queries.GetLabRooms
         public LabRoomFilterSpecification(GetLabRoomsQuery query)
         {
             // 1. Lọc theo tòa nhà
-            if (query.LabRoomId.HasValue)
-                AddCriteria(x => x.Id == query.LabRoomId.Value);
 
             if (query.BuildingId.HasValue)
                 AddCriteria(x => x.BuildingId == query.BuildingId.Value);
@@ -21,7 +19,7 @@ namespace BookLAB.Application.Features.LabRooms.Queries.GetLabRooms
             //AddCriteria(x => !x.IsDeleted && x.IsActive);
 
             // 4. Load các bảng liên quan
-            AddInclude(x => x.Building);
+
             ApplyOrderBy(x => x.RoomName);
         }
     }

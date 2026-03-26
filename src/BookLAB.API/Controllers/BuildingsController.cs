@@ -1,5 +1,8 @@
-using BookLAB.Application.Features.Buildings.Queries.GetBuildingByName;
+using BookLAB.Application.Common.Models;
+using BookLAB.Application.Features.Buildings.DTOs;
 using BookLAB.Application.Features.Buildings.Queries.GetAllBuildings;
+using BookLAB.Application.Features.Buildings.Queries.GetBuildingByName;
+using BookLAB.Application.Features.Buildings.Queries.GetBuildings;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -48,6 +51,12 @@ namespace BookLAB.Api.Controllers
                 return NotFound(new { message = $"Building '{buildingName}' not found" });
 
             return Ok(result);
+        }
+
+        [HttpGet("buildings")]
+        public async Task<ActionResult<PagedList<BuildingDto>>> GetBuildings([FromQuery] GetBuildingsQuery query)
+        {
+            return Ok(await _mediator.Send(query));
         }
     }
 }
