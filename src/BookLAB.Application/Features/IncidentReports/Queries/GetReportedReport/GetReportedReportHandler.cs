@@ -10,7 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace BookLAB.Application.Features.Feedbacks.Queries.GetReportedReport
+namespace BookLAB.Application.Features.IncidentReports.Queries.GetReportedReport
 {
     public class GetReportedReportHandler : IRequestHandler<GetReportedReportCommand, List<ReportResponseDto>>
     {

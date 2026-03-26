@@ -1,6 +1,6 @@
 ﻿using BookLAB.Api.Controllers;
 using BookLAB.Application.Features.Bookings.Queries.ViewBookingHistory;
-using BookLAB.Application.Features.Feedbacks.Queries.GetReportedReport;
+using BookLAB.Application.Features.IncidentReports.Queries.GetReportedReport;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
