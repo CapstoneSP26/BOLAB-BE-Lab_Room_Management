@@ -1,8 +1,5 @@
 ﻿using BookLAB.Application.Common.Specifications;
 using BookLAB.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace BookLAB.Application.Features.Schedules.Queries.GetSchedules
 {
