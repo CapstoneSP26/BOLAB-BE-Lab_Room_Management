@@ -98,8 +98,14 @@ public class AttendancesController : ControllerBase
                 return StatusCode(StatusCodes.Status500InternalServerError, "QR code could not be generated.");
             }
 
+            string base64string = Convert.ToBase64String(qrCodeImage);
+
             // Return the QR code image as a PNG file
-            return File(qrCodeImage, "image/png");
+            return Ok(new
+            {
+                success = true,
+                data = base64string
+            });
         }
         catch (Exception ex)
         {
