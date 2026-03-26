@@ -72,7 +72,14 @@ namespace BookLAB.API.Controllers
             // Create user if first-time Google login
             if (account == null)
             {
-                var email = result.Principal?.FindFirst(ClaimTypes.Email)?.Value ?? "unknown@google.com";
+                var email = result.Principal?.FindFirst(ClaimTypes.Email)?.Value ?? "";
+                
+                // Validate email is from FPT domain
+                if (string.IsNullOrEmpty(email) || !email.EndsWith("@fpt.edu.vn", StringComparison.OrdinalIgnoreCase))
+                {
+                    return BadRequest(new { error = "Email must be from @fpt.edu.vn domain" });
+                }
+                
                 var fullName = result.Principal?.FindFirst(ClaimTypes.Name)?.Value ?? "Google User";
                 
                 account = new User

@@ -8,12 +8,11 @@ using System.Text;
 
 namespace BookLAB.Infrastructure.Repositories
 {
-    public class UserRepository : IUserRepository
+    public class UserRepository : GenericRepository<User>, IUserRepository
     {
-
         private readonly BookLABDbContext _context;
 
-        public UserRepository(BookLABDbContext context)
+        public UserRepository(BookLABDbContext context) : base(context)
         {
             _context = context;
         }
@@ -27,17 +26,6 @@ namespace BookLAB.Infrastructure.Repositories
 
             await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();
-        }
-
-        public async Task<User?> GetByIdAsync(Guid userId)
-        {
-            if (userId == Guid.Empty)
-            {
-                throw new ArgumentNullException(nameof(userId));
-            }
-
-            return await _context.Users
-                .FirstOrDefaultAsync(u => u.Id == userId && !u.IsDeleted);
         }
 
         public async Task<User?> GetByIdWithRolesAsync(Guid userId)
