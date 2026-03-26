@@ -1,5 +1,5 @@
+using BookLAB.Application.Features.Buildings.DTOs;
 using MediatR;
-using BookLAB.Application.Features.Buildings.Queries.GetBuildingByName;
 
 namespace BookLAB.Application.Features.Buildings.Queries.GetAllBuildings
 {
