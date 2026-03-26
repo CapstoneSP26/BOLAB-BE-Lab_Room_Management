@@ -29,6 +29,31 @@ namespace BookLAB.Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
+        public async Task<User?> GetByIdAsync(Guid userId)
+        {
+            if (userId == Guid.Empty)
+            {
+                throw new ArgumentNullException(nameof(userId));
+            }
+
+            return await _context.Users
+                .FirstOrDefaultAsync(u => u.Id == userId && !u.IsDeleted);
+        }
+
+        public async Task<User?> GetByIdWithRolesAsync(Guid userId)
+        {
+            if (userId == Guid.Empty)
+            {
+                throw new ArgumentNullException(nameof(userId));
+            }
+
+            return await _context.Users
+                .Include(u => u.UserRoles)
+                    .ThenInclude(ur => ur.Role)
+                .Include(u => u.Campus)
+                .FirstOrDefaultAsync(u => u.Id == userId && !u.IsDeleted);
+        }
+
         public async Task<User?> GetByEmailAsync(string email)
         {
             if (email == null)
@@ -54,6 +79,17 @@ namespace BookLAB.Infrastructure.Repositories
         public async Task<bool> IfExisted(Guid usreId)
         {
             return await _context.Users.AnyAsync(u => u.Id == usreId && !u.IsDeleted && u.IsActive);
+        }
+
+        public async Task UpdateAsync(User user)
+        {
+            if (user == null || user.Id == Guid.Empty)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
         }
     }
 }

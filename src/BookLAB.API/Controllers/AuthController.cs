@@ -1,7 +1,12 @@
 ﻿using BookLAB.Application.Common.Interfaces.Repositories;
+using BookLAB.Application.Common.Models;
+using BookLAB.Application.Features.Users.Commands.UpdateUserProfile;
+using BookLAB.Application.Features.Users.Queries.GetCurrentUser;
+using BookLAB.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -56,12 +61,35 @@ namespace BookLAB.API.Controllers
                 return Unauthorized();
             }
 
-            var account = await _userRepository.GetByProviderUserIdAsync(
-                result.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var providerId = result.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
+            if (string.IsNullOrEmpty(providerId))
+            {
+                return Unauthorized();
+            }
+            
+            var account = await _userRepository.GetByProviderUserIdAsync(providerId);
 
+            // Create user if first-time Google login
             if (account == null)
             {
-                return NotFound();
+                var email = result.Principal?.FindFirst(ClaimTypes.Email)?.Value ?? "unknown@google.com";
+                var fullName = result.Principal?.FindFirst(ClaimTypes.Name)?.Value ?? "Google User";
+                
+                account = new User
+                {
+                    Id = Guid.NewGuid(),
+                    Email = email,
+                    FullName = fullName,
+                    UserCode = email.Split('@')[0], // Use email prefix as user code
+                    Provider = "Google",
+                    ProviderId = providerId,
+                    CampusId = 1, // Default to Main Campus
+                    IsActive = true,
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    UserImageUrl = ""
+                };
+                
+                await _userRepository.AddAsync(account);
             }
 
             var userId = account.Id;
@@ -78,8 +106,9 @@ namespace BookLAB.API.Controllers
         new Claim("Role", role.RoleId.ToString()),
     };
 
+            var secretKey = configuration["JWT:SecretKey"] ?? throw new InvalidOperationException("JWT:SecretKey not found");
             var symetricKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(configuration["JWT:SecretKey"]));
+                Encoding.UTF8.GetBytes(secretKey));
             var signCredential = new SigningCredentials(symetricKey, SecurityAlgorithms.HmacSha256);
 
             var preparedToken = new JwtSecurityToken(
@@ -101,18 +130,19 @@ namespace BookLAB.API.Controllers
                     SameSite = SameSiteMode.None
                 });
 
-            return Ok(new
+            // Token is already in the cookie, now redirect to frontend
+            if (!string.IsNullOrEmpty(returnUrl))
             {
-                Role = role.RoleId.ToString(),
-                Token = generatedToken,
-                AccountId = account.Id.ToString()
-            });
-            //return Redirect(returnUrl);
+                return Redirect(returnUrl);
+            }
+            
+            // Default redirect to dashboard if no returnUrl provided
+            return Redirect("https://localhost:5173/labmanager/dashboard");
         }
 
 
         [HttpGet("sign-out")]
-        public async Task<IActionResult> SignOut()
+        public new async Task<IActionResult> SignOut()
         {
             await HttpContext.SignOutAsync("Cookies");
             return Ok(new
@@ -120,6 +150,74 @@ namespace BookLAB.API.Controllers
                 success = true,
                 message = "Sign out successfully!"
             });
+        }
+
+        /// <summary>
+        /// Get current user profile
+        /// </summary>
+        /// <returns>Current user profile information</returns>
+        [HttpGet("me")]
+        [Authorize]
+        public async Task<IActionResult> GetCurrentUser(CancellationToken cancellationToken)
+        {
+            try
+            {
+                var userIdClaim = User.FindFirst("Id")?.Value;
+                if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+                {
+                    return Unauthorized(new { message = "Invalid user ID in token" });
+                }
+
+                var query = new GetCurrentUserQuery(userId);
+                var result = await _mediator.Send(query, cancellationToken);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error retrieving user profile", error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Update current user profile
+        /// </summary>
+        /// <param name="request">Updated profile information</param>
+        /// <returns>Updated user profile</returns>
+        [HttpPut("me")]
+        [Authorize]
+        public async Task<IActionResult> UpdateCurrentUser(
+            [FromBody] UpdateUserProfileRequest request,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                var userIdClaim = User.FindFirst("Id")?.Value;
+                if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+                {
+                    return Unauthorized(new { message = "Invalid user ID in token" });
+                }
+
+                var command = new UpdateUserProfileCommand
+                {
+                    UserId = userId,
+                    FullName = request.FullName,
+                    UserImageUrl = request.UserImageUrl ?? ""
+                };
+
+                var result = await _mediator.Send(command, cancellationToken);
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Profile updated successfully",
+                    data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error updating user profile", error = ex.Message });
+            }
         }
     }
 }
