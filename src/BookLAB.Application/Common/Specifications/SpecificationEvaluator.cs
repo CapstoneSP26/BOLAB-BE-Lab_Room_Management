@@ -8,9 +8,12 @@ namespace BookLAB.Application.Common.Specifications
         {
             var query = inputQuery;
             // Áp dụng filter (Where)
-            foreach(var criterion in spec.Criteria)
+            if(spec.Criteria != null)
             {
-                query = query.Where(criterion);
+                foreach (var criterion in spec.Criteria)
+                {
+                    query = query.Where(criterion);
+                }
             }
 
             // Áp dụng sắp xếp (OrderBy, OrderByDescending)

@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using MediatR;
+﻿using BookLAB.Application.Common.Models;
 using BookLAB.Application.Features.LabRooms.Queries.GetLabRoomPolicies;
+using BookLAB.Application.Features.LabRooms.Queries.GetLabRooms;
+using MediatR;
+using Microsoft.AspNetCore.Mvc;
 
 namespace BookLAB.API.Controllers
 {
@@ -25,5 +27,14 @@ namespace BookLAB.API.Controllers
             return Ok(result);
         }
 
+        [HttpGet]
+        [ProducesResponseType(typeof(PagedList<LabRoomDto>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetLabRooms([FromQuery] GetLabRoomsQuery query)
+        {
+            var result = await _mediator.Send(query);
+            return Ok(result);
+        }
+
     }
+
 }

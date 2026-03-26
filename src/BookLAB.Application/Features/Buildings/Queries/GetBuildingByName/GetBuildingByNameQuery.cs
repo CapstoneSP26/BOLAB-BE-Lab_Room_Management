@@ -1,3 +1,4 @@
+using BookLAB.Application.Features.Buildings.DTOs;
 using MediatR;
 
 namespace BookLAB.Application.Features.Buildings.Queries.GetBuildingByName

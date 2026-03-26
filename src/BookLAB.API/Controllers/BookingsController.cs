@@ -38,7 +38,7 @@ public class BookingsController : ControllerBase
     private readonly ILogger<BookingsController> _logger;
     private readonly IUnitOfWork _unitOfWork;
 
-    public BookingsController(IMediator mediator, 
+    public BookingsController(IMediator mediator,
         ILogger<BookingsController> logger,
         IUnitOfWork unitOfWork)
     {
@@ -63,9 +63,9 @@ public class BookingsController : ControllerBase
         {
             var command = new SyncBookingToCalendarCommand(id);
             var eventId = await _mediator.Send(command, cancellationToken);
-            
-            return Ok(new 
-            { 
+
+            return Ok(new
+            {
                 success = true,
                 message = "Booking synced to Google Calendar successfully",
                 calendarEventId = eventId,
@@ -234,7 +234,7 @@ public class BookingsController : ControllerBase
         {
             // Try to parse the user Id from claims. If parsing fails, userId will be Guid.Empty.
             Guid.TryParse(HttpContext.User.FindFirst("Id")?.Value, out var userId);
-            
+
             // Build the command object to send through Mediator, collecting parameters from the DTO.
             ViewBookingHistoryCommand command = new ViewBookingHistoryCommand
             {
@@ -356,7 +356,7 @@ public class BookingsController : ControllerBase
             var result = await _mediator.Send(command);
             List<BookingLabManager> list = new List<BookingLabManager>();
 
-            foreach ( var item in result )
+            foreach (var item in result)
             {
                 list.Add(new BookingLabManager
                 {
@@ -377,7 +377,7 @@ public class BookingsController : ControllerBase
                     CreatedBy = item.CreatedBy,
                     UpdatedBy = item.UpdatedBy,
                 });
-                
+
             }
 
             //ViewUncheckedBookingRequestCommand command = new ViewUncheckedBookingRequestCommand
@@ -392,11 +392,12 @@ public class BookingsController : ControllerBase
                 success = true,
                 result = result
             });
-        } catch (Exception ex)
+        }
+        catch (Exception ex)
         {
             return Problem("Something is wrong");
         }
-        
+
     }
 
 
