@@ -17,7 +17,7 @@ namespace BookLAB.Application.Features.Users
                 .ForMember(dest => dest.CampusId, opt => opt.MapFrom(src => src.CampusId))
                 .ForMember(dest => dest.CampusName, opt => opt.MapFrom(src => src.Campus != null ? src.Campus.CampusName : ""))
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
-                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt.DateTime))
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
                 .ForMember(dest => dest.Roles, opt => opt.MapFrom(src =>
                     src.UserRoles != null ? src.UserRoles.Select(ur => ur.Role.RoleName).ToList() : new List<string>()));
         }
