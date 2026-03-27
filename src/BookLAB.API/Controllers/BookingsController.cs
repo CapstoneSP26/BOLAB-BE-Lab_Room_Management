@@ -270,6 +270,7 @@ public class BookingsController : ControllerBase
                     date = result[i].StartTime.ToString("yyyy-MM-dd"),
                     status = result[i].BookingStatus.ToString(),
                     purpose = result[i].PurposeType.PurposeName,
+                    reason = result[i].Reason,
                     userName = username
                 };
             }
