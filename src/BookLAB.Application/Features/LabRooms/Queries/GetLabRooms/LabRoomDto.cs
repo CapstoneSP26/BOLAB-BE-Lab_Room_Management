@@ -11,6 +11,7 @@
         public string? Description { get; init; }
 
         // Thông tin từ bảng liên quan
+        public int BuildingId { get; set; }
         public string BuildingName { get; init; } = null!;
 
         public List<LabImageDto>? Images { get; init; }
