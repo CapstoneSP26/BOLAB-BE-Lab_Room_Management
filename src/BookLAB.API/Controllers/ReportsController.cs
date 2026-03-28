@@ -1,4 +1,5 @@
 ﻿using BookLAB.Api.Controllers;
+using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Models;
 using BookLAB.Application.Features.Bookings.Queries.ViewBookingHistory;
 using BookLAB.Application.Features.IncidentReports.Queries.GetReportedReport;
@@ -95,6 +96,7 @@ namespace BookLAB.API.Controllers
             {
                 return Problem("Something is wrong");
             }
+        }
 
 // =====================================================================
         // New endpoints to integrate with FE "Send Report"
@@ -103,8 +105,8 @@ namespace BookLAB.API.Controllers
         public class CreateReportRequest
         {
             public string RoomId { get; set; } = string.Empty;
-            public string Reason { get; set; } = string.Empty;
             public string Description { get; set; } = string.Empty;
+            public int? ReportTypeId { get; set; }  // Must be 1-9
             public List<IFormFile>? Images { get; set; }
         }
 
@@ -123,7 +125,7 @@ namespace BookLAB.API.Controllers
                 Id = report.Id,
                 ScheduleId = report.ScheduleId,
                 UserId = report.CreatedBy,
-                ReportType = report.ReportType.ToString(),
+                ReportType = report.ReportType?.ReportTypeName ?? "Unknown",
                 Description = report.Description,
                 IsResolved = report.IsResolved,
                 LabRoomId = labRoom?.Id,
@@ -172,11 +174,19 @@ namespace BookLAB.API.Controllers
                     return NotFound(new { success = false, message = "No schedule found for this room" });
                 }
 
+                // Determine ReportTypeId: must be provided by frontend
+                if (!request.ReportTypeId.HasValue || request.ReportTypeId <= 0 || request.ReportTypeId > 9)
+                {
+                    return BadRequest(new { success = false, message = "Valid ReportTypeId (1-9) is required" });
+                }
+
+                int reportTypeId = request.ReportTypeId.Value;
+
                 var report = new Report
                 {
                     Id = Guid.NewGuid(),
                     ScheduleId = schedule.Id,
-                    ReportType = ReportType.Other,
+                    ReportTypeId = reportTypeId,
                     Description = request.Description.Trim(),
                     IsResolved = false,
                     CreatedAt = DateTimeOffset.UtcNow,
@@ -192,7 +202,7 @@ namespace BookLAB.API.Controllers
                 {
                     success = true,
                     message = "Report created",
-                    data = MapToResponse(report, schedule, request.Reason)
+                    data = MapToResponse(report, schedule)
                 });
             }
             catch (Exception ex)
@@ -230,6 +240,7 @@ namespace BookLAB.API.Controllers
                 .Include(r => r.Schedule)
                 .ThenInclude(s => s.LabRoom)
                 .ThenInclude(l => l.Building)
+                .Include(r => r.ReportType)
                 .Where(r => r.CreatedBy == userId)
                 .OrderByDescending(r => r.CreatedAt)
                 .ToListAsync(cancellationToken);
@@ -257,6 +268,7 @@ namespace BookLAB.API.Controllers
                 .Include(r => r.Schedule)
                 .ThenInclude(s => s.LabRoom)
                 .ThenInclude(l => l.Building)
+                .Include(r => r.ReportType)
                 .OrderByDescending(r => r.CreatedAt)
                 .ToListAsync(cancellationToken);
 
@@ -272,6 +284,7 @@ namespace BookLAB.API.Controllers
                 .Include(r => r.Schedule)
                 .ThenInclude(s => s.LabRoom)
                 .ThenInclude(l => l.Building)
+                .Include(r => r.ReportType)
                 .OrderByDescending(r => r.CreatedAt)
                 .ToListAsync(cancellationToken);
 
@@ -287,6 +300,7 @@ namespace BookLAB.API.Controllers
                 .Include(r => r.Schedule)
                 .ThenInclude(s => s.LabRoom)
                 .ThenInclude(l => l.Building)
+                .Include(r => r.ReportType)
                 .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
 
             if (report == null)
@@ -325,6 +339,7 @@ namespace BookLAB.API.Controllers
                 .Include(r => r.Schedule)
                 .ThenInclude(s => s.LabRoom)
                 .ThenInclude(l => l.Building)
+                .Include(r => r.ReportType)
                 .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
 
             if (report == null)
@@ -343,4 +358,5 @@ namespace BookLAB.API.Controllers
         }
     }
 }
+
 

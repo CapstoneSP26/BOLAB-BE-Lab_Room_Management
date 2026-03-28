@@ -269,9 +269,7 @@ namespace BookLAB.Infrastructure.Persistence
                 new Report { Id = report1Id, ScheduleId = schedule1Id, ReportTypeId = 1 , Description = "Projector not working", IsResolved = false, CreatedAt = new DateTimeOffset(2025, 1, 20, 0, 0, 0, TimeSpan.Zero), CreatedBy = user1Id },
                 new Report { Id = report2Id, ScheduleId = schedule2Id, ReportTypeId = 1, Description = "Broken chair", IsResolved = false, CreatedAt = new DateTimeOffset(2025, 1, 21, 0, 0, 0, TimeSpan.Zero), CreatedBy = user2Id },
                 new Report { Id = report3Id, ScheduleId = schedule3Id, ReportTypeId = 1, Description = "AC not cooling", IsResolved = false, CreatedAt = new DateTimeOffset(2025, 1, 22, 0, 0, 0, TimeSpan.Zero), CreatedBy = user3Id }
-            );
-
-            // ReportImages
+            );            // ReportImages
             modelBuilder.Entity<ReportImage>().HasData(
                 new ReportImage { Id = reportImage1Id, ReportId = report1Id, ImageUrl = "https://cdn.example/report1.jpg", Size = 1200, FileType = (FileType)0 },
                 new ReportImage { Id = reportImage2Id, ReportId = report2Id, ImageUrl = "https://cdn.example/report2.jpg", Size = 800, FileType = (FileType)0 },
