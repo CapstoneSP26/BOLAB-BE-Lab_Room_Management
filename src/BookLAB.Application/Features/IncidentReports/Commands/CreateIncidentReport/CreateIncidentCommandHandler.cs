@@ -40,7 +40,7 @@ namespace BookLAB.Application.Features.IncidentReports.Commands.CreateIncidentRe
             {
                 Id = Guid.NewGuid(),
                 ScheduleId = request.ScheduleId,
-                ReportType = ReportType.Incident,
+                ReportTypeId = request.ReportTypeId,
                 Description = request.Description.Trim(),
                 IsResolved = false,
                 CreatedAt = DateTimeOffset.UtcNow,

@@ -106,6 +106,7 @@ public class AttendancesController : ControllerBase
                 success = true,
                 data = base64string
             });
+            //return File(qrCodeImage, "image/png");
         }
         catch (Exception ex)
         {
