@@ -1,6 +1,7 @@
 ﻿using BookLAB.Api.Controllers;
 using BookLAB.Application.Common.Models;
 using BookLAB.Application.Features.Bookings.Queries.ViewBookingHistory;
+using BookLAB.Application.Features.IncidentReports.Commands.UpdateReport;
 using BookLAB.Application.Features.IncidentReports.Queries.GetReportedReport;
 using BookLAB.Application.Features.IncidentReports.Queries.GetReports;
 using BookLAB.Domain.Entities;
@@ -82,6 +83,33 @@ namespace BookLAB.API.Controllers
                 {
                     success = true,
                     data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return Problem("Something is wrong");
+            }
+
+        }
+
+        [HttpPost("resolved")]
+        public async Task<IActionResult> ResolveReport([FromQuery] Guid reportId, [FromBody] TempReport tempReport)
+        {
+            try
+            {
+                Guid.TryParse(HttpContext.User.FindFirst("Id")?.Value, out var userId);
+
+                UpdateReportCommand command = new UpdateReportCommand
+                {
+                    ReportId = reportId,
+                    TempReport = tempReport
+                };
+
+                var result = await _mediator.Send(command);
+
+                return Ok(new
+                {
+                    success = result
                 });
             }
             catch (Exception ex)

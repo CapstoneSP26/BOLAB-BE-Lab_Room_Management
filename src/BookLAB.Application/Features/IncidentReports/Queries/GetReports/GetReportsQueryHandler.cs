@@ -6,6 +6,7 @@ using BookLAB.Application.Common.Models;
 using BookLAB.Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using System.Drawing.Printing;
 
 namespace BookLAB.Application.Features.IncidentReports.Queries.GetReports;
 
@@ -37,14 +38,27 @@ public class GetReportsQueryHandler : IRequestHandler<GetReportsQuery, PagedList
         if (request.Page <= 0)
         {
             var allItems = await projectedQuery.ToListAsync(ct);
+            allItems.ForEach( async x =>
+            {
+                var user = await _unitOfWork.Repository<User>().GetByIdAsync(x.CreatedBy);
+                x.UserName = user != null ? user.FullName : "Unknown";
+            });
             // Trả về PagedList với TotalCount = số lượng thực tế, PageSize = TotalCount
             return new PagedList<ReportDto>(allItems, allItems.Count, 1, allItems.Count);
         }
 
-        return await PagedList<ReportDto>.CreateAsync(
-            projectedQuery,
+        var allItems2 = await projectedQuery.Skip((request.Page.Value - 1) * request.Limit.Value).Take(request.Limit.Value).ToListAsync(ct);
+
+        allItems2.ForEach(x =>
+        {
+            var user = _unitOfWork.Repository<User>().GetById(x.CreatedBy);
+            x.UserName = user != null ? user.FullName : "Unknown";
+        });
+
+        return new PagedList<ReportDto>(
+            allItems2,
+            allItems2.Count,
             request.Page.Value,
-            request.Limit.Value,
-            ct);
+            request.Limit.Value);
     }
 }
