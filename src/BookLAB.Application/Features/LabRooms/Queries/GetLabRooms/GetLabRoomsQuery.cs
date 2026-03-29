@@ -9,8 +9,8 @@ namespace BookLAB.Application.Features.LabRooms.Queries.GetLabRooms
         public string? RoomNo { get; set; }
         public string? SearchTerm { get; set; }
         public bool IncludeImages { get; set; } = false;
-        public bool IncludeBuilding { get; set; } = false;
+        public bool IncludeBuilding { get; set; } = true;
         public int PageNumber { get; set; } = 1;
-        public int PageSize { get; set; } = 10;
+        public int PageSize { get; set; } = 0;
     }
 }

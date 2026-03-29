@@ -16,7 +16,7 @@ namespace BookLAB.Application.Features.Bookings.Queries.GetBookings
 
         // Pagination & Sorting
         public int PageNumber { get; set; } = 1;
-        public int PageSize { get; set; } = 10;
+        public int PageSize { get; set; } = 0;
         public string? SortBy { get; set; } // e.g., "StartTime", "CreatedAt"
         public bool IsDescending { get; set; }
     }

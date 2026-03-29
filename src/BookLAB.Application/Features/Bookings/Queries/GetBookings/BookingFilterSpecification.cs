@@ -23,8 +23,14 @@ namespace BookLAB.Application.Features.Bookings.Queries.GetBookings
 
             if (query.ToDate.HasValue)
                 AddCriteria(b => b.Booking.StartTime < query.ToDate.Value);
-            // Include related data
-            AddInclude(b => b.Booking);
+
+            if (query.Status.HasValue)
+            {
+                AddCriteria(b => b.Booking.BookingStatus == query.Status.Value);
+            }
+
+            ApplyOrderBy(b => b.Booking.StartTime);
+
         }
 
     }

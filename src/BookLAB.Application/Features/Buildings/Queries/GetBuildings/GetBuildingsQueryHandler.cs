@@ -1,4 +1,5 @@
 ﻿using BookLAB.Application.Common.Extensions;
+using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Models;
 using BookLAB.Application.Features.Buildings.DTOs;
@@ -11,16 +12,19 @@ namespace BookLAB.Application.Features.Buildings.Queries.GetBuildings
     public class GetBuildingsQueryHandler : IRequestHandler<GetBuildingsQuery, PagedList<BuildingDto>>
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ICurrentUserService _currentUserService;
 
-        public GetBuildingsQueryHandler(IUnitOfWork unitOfWork)
+        public GetBuildingsQueryHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService)
         {
             _unitOfWork = unitOfWork;
+            _currentUserService = currentUserService;
         }
 
         public async Task<PagedList<BuildingDto>> Handle(GetBuildingsQuery request, CancellationToken ct)
         {
+            request.CampusId = request.CampusId ?? _currentUserService.CampusId;
             var spec = new BuildingFilterSpecification(request);
-
+            
             // 1. Lấy IQueryable đã được Filter bởi Spec (Chưa thực thi SQL)
             var query = _unitOfWork.Repository<Building>().Entities
             .ApplySpecification(spec)
