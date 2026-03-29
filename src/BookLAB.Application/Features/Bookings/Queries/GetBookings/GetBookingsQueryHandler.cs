@@ -3,8 +3,10 @@ using AutoMapper.QueryableExtensions;
 using BookLAB.Application.Common.Extensions;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Models;
+using BookLAB.Application.Features.Bookings.Queries.GetPurposeTypes;
 using BookLAB.Domain.Entities;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 namespace BookLAB.Application.Features.Bookings.Queries.GetBookings
 {
     public class GetBookingsQueryHandler : IRequestHandler<GetBookingsQuery, PagedList<BookingDto>>
@@ -25,9 +27,18 @@ namespace BookLAB.Application.Features.Bookings.Queries.GetBookings
             // 2. Execute query with Pagination & Sorting
             var query = _unitOfWork.Repository<BookingRequest>().Entities
                 .ApplySpecification(spec) // Extension method to apply Includes and Criteria
-                .ProjectTo<BookingDto>(_mapper.ConfigurationProvider);
+                .AsNoTracking();
 
-            return await PagedList<BookingDto>.CreateAsync(query, request.PageNumber, request.PageSize, cancellationToken);
+            var projectedQuery = query.SelectPurposeType();
+            // Tận dụng logic PageSize <= 0 để Get All
+            if (request.PageSize <= 0)
+            {
+                var allItems = await projectedQuery.ToListAsync(cancellationToken);
+                return new PagedList<BookingDto>(allItems, allItems.Count, 1, allItems.Count);
+            }
+
+
+            return await PagedList<BookingDto>.CreateAsync(projectedQuery, request.PageNumber, request.PageSize, cancellationToken);
         }
     }
 }

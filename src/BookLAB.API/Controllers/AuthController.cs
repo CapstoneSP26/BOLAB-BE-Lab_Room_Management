@@ -7,7 +7,6 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using System.Text.RegularExpressions;
 
 namespace BookLAB.API.Controllers
 {
@@ -75,7 +74,8 @@ namespace BookLAB.API.Controllers
             var claims = new List<Claim>
     {
         new Claim("Id", account.Id.ToString()),
-        new Claim("Role", role.RoleId.ToString()),
+        new Claim("Role", role?.RoleId.ToString() ?? ""),
+        new Claim("CampusId", account.CampusId.ToString())
     };
 
             var symetricKey = new SymmetricSecurityKey(
@@ -101,13 +101,13 @@ namespace BookLAB.API.Controllers
                     SameSite = SameSiteMode.None
                 });
 
-            return Ok(new
-            {
-                Role = role.RoleId.ToString(),
-                Token = generatedToken,
-                AccountId = account.Id.ToString()
-            });
-            //return Redirect(returnUrl);
+            //return Ok(new
+            //{
+            //    Role = role?.RoleId.ToString() ?? "",
+            //    Token = generatedToken,
+            //    AccountId = account.Id.ToString()
+            //});
+            return Redirect(returnUrl);
         }
 
 
