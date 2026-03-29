@@ -5,8 +5,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AutoMapper" Version="16.1.1" />
-    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.0" />
+    <PackageReference Include="AutoMapper" Version="12.0.1" />
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
     <PackageReference Include="FluentValidation" Version="12.1.1" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
     <PackageReference Include="MediatR" Version="14.0.0" />
@@ -18,16 +18,13 @@
     <Folder Include="Common\Mappings\" />
     <Folder Include="Features\Auth\Commands\" />
     <Folder Include="Features\Auth\Queries\" />
-    <Folder Include="Features\Bookings\Queries\" />
     <Folder Include="Features\Bookings\Commands\" />
     <Folder Include="Features\Equipments\Commands\" />
     <Folder Include="Features\Equipments\Queries\" />
     <Folder Include="Features\Feedbacks\Commands\" />
-    <Folder Include="Features\Feedbacks\Queries\" />
     <Folder Include="Features\Groups\Commands\" />
     <Folder Include="Features\Groups\Queries\" />
     <Folder Include="Features\LabRooms\Commands\" />
-    <Folder Include="Features\LabRooms\Queries\" />
     <Folder Include="Features\Users\Commands\" />
     <Folder Include="Features\Users\Queries\" />
   </ItemGroup>

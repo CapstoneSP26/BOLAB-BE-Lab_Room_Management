@@ -20,11 +20,6 @@ public class ReportConfiguration : IEntityTypeConfiguration<Report>
         builder.Property(r => r.IsResolved)
             .HasDefaultValue(false);
 
-        // Cấu hình Enum ReportType (Lưu dạng chuỗi để dễ truy vấn trực tiếp trong DB)
-        builder.Property(r => r.ReportType)
-            .HasConversion<string>()
-            .HasMaxLength(50)
-            .IsRequired();
 
         // 3. Cấu hình Auditing (IAuditable, IUserTrackable)
         builder.Property(r => r.CreatedAt).IsRequired();
@@ -41,6 +36,13 @@ public class ReportConfiguration : IEntityTypeConfiguration<Report>
         // Rule: Nếu xóa lịch học (Schedule) thì các báo cáo đi kèm cũng bị xóa. 
         // Tuy nhiên, nếu dùng SoftDelete cho Schedule thì báo cáo vẫn tồn tại.
 
+
+        // Report - ReportType (N-1)
+        builder.HasOne(r => r.ReportType)
+            .WithMany(s => s.Reports)
+            .HasForeignKey(r => r.ReportTypeId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         // 5. Cấu hình Index để tối ưu quản lý
 
         // Tìm nhanh các báo cáo chưa được xử lý (Dành cho Dashboard của Lab Manager)
@@ -49,7 +51,7 @@ public class ReportConfiguration : IEntityTypeConfiguration<Report>
             .HasDatabaseName("IX_Report_Unresolved");
 
         // Tìm báo cáo theo loại (VD: lọc tất cả báo cáo về 'TechnicalIssue')
-        builder.HasIndex(r => r.ReportType);
+        builder.HasIndex(r => r.ReportTypeId);
 
         // Tìm báo cáo theo người tạo
         builder.HasIndex(r => r.CreatedBy);

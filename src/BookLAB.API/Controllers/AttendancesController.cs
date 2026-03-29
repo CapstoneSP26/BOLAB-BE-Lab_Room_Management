@@ -1,11 +1,11 @@
-﻿using BookLAB.Application.Features.Attendances.Commands.SubmitTraditionalAttendance;
+﻿using BookLAB.Application.Features.Attendances.Commands.GenerateAttendanceQrCode;
+using BookLAB.Application.Features.Attendances.Commands.SubmitTraditionalAttendance;
 using BookLAB.Application.Features.Attendances.Queries.GetAttendanceList;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using QRCoder;
-using BookLAB.Application.Features.Attendances.Commands.GenerateAttendanceQrCode;
 using BookLAB.Application.Features.Attendances.Commands.ScanAttendanceQRCode;
 
 namespace BookLAB.Api.Controllers;
@@ -98,8 +98,15 @@ public class AttendancesController : ControllerBase
                 return StatusCode(StatusCodes.Status500InternalServerError, "QR code could not be generated.");
             }
 
+            string base64string = Convert.ToBase64String(qrCodeImage);
+
             // Return the QR code image as a PNG file
-            return File(qrCodeImage, "image/png");
+            return Ok(new
+            {
+                success = true,
+                data = base64string
+            });
+            //return File(qrCodeImage, "image/png");
         }
         catch (Exception ex)
         {
@@ -178,6 +185,50 @@ public class AttendancesController : ControllerBase
 
             // Return internal server error response
             return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while scanning the QR code");
+        }
+    }
+
+    [HttpGet("remove-qrcode")]
+    public async Task<IActionResult> RemoveAttendanceQRCode([FromQuery] string scheduleId, [FromQuery] bool isCheckIn, CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Validate that scheduleId is a valid Guid
+            if (!Guid.TryParse(scheduleId, out var scheduleGuid))
+                return BadRequest("Invalid scheduleId format.");
+
+            // Create the command object to send via MediatR
+            GenerateAttendanceQrCodeCommand command = new GenerateAttendanceQrCodeCommand
+            {
+                ScheduleId = scheduleGuid,
+                IsCheckIn = isCheckIn
+            };
+
+            // Send the command to the handler and get the QR code image
+            var qrCodeImage = await _mediator.Send(command, cancellationToken);
+
+            // If QR code generation failed, return 500 error
+            if (qrCodeImage == null || qrCodeImage.Length == 0)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "QR code could not be generated.");
+            }
+
+            string base64string = Convert.ToBase64String(qrCodeImage);
+
+            // Return the QR code image as a PNG file
+            return Ok(new
+            {
+                success = true,
+                data = base64string
+            });
+        }
+        catch (Exception ex)
+        {
+            // Log the exception with context information
+            _logger.LogError(ex, "Error generating QR code for ScheduleId {ScheduleId}, IsCheckIn {IsCheckIn}", scheduleId, isCheckIn);
+
+            // Return 500 Internal Server Error if an exception occurs
+            return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while generating the QR code");
         }
     }
 

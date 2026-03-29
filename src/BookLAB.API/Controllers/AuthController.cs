@@ -1,21 +1,12 @@
-﻿using BookLAB.Application.Common.Interfaces.Repositories;
-using BookLAB.Application.Features.LoginWithGoogle;
-using BookLAB.Domain.Common;
-using BookLAB.Domain.Entities;
-using BookLAB.Infrastructure.Persistence;
-using BookLAB.Infrastructure.Repositories;
+using BookLAB.Application.Common.Interfaces.Repositories;
 using MediatR;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using System.Text.RegularExpressions;
 
 namespace BookLAB.API.Controllers
 {
@@ -83,7 +74,8 @@ namespace BookLAB.API.Controllers
             var claims = new List<Claim>
     {
         new Claim("Id", account.Id.ToString()),
-        new Claim("Role", role.RoleId.ToString()),
+        new Claim("Role", role?.RoleId.ToString() ?? ""),
+        new Claim("CampusId", account.CampusId.ToString())
     };
 
             var symetricKey = new SymmetricSecurityKey(
@@ -109,12 +101,13 @@ namespace BookLAB.API.Controllers
                     SameSite = SameSiteMode.None
                 });
 
-            //return Ok(new
-            //{
-            //    Role = role.RoleId.ToString(),
-            //    Token = generatedToken,
-            //    AccountId = account.Id.ToString()
-            //});
+            // Validate returnUrl to avoid invalid redirect targets.
+            if (!Uri.TryCreate(returnUrl, UriKind.Absolute, out var parsedReturnUrl)
+                || (parsedReturnUrl.Scheme != Uri.UriSchemeHttp && parsedReturnUrl.Scheme != Uri.UriSchemeHttps))
+            {
+                returnUrl = "https://localhost:5173/";
+            }
+
             return Redirect(returnUrl);
         }
 

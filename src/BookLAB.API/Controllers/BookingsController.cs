@@ -1,8 +1,5 @@
-using BookLAB.Application.Features.Bookings;
-using BookLAB.Application.Features.Bookings.Queries.ViewUncheckedBookingRequest;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Models;
-using BookLAB.Application.Common.Security;
 using BookLAB.Application.Features.Bookings.CheckConflict;
 using BookLAB.Application.Features.Bookings.Commands.ApproveBooking;
 using BookLAB.Application.Features.Bookings.Commands.CreateBooking;
@@ -12,6 +9,7 @@ using BookLAB.Application.Features.Bookings.Commands.SyncToCalendar;
 using BookLAB.Application.Features.Bookings.Commands.UpdateCalendarEvent;
 using BookLAB.Application.Features.Bookings.Queries.GetBookings;
 using BookLAB.Application.Features.Bookings.Queries.GetBookingStats;
+using BookLAB.Application.Features.Bookings.Queries.GetPurposeTypes;
 using BookLAB.Application.Features.Bookings.Queries.ViewBookingHistory;
 using BookLAB.Application.Features.Bookings.Queries.ViewUncheckedBookingRequest;
 using BookLAB.Application.Features.Schedules.Queries.AddSchedule;
@@ -19,12 +17,13 @@ using BookLAB.Domain.DTOs;
 using BookLAB.Domain.Entities;
 using BookLAB.Domain.Enums;
 using MediatR;
-using Microsoft.AspNetCore.Http.HttpResults;
+
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration.UserSecrets;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BookLAB.API.Controllers;
 
+//[Microsoft.AspNetCore.Authorization.Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
 [Authorize]
 [ApiController]
 [Route("api/[controller]")]
@@ -34,7 +33,7 @@ public class BookingsController : ControllerBase
     private readonly ILogger<BookingsController> _logger;
     private readonly IUnitOfWork _unitOfWork;
 
-    public BookingsController(IMediator mediator, 
+    public BookingsController(IMediator mediator,
         ILogger<BookingsController> logger,
         IUnitOfWork unitOfWork)
     {
@@ -59,9 +58,9 @@ public class BookingsController : ControllerBase
         {
             var command = new SyncBookingToCalendarCommand(id);
             var eventId = await _mediator.Send(command, cancellationToken);
-            
-            return Ok(new 
-            { 
+
+            return Ok(new
+            {
                 success = true,
                 message = "Booking synced to Google Calendar successfully",
                 calendarEventId = eventId,
@@ -230,16 +229,17 @@ public class BookingsController : ControllerBase
         {
             // Try to parse the user Id from claims. If parsing fails, userId will be Guid.Empty.
             Guid.TryParse(HttpContext.User.FindFirst("Id")?.Value, out var userId);
-            
+
             // Build the command object to send through Mediator, collecting parameters from the DTO.
             ViewBookingHistoryCommand command = new ViewBookingHistoryCommand
             {
                 userId = userId,
                 page = dto.page,
                 limit = dto.limit,
-                status = dto.status,
+                status = dto.status.ToLower(),
                 startDate = dto.startDate,
                 endDate = dto.endDate,
+                labRoomId = dto.labRoomId,
             };
 
             // Execute the command via Mediator to retrieve booking history.
@@ -269,6 +269,7 @@ public class BookingsController : ControllerBase
                     date = result[i].StartTime.ToString("yyyy-MM-dd"),
                     status = result[i].BookingStatus.ToString(),
                     purpose = result[i].PurposeType.PurposeName,
+                    reason = result[i].Reason,
                     userName = username
                 };
             }
@@ -331,16 +332,68 @@ public class BookingsController : ControllerBase
         }
     }
     [HttpGet("get-unchecked-booking-request")]
-    public async Task<List<BookingRequest>> GetUncheckedBookingRequestList()
+    public async Task<IActionResult> GetUncheckedBookingRequestList([FromQuery] ViewBookingHistoryDTO dto)
     {
-        ViewUncheckedBookingRequestCommand command = new ViewUncheckedBookingRequestCommand
+        try
         {
-            userId = HttpContext.User.FindFirst("Id")?.Value ?? "11111111-1111-1111-1111-111111111111"
-        };
+            Guid.TryParse(HttpContext.User.FindFirst("Id")?.Value, out var userId);
 
-        var result = await _mediator.Send(command);
+            ViewBookingHistoryCommand command = new ViewBookingHistoryCommand
+            {
+                userId = userId,
+                page = dto.page,
+                limit = dto.limit,
+                status = dto.status.ToLower(),
+                startDate = dto.startDate,
+                endDate = dto.endDate,
+                labRoomId = dto.labRoomId,
+            };
 
-        return result;
+            var result = await _mediator.Send(command);
+            List<BookingLabManager> list = new List<BookingLabManager>();
+
+            foreach (var item in result)
+            {
+                list.Add(new BookingLabManager
+                {
+                    Id = item.Id,
+                    LabRoomId = item.LabRoomId,
+                    BuildingName = item.LabRoom.Building.BuildingName,
+                    BookedByUserId = item.CreatedBy ?? Guid.Empty,
+                    StartTime = item.StartTime,
+                    EndTime = item.EndTime,
+                    PurposeTypeName = item.PurposeType.PurposeName,
+                    Reason = item.Reason,
+                    BookingStatus = item.BookingStatus,
+                    BookingType = item.BookingType,
+                    StudentCount = item.StudentCount,
+                    Recur = item.Recur,
+                    CreatedAt = item.CreatedAt,
+                    UpdatedAt = item.UpdatedAt,
+                    CreatedBy = item.CreatedBy,
+                    UpdatedBy = item.UpdatedBy,
+                });
+
+            }
+
+            //ViewUncheckedBookingRequestCommand command = new ViewUncheckedBookingRequestCommand
+            //{
+            //    userId = HttpContext.User.FindFirst("Id")?.Value ?? "11111111-1111-1111-1111-111111111111"
+            //};
+
+            //var result = await _mediator.Send(command);
+
+            return Ok(new
+            {
+                success = true,
+                result = result
+            });
+        }
+        catch (Exception ex)
+        {
+            return Problem("Something is wrong");
+        }
+
     }
 
 
@@ -438,5 +491,62 @@ public class BookingsController : ControllerBase
         }
     }
 
+
+
+    /// <summary>
+    /// Handles the HTTP GET request to retrieve unchecked booking requests for the current user.
+    /// The method extracts the user Id from JWT claims, 
+    /// sends a ViewUncheckedBookingRequestCommand through MediatR, 
+    /// and returns the list of unchecked booking requests.
+    /// </summary>
+    /// <param name="cancellationToken">
+    /// Token provided by ASP.NET Core to cancel the request if the client disconnects or times out.
+    /// </param>
+    /// <returns>
+    /// An IActionResult indicating the result of the operation:
+    /// - 200 OK with the list of unchecked booking requests if successful.
+    /// - 401 Unauthorized if the user identity is invalid.
+    /// - 500 Internal Server Error if an unexpected exception occurs.
+    /// </returns>
+    [HttpGet("get-unchecked-booking-request")]
+    public async Task<IActionResult> GetUncheckedBookingRequestList(CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Validate user identity from claims
+            if (!Guid.TryParse(HttpContext.User.FindFirst("Id")?.Value, out Guid userId))
+                return Unauthorized();
+
+            // Create command object with the userId
+            ViewUncheckedBookingRequestCommand command = new ViewUncheckedBookingRequestCommand
+            {
+                userId = userId
+            };
+
+            // Send the command through MediatR pipeline
+            var result = await _mediator.Send(command, cancellationToken);
+            // Return success response with the retrieved data
+            return Ok(new
+            {
+                success = true,
+                message = "Get unchecked booking request successfully!",
+                result = result
+            });
+        }
+        catch (Exception ex)
+        {
+            // Log the error with details for debugging
+            _logger.LogError(ex, "Something is wrong while getting unchecked booking requests: " + ex.Message);
+
+            // Return internal server error response
+            return Problem("Something is wrong while getting unchecked booking requests");
+        }
+    }
+
+    [HttpGet("purposes")] // api/bookings/purposes
+    public async Task<ActionResult<PagedList<PurposeTypeDto>>> GetPurposes([FromQuery] GetPurposeTypesQuery query)
+    {
+        return Ok(await _mediator.Send(query));
+    }
 
 }

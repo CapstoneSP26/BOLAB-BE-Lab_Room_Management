@@ -24,18 +24,17 @@ namespace BookLAB.Infrastructure.Persistence
         public DbSet<Group> StudentGroups => Set<Group>();
         public DbSet<GroupMember> GroupMembers => Set<GroupMember>();
         public DbSet<Attendance> Attendances => Set<Attendance>();
-        public DbSet<Report> Feedbacks => Set<Report>();
+        public DbSet<Report> Reports => Set<Report>();
         public DbSet<LabOwner> LabOwners => Set<LabOwner>();
         public DbSet<SlotFrame> SlotFrames => Set<SlotFrame>();
         public DbSet<Group> Groups => Set<Group>();
         public DbSet<PurposeType> PurposeTypes => Set<PurposeType>();
         public DbSet<Schedule> Schedules => Set<Schedule>();
-        public DbSet<Report> Reports => Set<Report>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(BookLABDbContext).Assembly);
-            //modelBuilder.Seed();
+            modelBuilder.Seed();
             base.OnModelCreating(modelBuilder);
         }
     }

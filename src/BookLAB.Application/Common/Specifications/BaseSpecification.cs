@@ -4,7 +4,7 @@ namespace BookLAB.Application.Common.Specifications
 {
     public abstract class BaseSpecification<T>
     {
-        public List<Expression<Func<T, bool>>> Criteria { get; protected set; }
+        public List<Expression<Func<T, bool>>> Criteria { get; protected set; } = new();
         public List<Expression<Func<T, object>>> Includes { get; } = new();
         public Expression<Func<T, object>>? OrderBy { get; protected set; }
         public Expression<Func<T, object>>? OrderByDescending { get; protected set; }

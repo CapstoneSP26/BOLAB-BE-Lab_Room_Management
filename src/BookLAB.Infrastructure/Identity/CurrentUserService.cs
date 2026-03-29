@@ -1,9 +1,6 @@
 using BookLAB.Application.Common.Interfaces.Identity;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
-using System.Security.Claims;
-using BookLAB.Application.Common.Interfaces.Identity;
-using Microsoft.AspNetCore.Http;
 
 namespace BookLAB.Infrastructure.Identity;
 
@@ -20,13 +17,22 @@ public class CurrentUserService : ICurrentUserService
     {
         get
         {
-            var idClaim = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier);
+            var idClaim = _httpContextAccessor.HttpContext?.User?.FindFirst("Id");
             if (idClaim == null) return null;
             
             return Guid.TryParse(idClaim.Value, out var userId) ? userId : null;
         }
     }
 
+    public int CampusId
+    {
+        get
+        {
+            var idClaim = _httpContextAccessor.HttpContext?.User?.FindFirst("CampusId");
+            if (idClaim == null) return 0;
+            return int.Parse(idClaim.Value);
+        }
+    }
     public IReadOnlyList<string> Roles 
     {
         get

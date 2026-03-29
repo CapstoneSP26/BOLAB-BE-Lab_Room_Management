@@ -6,10 +6,6 @@ using BookLAB.Application.Features.Schedules.Queries.GetSchedules;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore.Metadata.Conventions;
-using BookLAB.Domain.Enums;
-using BookLAB.Application.Features.Bookings.Commands.CreateBooking;
-using BookLAB.Application.Features.Schedules.Queries.AddSchedule;
 
 namespace BookLAB.Api.Controllers;
 
@@ -71,5 +67,47 @@ public class SchedulesController : ControllerBase
         var result = await _mediator.Send(query);
 
         return Ok(result);
+    }
+
+    [HttpGet("schedule-attendance")]
+    public async Task<IActionResult> GetScheduleInAttendance([FromQuery] GetSchedulesQuery query, CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Validate user identity from claims
+            if (!Guid.TryParse(HttpContext.User.FindFirst("Id")?.Value, out Guid userId))
+                return Unauthorized();
+
+
+            GetSchedulesQuery command = new GetSchedulesQuery
+            {
+                SearchTerm = query.SearchTerm,
+                Status = query.Status,
+                LabRoomId = query.LabRoomId,
+                FromDate = query.FromDate,
+                ToDate = query.ToDate,
+                PageNumber = query.PageNumber,
+                PageSize = query.PageSize,
+                SortBy = query.SortBy,
+                IsDescending = query.IsDescending,
+            };
+
+            // Send the command through MediatR pipeline
+            var result = await _mediator.Send(command, cancellationToken);
+
+            // Return success response with the retrieved data
+            return Ok(new
+            {
+                result = result
+            });
+        }
+        catch (Exception ex)
+        {
+            // Log the error with details for debugging
+            _logger.LogError(ex, "Something is wrong while getting unchecked booking requests: " + ex.Message);
+
+            // Return internal server error response
+            return Problem("Something is wrong while getting unchecked booking requests");
+        }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 
 namespace BookLAB.Application.Common.Models
 {
@@ -22,9 +23,14 @@ namespace BookLAB.Application.Common.Models
         }
 
         // Helper method để tạo PagedList nhanh từ IQueryable
-        public static async Task<PagedList<T>> CreateAsync(IQueryable<T> source, int pageNumber, int pageSize, CancellationToken ct)
+        public static async Task<PagedList<T>> CreateAsync(IQueryable<T> source, int pageNumber, int pageSize, CancellationToken ct, bool countItems = false)
         {
-            var count = await source.CountAsync(ct);
+            int count = 0;
+            if (countItems)
+            {
+                count = await source.CountAsync(ct);
+            }
+            
             var items = await source.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync(ct);
             return new PagedList<T>(items, count, pageNumber, pageSize);
         }

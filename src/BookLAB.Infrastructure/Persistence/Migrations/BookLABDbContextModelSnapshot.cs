@@ -188,7 +188,7 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         {
                             Id = new Guid("44444444-4444-4444-4444-444444444444"),
                             BookingStatus = "PendingApproval",
-                            BookingType = "0",
+                            BookingType = "Standard",
                             CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 10, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = new Guid("11111111-1111-1111-1111-111111111111"),
                             EndTime = new DateTimeOffset(new DateTime(2025, 2, 1, 10, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
@@ -204,7 +204,7 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         {
                             Id = new Guid("55555555-5555-5555-5555-555555555555"),
                             BookingStatus = "PendingApproval",
-                            BookingType = "0",
+                            BookingType = "Standard",
                             CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 11, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = new Guid("22222222-2222-2222-2222-222222222222"),
                             EndTime = new DateTimeOffset(new DateTime(2025, 2, 2, 15, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
@@ -220,7 +220,7 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         {
                             Id = new Guid("66666666-6666-6666-6666-666666666666"),
                             BookingStatus = "Approved",
-                            BookingType = "0",
+                            BookingType = "Standard",
                             CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 12, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = new Guid("33333333-3333-3333-3333-333333333333"),
                             EndTime = new DateTimeOffset(new DateTime(2025, 2, 3, 10, 30, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
@@ -1008,10 +1008,8 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
-                    b.Property<string>("ReportType")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                    b.Property<int?>("ReportTypeId")
+                        .HasColumnType("integer");
 
                     b.Property<Guid>("ScheduleId")
                         .HasColumnType("uuid");
@@ -1030,43 +1028,11 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("IX_Report_Unresolved")
                         .HasFilter("\"IsResolved\" = false");
 
-                    b.HasIndex("ReportType");
+                    b.HasIndex("ReportTypeId");
 
                     b.HasIndex("ScheduleId");
 
                     b.ToTable("Reports", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("21212121-2121-2121-2121-212121212121"),
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 20, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            CreatedBy = new Guid("11111111-1111-1111-1111-111111111111"),
-                            Description = "Projector not working",
-                            IsResolved = false,
-                            ReportType = "0",
-                            ScheduleId = new Guid("27272727-2727-2727-2727-272727272727")
-                        },
-                        new
-                        {
-                            Id = new Guid("22222222-2222-2222-2222-222222222221"),
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 21, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            CreatedBy = new Guid("22222222-2222-2222-2222-222222222222"),
-                            Description = "Broken chair",
-                            IsResolved = false,
-                            ReportType = "0",
-                            ScheduleId = new Guid("28282828-2828-2828-2828-282828282828")
-                        },
-                        new
-                        {
-                            Id = new Guid("23232323-2323-2323-2323-232323232323"),
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 22, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            CreatedBy = new Guid("33333333-3333-3333-3333-333333333333"),
-                            Description = "AC not cooling",
-                            IsResolved = false,
-                            ReportType = "0",
-                            ScheduleId = new Guid("29292929-2929-2929-2929-292929292929")
-                        });
                 });
 
             modelBuilder.Entity("BookLAB.Domain.Entities.ReportImage", b =>
@@ -1121,6 +1087,24 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                             ReportId = new Guid("23232323-2323-2323-2323-232323232323"),
                             Size = 600
                         });
+                });
+
+            modelBuilder.Entity("BookLAB.Domain.Entities.ReportType", b =>
+                {
+                    b.Property<int>("ReportTypeId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ReportTypeId"));
+
+                    b.Property<string>("ReportTypeName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.HasKey("ReportTypeId");
+
+                    b.ToTable("ReportTypes", (string)null);
                 });
 
             modelBuilder.Entity("BookLAB.Domain.Entities.Role", b =>
@@ -1214,7 +1198,7 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                             CreatedBy = new Guid("11111111-1111-1111-1111-111111111111"),
                             IsActive = true,
                             LabRoomId = 1,
-                            PolicyKey = "MaxCapacity",
+                            PolicyKey = "CurfewTime",
                             PolicyValue = "30"
                         },
                         new
@@ -1224,7 +1208,7 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                             CreatedBy = new Guid("11111111-1111-1111-1111-111111111111"),
                             IsActive = true,
                             LabRoomId = 2,
-                            PolicyKey = "Projector",
+                            PolicyKey = "CurfewTime",
                             PolicyValue = "Required"
                         },
                         new
@@ -1234,7 +1218,7 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                             CreatedBy = new Guid("11111111-1111-1111-1111-111111111111"),
                             IsActive = true,
                             LabRoomId = 3,
-                            PolicyKey = "FoodAllowed",
+                            PolicyKey = "CurfewTime",
                             PolicyValue = "No"
                         });
                 });
@@ -1848,11 +1832,18 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("BookLAB.Domain.Entities.Report", b =>
                 {
+                    b.HasOne("BookLAB.Domain.Entities.ReportType", "ReportType")
+                        .WithMany("Reports")
+                        .HasForeignKey("ReportTypeId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("BookLAB.Domain.Entities.Schedule", "Schedule")
                         .WithMany("Reports")
                         .HasForeignKey("ScheduleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("ReportType");
 
                     b.Navigation("Schedule");
                 });
@@ -1994,6 +1985,11 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("BookLAB.Domain.Entities.Report", b =>
                 {
                     b.Navigation("ReportImages");
+                });
+
+            modelBuilder.Entity("BookLAB.Domain.Entities.ReportType", b =>
+                {
+                    b.Navigation("Reports");
                 });
 
             modelBuilder.Entity("BookLAB.Domain.Entities.Schedule", b =>

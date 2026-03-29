@@ -142,9 +142,9 @@ namespace BookLAB.Infrastructure.Persistence
 
             // RoomPolicies
             modelBuilder.Entity<RoomPolicy>().HasData(
-                new RoomPolicy { Id = roomPolicy1Id, LabRoomId = 1, PolicyKey = "MaxCapacity", PolicyValue = "30", CreatedAt = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero), CreatedBy = user1Id, IsActive = true },
-                new RoomPolicy { Id = roomPolicy2Id, LabRoomId = 2, PolicyKey = "Projector", PolicyValue = "Required", CreatedAt = new DateTimeOffset(2025, 1, 2, 0, 0, 0, TimeSpan.Zero), CreatedBy = user1Id, IsActive = true },
-                new RoomPolicy { Id = roomPolicy3Id, LabRoomId = 3, PolicyKey = "FoodAllowed", PolicyValue = "No", CreatedAt = new DateTimeOffset(2025, 1, 3, 0, 0, 0, TimeSpan.Zero), CreatedBy = user1Id, IsActive = true }
+                new RoomPolicy { Id = roomPolicy1Id, LabRoomId = 1, PolicyKey = PolicyType.CurfewTime, PolicyValue = "30", CreatedAt = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero), CreatedBy = user1Id, IsActive = true },
+                new RoomPolicy { Id = roomPolicy2Id, LabRoomId = 2, PolicyKey = PolicyType.CurfewTime, PolicyValue = "Required", CreatedAt = new DateTimeOffset(2025, 1, 2, 0, 0, 0, TimeSpan.Zero), CreatedBy = user1Id, IsActive = true },
+                new RoomPolicy { Id = roomPolicy3Id, LabRoomId = 3, PolicyKey = PolicyType.CurfewTime, PolicyValue = "No", CreatedAt = new DateTimeOffset(2025, 1, 3, 0, 0, 0, TimeSpan.Zero), CreatedBy = user1Id, IsActive = true }
             );
 
             // Groups
@@ -251,14 +251,25 @@ namespace BookLAB.Infrastructure.Persistence
                 new Schedule { Id = schedule3Id, LecturerId = user3Id, LabRoomId = 3, BookingId = booking3Id, GroupId = group3Id, SlotTypeId = 3, ScheduleType = ScheduleType.Academic, ScheduleStatus = ScheduleStatus.Active, StudentCount = 10, StartTime = new DateTimeOffset(2025, 2, 3, 9, 0, 0, TimeSpan.Zero), EndTime = new DateTimeOffset(2025, 2, 3, 10, 30, 0, TimeSpan.Zero), CreatedAt = new DateTimeOffset(2025, 1, 3, 0, 0, 0, TimeSpan.Zero), CreatedBy = user3Id, IsActive = true, IsDeleted = false }
             );
 
-            // Reports
-            modelBuilder.Entity<Report>().HasData(
-                new Report { Id = report1Id, ScheduleId = schedule1Id, ReportType = (ReportType)0, Description = "Projector not working", IsResolved = false, CreatedAt = new DateTimeOffset(2025, 1, 20, 0, 0, 0, TimeSpan.Zero), CreatedBy = user1Id },
-                new Report { Id = report2Id, ScheduleId = schedule2Id, ReportType = (ReportType)0, Description = "Broken chair", IsResolved = false, CreatedAt = new DateTimeOffset(2025, 1, 21, 0, 0, 0, TimeSpan.Zero), CreatedBy = user2Id },
-                new Report { Id = report3Id, ScheduleId = schedule3Id, ReportType = (ReportType)0, Description = "AC not cooling", IsResolved = false, CreatedAt = new DateTimeOffset(2025, 1, 22, 0, 0, 0, TimeSpan.Zero), CreatedBy = user3Id }
+            // ReportType
+            modelBuilder.Entity<Domain.Entities.ReportType>().HasData(
+                new Domain.Entities.ReportType { ReportTypeId = 1, ReportTypeName = "Thiết bị hư hỏng" },
+                new Domain.Entities.ReportType { ReportTypeId = 2, ReportTypeName = "Thiết bị mất" },
+                new Domain.Entities.ReportType { ReportTypeId = 3, ReportTypeName = "Vấn đề vệ sinh" },
+                new Domain.Entities.ReportType { ReportTypeId = 4, ReportTypeName = "Điều hòa không hoạt động" },
+                new Domain.Entities.ReportType { ReportTypeId = 5, ReportTypeName = "Vấn đề chiếu sáng" },
+                new Domain.Entities.ReportType { ReportTypeId = 6, ReportTypeName = "Bàn ghế hư hỏng" },
+                new Domain.Entities.ReportType { ReportTypeId = 7, ReportTypeName = "Mất kết nối mạng" },
+                new Domain.Entities.ReportType { ReportTypeId = 8, ReportTypeName = "Khóa cửa hỏng" },
+                new Domain.Entities.ReportType { ReportTypeId = 9, ReportTypeName = "Khác" }
             );
 
-            // ReportImages
+            // Reports
+            modelBuilder.Entity<Report>().HasData(
+                new Report { Id = report1Id, ScheduleId = schedule1Id, ReportTypeId = 1 , Description = "Projector not working", IsResolved = false, CreatedAt = new DateTimeOffset(2025, 1, 20, 0, 0, 0, TimeSpan.Zero), CreatedBy = user1Id },
+                new Report { Id = report2Id, ScheduleId = schedule2Id, ReportTypeId = 1, Description = "Broken chair", IsResolved = false, CreatedAt = new DateTimeOffset(2025, 1, 21, 0, 0, 0, TimeSpan.Zero), CreatedBy = user2Id },
+                new Report { Id = report3Id, ScheduleId = schedule3Id, ReportTypeId = 1, Description = "AC not cooling", IsResolved = false, CreatedAt = new DateTimeOffset(2025, 1, 22, 0, 0, 0, TimeSpan.Zero), CreatedBy = user3Id }
+            );            // ReportImages
             modelBuilder.Entity<ReportImage>().HasData(
                 new ReportImage { Id = reportImage1Id, ReportId = report1Id, ImageUrl = "https://cdn.example/report1.jpg", Size = 1200, FileType = (FileType)0 },
                 new ReportImage { Id = reportImage2Id, ReportId = report2Id, ImageUrl = "https://cdn.example/report2.jpg", Size = 800, FileType = (FileType)0 },

@@ -3,6 +3,7 @@ using AutoMapper.QueryableExtensions;
 using BookLAB.Application.Common.Extensions; // Chứa ApplySpecification extension
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Models;
+using BookLAB.Application.Features.LabRooms.Queries.GetLabRooms;
 using BookLAB.Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -27,19 +28,20 @@ public class GetSchedulesQueryHandler : IRequestHandler<GetSchedulesQuery, Paged
         var spec = new ScheduleFilterSpecification(request);
 
         // 2. Lấy IQueryable từ Repository
-        var queryable = _unitOfWork.Repository<Schedule>().Entities;
-
-        // 3. Áp dụng Specification (Lọc + Include các bảng liên quan)
-        // Sau đó Project trực tiếp sang DTO để tối ưu hiệu năng SQL (chỉ lấy cột cần thiết)
-        var filteredQuery = queryable
+        var query = _unitOfWork.Repository<Schedule>().Entities
             .ApplySpecification(spec)
-            .ProjectTo<ScheduleDto>(_mapper.ConfigurationProvider)
             .AsNoTracking();
 
-        // 4. Thực hiện phân trang và trả về kết quả
-        // PagedList.CreateAsync sẽ thực thi Count và ToList trong 1 luồng xử lý
+        var projectedQuery = query.SelectSchedule();
+
+        if (request.PageSize <= 0)
+        {
+            var allItems = await projectedQuery.ToListAsync(ct);
+            // Trả về PagedList với TotalCount = số lượng thực tế, PageSize = TotalCount
+            return new PagedList<ScheduleDto>(allItems, allItems.Count, 1, allItems.Count);
+        }
         return await PagedList<ScheduleDto>.CreateAsync(
-            filteredQuery,
+            projectedQuery,
             request.PageNumber,
             request.PageSize,
             ct);

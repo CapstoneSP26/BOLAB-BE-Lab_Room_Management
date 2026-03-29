@@ -3,7 +3,7 @@
     public enum ScheduleStatus
     {
         Active,
-        Cancelled,
-        Completed
+        NotYet,
+        Done
     }
 }
