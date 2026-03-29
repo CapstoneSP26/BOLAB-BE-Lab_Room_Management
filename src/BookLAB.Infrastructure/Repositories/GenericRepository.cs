@@ -13,6 +13,8 @@ namespace BookLAB.Infrastructure.Repositories
 
         public async Task<T?> GetByIdAsync(object id) => await _context.Set<T>().FindAsync(id);
 
+        public T? GetById(object id) => _context.Set<T>().Find(id);
+
         public async Task AddAsync(T entity) => await _context.Set<T>().AddAsync(entity);
         public async Task UpdateAsync(T entity)
         {
