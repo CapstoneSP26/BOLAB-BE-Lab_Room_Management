@@ -12,7 +12,7 @@ using System.Text;
 
 namespace BookLAB.Application.Features.Bookings.Queries.ViewUncheckedBookingRequest
 {
-    public class ViewUncheckedBookingRequestHandler : IRequestHandler<ViewUncheckedBookingRequestCommand, List<Booking>>
+    public class ViewUncheckedBookingRequestHandler : IRequestHandler<ViewUncheckedBookingRequestCommand, List<BookingRequestFe>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -41,7 +41,7 @@ namespace BookLAB.Application.Features.Bookings.Queries.ViewUncheckedBookingRequ
         /// A list of BookingRequestDto objects representing the unchecked booking requests.
         /// Returns an empty list if an exception occurs.
         /// </returns>
-        public async Task<List<Booking>> Handle(ViewUncheckedBookingRequestCommand request, CancellationToken cancellationToken)
+        public async Task<List<BookingRequestFe>> Handle(ViewUncheckedBookingRequestCommand request, CancellationToken cancellationToken)
         {
             try
             {
@@ -95,20 +95,15 @@ namespace BookLAB.Application.Features.Bookings.Queries.ViewUncheckedBookingRequ
                     .Take(request.limit)
                     .ToListAsync();
 
-                List<Booking> resultBookings = new List<Booking>();
+                var mappedResult = _mapper.Map<List<BookingRequest>, List<BookingRequestFe>>(result);
 
-                foreach (var br in result)
-                {
-                    resultBookings.Add(br.Booking);
-                }
-
-                return resultBookings;
+                return mappedResult;
             }
             catch (Exception ex)
             {
                 // In case of any exception, return an empty list.
                 _logger.LogError(ex, "Error occurred while handling ViewBookingHistoryHandler");
-                return new List<Booking>();
+                return new List<BookingRequestFe>();
             }
         }
 

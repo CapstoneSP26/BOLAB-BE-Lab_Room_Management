@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Models;
+using BookLAB.Application.Features.Bookings.Queries.ViewUncheckedBookingRequest;
 using BookLAB.Application.Features.Groups.DTOs;
 using BookLAB.Domain.Entities;
 using System;
@@ -28,6 +29,20 @@ namespace BookLAB.Application.Common.Mappings
                 .ForMember(dest => dest.RoomName, opt => opt.MapFrom(src => src.Schedule.LabRoom.RoomName))
                 .ForMember(dest => dest.BuildingName, opt => opt.MapFrom(src => src.Schedule.LabRoom.Building.BuildingName))
                 .ForMember(dest => dest.Reason, opt => opt.MapFrom(src => src.ReportType.ReportTypeName));
+
+            CreateMap<BookingRequest, BookingRequestFe>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Booking.Id))
+                .ForMember(dest => dest.RoomId, opt => opt.MapFrom(src => src.Booking.LabRoomId))
+                .ForMember(dest => dest.RoomName, opt => opt.MapFrom(src => src.Booking.LabRoom.RoomName))
+                .ForMember(dest => dest.BuildingName, opt => opt.MapFrom(src => src.Booking.LabRoom.Building.BuildingName))
+                .ForMember(dest => dest.RequestedBy, opt => opt.MapFrom(src => src.CreatedBy))
+                .ForMember(dest => dest.RequestedAt, opt => opt.MapFrom(src => src.CreatedAt))
+                .ForMember(dest => dest.StartTime, opt => opt.MapFrom(src => src.Booking.StartTime.ToString("HH:mm")))
+                .ForMember(dest => dest.EndTime, opt => opt.MapFrom(src => src.Booking.EndTime.ToString("HH:mm")))
+                .ForMember(dest => dest.Date, opt => opt.MapFrom(src => src.Booking.StartTime.ToString("dd-MM-yyyy")))
+                .ForMember(dest => dest.StudentCount, opt => opt.MapFrom(src => src.Booking.StudentCount))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.BookingRequestStatus))
+                .ForMember(dest => dest.Purpose, opt => opt.MapFrom(src => src.ResponseContext));
         }
     }
 }
