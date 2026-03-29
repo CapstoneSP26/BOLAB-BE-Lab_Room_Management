@@ -27,6 +27,7 @@ public class GetReportsQueryHandler : IRequestHandler<GetReportsQuery, PagedList
         // Lấy IQueryable từ Repository
         var queryable = _unitOfWork.Repository<Report>().Entities
             .ApplySpecification(spec)
+            .Include(x => x.ReportType)
             .AsNoTracking();
 
         queryable = queryable.Where(x => _unitOfWork.Repository<LabOwner>().Entities.Any(y => y.LabRoomId == x.Schedule.LabRoomId &&
