@@ -1,4 +1,4 @@
-﻿using BookLAB.Domain.Entities;
+using BookLAB.Domain.Entities;
 using Google.Apis.Http;
 using System;
 using System.Collections.Generic;
@@ -17,6 +17,7 @@ namespace BookLAB.Domain.DTOs
         public string date { get; set; }
         public string status { get; set; }
         public string purpose { get; set; }
+        public string reason { get; set; }
         public string userName { get; set; }
     }
 }

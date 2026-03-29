@@ -112,7 +112,7 @@ namespace BookLAB.Infrastructure.Services
         /// </summary>
         public void RemoveQRCode(Qr qr)
         {
-            if (_qrList.ContainsKey(qr))
+            if (CheckQrCodeExist(qr))
             {
                 _qrList.Remove(qr);
             }

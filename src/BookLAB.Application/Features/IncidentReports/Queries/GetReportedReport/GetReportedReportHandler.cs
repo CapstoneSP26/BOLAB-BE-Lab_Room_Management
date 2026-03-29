@@ -10,7 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace BookLAB.Application.Features.Feedbacks.Queries.GetReportedReport
+namespace BookLAB.Application.Features.IncidentReports.Queries.GetReportedReport
 {
     public class GetReportedReportHandler : IRequestHandler<GetReportedReportCommand, List<ReportResponseDto>>
     {
@@ -29,6 +29,7 @@ namespace BookLAB.Application.Features.Feedbacks.Queries.GetReportedReport
             {
                 var result = await _unitOfWork.Repository<Report>().Entities
                     .Include(x => x.Schedule.LabRoom)
+                    .Include(x => x.ReportType)
                     .Where(x => x.UpdatedBy == request.userId && x.IsResolved == true).ToListAsync();
                 List<ReportResponseDto> results = new List<ReportResponseDto>();
 
@@ -39,7 +40,7 @@ namespace BookLAB.Application.Features.Feedbacks.Queries.GetReportedReport
                         Id = resultDto.Id,
                         ReportId = resultDto.Id,
                         LabRoomId = resultDto.Schedule.LabRoom.Id,
-                        Title = resultDto.ReportType.ToString(),
+                        Title = resultDto.ReportType?.ReportTypeName ?? "Unknown",
                         Severity = "HIGH",
                         Status = "RESOLVED",
                         ResolvedAt = resultDto.UpdatedAt,

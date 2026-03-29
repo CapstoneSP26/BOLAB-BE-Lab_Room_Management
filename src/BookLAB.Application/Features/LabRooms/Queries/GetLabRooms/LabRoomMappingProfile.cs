@@ -8,6 +8,7 @@ public class LabRoomMappingProfile : Profile
     public LabRoomMappingProfile()
     {
         CreateMap<LabRoom, LabRoomDto>()
+            .ForMember(d => d.BuildingId, opt => opt.MapFrom(s => s.BuildingId))
             .ForMember(d => d.BuildingName, opt => opt.MapFrom(s => s.Building.BuildingName))
             .ForMember(d => d.RoomNo, opt => opt.MapFrom(s => s.RoomNo))
             .ForMember(d => d.RoomName, opt => opt.MapFrom(s => s.RoomName))

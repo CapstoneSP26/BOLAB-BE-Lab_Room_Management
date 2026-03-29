@@ -1,5 +1,5 @@
 ﻿using BookLAB.Application.Common.Models;
-using BookLAB.Domain.Entities;
+using BookLAB.Application.Features.Bookings.Commands.CreateBooking;
 using BookLAB.Domain.Enums;
 
 namespace BookLAB.Application.Common.Policies
@@ -8,6 +8,6 @@ namespace BookLAB.Application.Common.Policies
     {
         PolicyType PolicyType { get; }
 
-        Task<PolicyValidationResult> ValidateAsync(BookingRequest request, string value);
+        Task<PolicyValidationResult> ValidateAsync(CreateBookingCommand request, string value);
     }
 }

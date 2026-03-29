@@ -1,5 +1,4 @@
-﻿using BookLAB.Api.Controllers;
-using BookLAB.Application.Features.SlotTypes.GetSlotTypes;
+﻿using BookLAB.Application.Features.SlotTypes.GetSlotTypes;
 using BookLAB.Application.Features.SlotTypes.Queries.GetSlotTypes;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;

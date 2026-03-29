@@ -1,13 +1,14 @@
 using BookLAB.Application.Common.Models;
 using BookLAB.Application.Features.Buildings.DTOs;
-using BookLAB.Application.Features.Buildings.Queries.GetAllBuildings;
 using BookLAB.Application.Features.Buildings.Queries.GetBuildingByName;
 using BookLAB.Application.Features.Buildings.Queries.GetBuildings;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BookLAB.Api.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class BuildingsController : ControllerBase
@@ -17,20 +18,6 @@ namespace BookLAB.Api.Controllers
         public BuildingsController(IMediator mediator)
         {
             _mediator = mediator;
-        }
-
-        /// <summary>
-        /// Lấy danh sách tất cả tòa nhà
-        /// </summary>
-        /// <returns>Danh sách tòa nhà với thông tin cơ bản</returns>
-        [HttpGet]
-        [ProducesResponseType(typeof(List<BuildingDto>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetAllBuildings(CancellationToken cancellationToken)
-        {
-            var query = new GetAllBuildingsQuery();
-            var result = await _mediator.Send(query, cancellationToken);
-
-            return Ok(result);
         }
 
         /// <summary>
@@ -53,7 +40,7 @@ namespace BookLAB.Api.Controllers
             return Ok(result);
         }
 
-        [HttpGet("buildings")]
+        [HttpGet]
         public async Task<ActionResult<PagedList<BuildingDto>>> GetBuildings([FromQuery] GetBuildingsQuery query)
         {
             return Ok(await _mediator.Send(query));

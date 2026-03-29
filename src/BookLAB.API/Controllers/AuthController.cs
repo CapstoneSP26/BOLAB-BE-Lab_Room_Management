@@ -1,4 +1,4 @@
-﻿using BookLAB.Application.Common.Interfaces.Repositories;
+using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Models;
 using BookLAB.Application.Features.Users.Commands.UpdateUserProfile;
 using BookLAB.Application.Features.Users.Queries.GetCurrentUser;
@@ -12,7 +12,6 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using System.Text.RegularExpressions;
 
 namespace BookLAB.API.Controllers
 {
@@ -118,7 +117,8 @@ namespace BookLAB.API.Controllers
             var claims = new List<Claim>
     {
         new Claim("Id", account.Id.ToString()),
-        new Claim("Role", role.RoleId.ToString()),
+        new Claim("Role", role?.RoleId.ToString() ?? ""),
+        new Claim("CampusId", account.CampusId.ToString())
     };
 
             var secretKey = configuration["JWT:SecretKey"] ?? throw new InvalidOperationException("JWT:SecretKey not found");
@@ -145,14 +145,14 @@ namespace BookLAB.API.Controllers
                     SameSite = SameSiteMode.None
                 });
 
-            // Token is already in the cookie, now redirect to frontend
-            if (!string.IsNullOrEmpty(returnUrl))
+            // Validate returnUrl to avoid invalid redirect targets.
+            if (!Uri.TryCreate(returnUrl, UriKind.Absolute, out var parsedReturnUrl)
+                || (parsedReturnUrl.Scheme != Uri.UriSchemeHttp && parsedReturnUrl.Scheme != Uri.UriSchemeHttps))
             {
-                return Redirect(returnUrl);
+                returnUrl = "https://localhost:5173/";
             }
-            
-            // Default redirect to dashboard if no returnUrl provided
-            return Redirect("https://localhost:5173/labmanager/dashboard");
+
+            return Redirect(returnUrl);
         }
 
 

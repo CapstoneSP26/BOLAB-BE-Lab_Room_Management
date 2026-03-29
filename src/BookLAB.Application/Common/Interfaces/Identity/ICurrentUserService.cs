@@ -3,6 +3,7 @@
     public interface ICurrentUserService
     {
         Guid? UserId { get; }
+        int CampusId { get; }
         IReadOnlyList<string> Roles { get; }
         bool IsAuthenticated { get; }
     }

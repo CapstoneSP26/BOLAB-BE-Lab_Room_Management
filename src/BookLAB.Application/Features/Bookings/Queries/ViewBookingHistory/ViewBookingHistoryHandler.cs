@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Interfaces.Services;
 using BookLAB.Application.Common.Models;
@@ -42,14 +42,37 @@ namespace BookLAB.Application.Features.Bookings.Queries.ViewBookingHistory
                 // Query the Booking repository with eager loading of related entities:
                 // LabRoom, Building, and PurposeType.
 
+                // Npgsql chỉ chấp nhận DateTimeOffset UTC khi bind vào timestamptz.
+                // Chuẩn hoá filter về UTC và dùng khoảng [start, endExclusive).
+                var startUtc = request.startDate.ToUniversalTime();
+                var endUtc = request.endDate.ToUniversalTime();
+
+                var startBoundary = new DateTimeOffset(
+                    startUtc.Year,
+                    startUtc.Month,
+                    startUtc.Day,
+                    0,
+                    0,
+                    0,
+                    TimeSpan.Zero);
+
+                var endBoundaryExclusive = new DateTimeOffset(
+                    endUtc.Year,
+                    endUtc.Month,
+                    endUtc.Day,
+                    0,
+                    0,
+                    0,
+                    TimeSpan.Zero).AddDays(1);
+
                 var query = _unitOfWork.Repository<Booking>().Entities
                     .Include(x => x.LabRoom)
                     .Include(x => x.LabRoom.Building)
                     .Include(x => x.PurposeType)
                     .Where(b =>
                         b.CreatedBy == request.userId &&
-                        b.StartTime >= request.startDate &&
-                        b.EndTime <= request.endDate &&
+                        b.StartTime >= startBoundary &&
+                        b.StartTime < endBoundaryExclusive &&
                         (request.labRoomId == null || b.LabRoomId == request.labRoomId) // thêm filter labRoomId
                     );
 
@@ -59,6 +82,8 @@ namespace BookLAB.Application.Features.Bookings.Queries.ViewBookingHistory
                 }
 
                 var result = await query
+                    .OrderByDescending(b => b.StartTime)
+                    .ThenByDescending(b => b.CreatedAt)
                     .Skip((request.page - 1) * request.limit)
                     .Take(request.limit)
                     .ToListAsync();
