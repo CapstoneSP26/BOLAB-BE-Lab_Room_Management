@@ -343,7 +343,7 @@ public class BookingsController : ControllerBase
         {
             Guid.TryParse(HttpContext.User.FindFirst("Id")?.Value, out var userId);
 
-            ViewBookingHistoryCommand command = new ViewBookingHistoryCommand
+            ViewUncheckedBookingRequestCommand command = new ViewUncheckedBookingRequestCommand
             {
                 userId = userId,
                 page = dto.page,
@@ -380,13 +380,6 @@ public class BookingsController : ControllerBase
                 });
 
             }
-
-            //ViewUncheckedBookingRequestCommand command = new ViewUncheckedBookingRequestCommand
-            //{
-            //    userId = HttpContext.User.FindFirst("Id")?.Value ?? "11111111-1111-1111-1111-111111111111"
-            //};
-
-            //var result = await _mediator.Send(command);
 
             return Ok(new
             {

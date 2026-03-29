@@ -12,7 +12,7 @@ using System.Text;
 
 namespace BookLAB.Application.Features.Bookings.Queries.ViewUncheckedBookingRequest
 {
-    public class ViewUncheckedBookingRequestHandler : IRequestHandler<ViewUncheckedBookingRequestCommand, List<BookingRequestDto>>
+    public class ViewUncheckedBookingRequestHandler : IRequestHandler<ViewUncheckedBookingRequestCommand, List<Booking>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -41,29 +41,74 @@ namespace BookLAB.Application.Features.Bookings.Queries.ViewUncheckedBookingRequ
         /// A list of BookingRequestDto objects representing the unchecked booking requests.
         /// Returns an empty list if an exception occurs.
         /// </returns>
-        public async Task<List<BookingRequestDto>> Handle(ViewUncheckedBookingRequestCommand request, CancellationToken cancellationToken)
+        public async Task<List<Booking>> Handle(ViewUncheckedBookingRequestCommand request, CancellationToken cancellationToken)
         {
             try
             {
-                // Query the BookingRequest repository for requests that are either:
-                // - Not yet responded (ResponsedByUserId == null)
-                // - Responded by the current user (ResponsedByUserId == request.userId)
-                var result = await _unitOfWork.Repository<BookingRequest>().Entities
-                    .Where(x => x.ResponsedByUserId == null || x.ResponsedByUserId == request.userId)
-                    // Use AutoMapper's ProjectTo to project entities directly into DTOs at the query level
-                    .ProjectTo<BookingRequestDto>(_mapper.ConfigurationProvider)
-                    .ToListAsync(cancellationToken); // Execute query asynchronously with cancellation support
+                var startUtc = request.startDate.ToUniversalTime();
+                var endUtc = request.endDate.ToUniversalTime();
 
-                // Return the mapped list of BookingRequestDto
-                return result;
+                var startBoundary = new DateTimeOffset(
+                    startUtc.Year,
+                    startUtc.Month,
+                    startUtc.Day,
+                    0,
+                    0,
+                    0,
+                    TimeSpan.Zero);
+
+                var endBoundaryExclusive = new DateTimeOffset(
+                    endUtc.Year,
+                    endUtc.Month,
+                    endUtc.Day,
+                    0,
+                    0,
+                    0,
+                    TimeSpan.Zero).AddDays(1);
+
+                var labOwners = await _unitOfWork.Repository<LabOwner>().Entities
+                    .Where(lo => lo.UserId == request.userId)
+                    .Select(lo => lo.LabRoomId)
+                    .ToListAsync(cancellationToken);
+
+                var query = _unitOfWork.Repository<BookingRequest>().Entities
+                    .Include(x => x.Booking)
+                    .Include(x => x.Booking.LabRoom)
+                    .Include(x => x.Booking.LabRoom.Building)
+                    .Include(x => x.Booking.PurposeType)
+                    .Where(b =>
+                        labOwners.Contains(b.Booking.LabRoomId) &&
+                        b.Booking.StartTime >= startBoundary &&
+                        b.Booking.StartTime < endBoundaryExclusive &&
+                        (request.labRoomId == null || b.Booking.LabRoomId == request.labRoomId) // thêm filter labRoomId
+                    );
+
+                if (!request.status.Equals("all", StringComparison.OrdinalIgnoreCase))
+                {
+                    query = query.Where(b => b.Booking.BookingStatus.ToString().ToLower() == request.status.ToLower());
+                }
+
+                var result = await query
+                    .OrderByDescending(b => b.Booking.StartTime)
+                    .ThenByDescending(b => b.CreatedAt)
+                    .Skip((request.page - 1) * request.limit)
+                    .Take(request.limit)
+                    .ToListAsync();
+
+                List<Booking> resultBookings = new List<Booking>();
+
+                foreach (var br in result)
+                {
+                    resultBookings.Add(br.Booking);
+                }
+
+                return resultBookings;
             }
             catch (Exception ex)
             {
-                // Log the exception with details for debugging
-                _logger.LogError(ex, "Something is wrong while querying unchecked booking request: " + ex.Message);
-
-                // Return an empty list to avoid breaking the caller
-                return new List<BookingRequestDto>();
+                // In case of any exception, return an empty list.
+                _logger.LogError(ex, "Error occurred while handling ViewBookingHistoryHandler");
+                return new List<Booking>();
             }
         }
 
