@@ -1,10 +1,12 @@
 ﻿using BookLAB.Application.Features.SlotTypes.GetSlotTypes;
 using BookLAB.Application.Features.SlotTypes.Queries.GetSlotTypes;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BookLAB.API.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class SlotTypesController : ControllerBase

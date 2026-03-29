@@ -2,10 +2,12 @@
 using BookLAB.Application.Features.LabRooms.Queries.GetLabRoomPolicies;
 using BookLAB.Application.Features.LabRooms.Queries.GetLabRooms;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BookLAB.API.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class LabRoomController : ControllerBase
