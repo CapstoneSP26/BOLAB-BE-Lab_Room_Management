@@ -11,6 +11,6 @@ namespace BookLAB.Application.Features.LabRooms.Queries.GetLabRooms
         public bool IncludeImages { get; set; } = false;
         public bool IncludeBuilding { get; set; } = false;
         public int PageNumber { get; set; } = 1;
-        public int PageSize { get; set; } = 10;
+        public int PageSize { get; set; } = 0;
     }
 }

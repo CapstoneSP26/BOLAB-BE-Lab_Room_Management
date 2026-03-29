@@ -1,7 +1,5 @@
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Models;
-using BookLAB.Application.Common.Security;
-using BookLAB.Application.Features.Bookings;
 using BookLAB.Application.Features.Bookings.CheckConflict;
 using BookLAB.Application.Features.Bookings.Commands.ApproveBooking;
 using BookLAB.Application.Features.Bookings.Commands.CreateBooking;
@@ -9,9 +7,9 @@ using BookLAB.Application.Features.Bookings.Commands.DeleteCalendarEvent;
 using BookLAB.Application.Features.Bookings.Commands.RejectBooking;
 using BookLAB.Application.Features.Bookings.Commands.SyncToCalendar;
 using BookLAB.Application.Features.Bookings.Commands.UpdateCalendarEvent;
-using BookLAB.Application.Features.Bookings.Queries.GetBookingInAttendance;
 using BookLAB.Application.Features.Bookings.Queries.GetBookings;
 using BookLAB.Application.Features.Bookings.Queries.GetBookingStats;
+using BookLAB.Application.Features.Bookings.Queries.GetPurposeTypes;
 using BookLAB.Application.Features.Bookings.Queries.ViewBookingHistory;
 using BookLAB.Application.Features.Bookings.Queries.ViewUncheckedBookingRequest;
 using BookLAB.Application.Features.Schedules.Queries.AddSchedule;
@@ -19,17 +17,14 @@ using BookLAB.Domain.DTOs;
 using BookLAB.Domain.Entities;
 using BookLAB.Domain.Enums;
 using MediatR;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Http.HttpResults;
+
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration.UserSecrets;
-using System.Drawing.Printing;
-using System.Globalization;
-using System.Net.NetworkInformation;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BookLAB.API.Controllers;
 
-[Microsoft.AspNetCore.Authorization.Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+//[Microsoft.AspNetCore.Authorization.Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class BookingsController : ControllerBase
@@ -496,8 +491,62 @@ public class BookingsController : ControllerBase
         }
     }
 
-    
 
 
+    /// <summary>
+    /// Handles the HTTP GET request to retrieve unchecked booking requests for the current user.
+    /// The method extracts the user Id from JWT claims, 
+    /// sends a ViewUncheckedBookingRequestCommand through MediatR, 
+    /// and returns the list of unchecked booking requests.
+    /// </summary>
+    /// <param name="cancellationToken">
+    /// Token provided by ASP.NET Core to cancel the request if the client disconnects or times out.
+    /// </param>
+    /// <returns>
+    /// An IActionResult indicating the result of the operation:
+    /// - 200 OK with the list of unchecked booking requests if successful.
+    /// - 401 Unauthorized if the user identity is invalid.
+    /// - 500 Internal Server Error if an unexpected exception occurs.
+    /// </returns>
+    [HttpGet("get-unchecked-booking-request")]
+    public async Task<IActionResult> GetUncheckedBookingRequestList(CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Validate user identity from claims
+            if (!Guid.TryParse(HttpContext.User.FindFirst("Id")?.Value, out Guid userId))
+                return Unauthorized();
+
+            // Create command object with the userId
+            ViewUncheckedBookingRequestCommand command = new ViewUncheckedBookingRequestCommand
+            {
+                userId = userId
+            };
+
+            // Send the command through MediatR pipeline
+            var result = await _mediator.Send(command, cancellationToken);
+            // Return success response with the retrieved data
+            return Ok(new
+            {
+                success = true,
+                message = "Get unchecked booking request successfully!",
+                result = result
+            });
+        }
+        catch (Exception ex)
+        {
+            // Log the error with details for debugging
+            _logger.LogError(ex, "Something is wrong while getting unchecked booking requests: " + ex.Message);
+
+            // Return internal server error response
+            return Problem("Something is wrong while getting unchecked booking requests");
+        }
+    }
+
+    [HttpGet("purposes")] // api/bookings/purposes
+    public async Task<ActionResult<PagedList<PurposeTypeDto>>> GetPurposes([FromQuery] GetPurposeTypesQuery query)
+    {
+        return Ok(await _mediator.Send(query));
+    }
 
 }

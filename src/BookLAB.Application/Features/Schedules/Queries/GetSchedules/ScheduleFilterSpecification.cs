@@ -14,21 +14,19 @@ namespace BookLAB.Application.Features.Schedules.Queries.GetSchedules
                 AddCriteria(s => s.StartTime >= query.FromDate.Value);
 
             if (query.ToDate.HasValue)
-                AddCriteria(s => s.StartTime < query.ToDate.Value);
+                AddCriteria(s => s.EndTime < query.ToDate.Value);
 
             if (query.LecturerId.HasValue) { 
                 AddCriteria(s => s.LecturerId == query.LecturerId.Value);
             }
-
+            if (query.Status.HasValue)
+            {
+                AddCriteria(s => s.ScheduleStatus == query.Status.Value);
+            }
             if (!string.IsNullOrEmpty(query.SubjectCode))
                 AddCriteria(s => s.SubjectCode.Contains(query.SubjectCode));
 
-            // eager loading related entities
-            AddInclude(s => s.LabRoom);
-            AddInclude(s => s.SlotType);
-
-            // Sorting logic can be handled in the repository or service layer based on query.SortBy and query.IsDescending
-            ApplyOrderByDescending(s => s.StartTime);
+            ApplyOrderBy(s => s.StartTime);
         }
     }
 }

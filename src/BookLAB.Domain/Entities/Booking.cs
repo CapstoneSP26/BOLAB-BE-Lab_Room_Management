@@ -8,7 +8,7 @@ namespace BookLAB.Domain.Entities
         public int LabRoomId { get; set; }
         public DateTimeOffset StartTime { get; set; }
         public DateTimeOffset EndTime { get; set; }
-        public int SlotTypeId { get; set; }
+        public int? SlotTypeId { get; set; }
         public BookingStatus BookingStatus { get; set; }
         public BookingType BookingType {  get; set; }
         public int StudentCount { get; set; }
@@ -24,7 +24,7 @@ namespace BookLAB.Domain.Entities
         public virtual LabRoom LabRoom { get; set; }
         public virtual PurposeType PurposeType { get; set; } 
         public virtual Schedule? Schedule { get; set; }
-        public virtual SlotType SlotType { get; set; } 
+        public virtual SlotType? SlotType { get; set; } 
         public ICollection<BookingGroup> BookingGroups { get; set; } = new List<BookingGroup>();
     }
 }

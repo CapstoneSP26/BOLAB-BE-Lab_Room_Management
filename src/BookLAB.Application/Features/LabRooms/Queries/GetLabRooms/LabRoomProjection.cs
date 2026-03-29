@@ -2,7 +2,7 @@
 
 namespace BookLAB.Application.Features.LabRooms.Queries.GetLabRooms;
 
-public static class LabRoomProjections
+public static class LabRoomProjection
 {
     public static IQueryable<LabRoomDto> SelectLabRoom(
         this IQueryable<LabRoom> query,
