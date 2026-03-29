@@ -24,6 +24,7 @@ namespace BookLAB.Application.Features.Bookings.Commands.ApproveBooking
                 BookingId = booking.Id,
                 LabRoomId = booking.LabRoomId,
                 LecturerId = booking.CreatedBy ?? Guid.Empty,
+                SlotTypeId = booking.SlotTypeId,
                 StudentCount = booking.StudentCount,
                 StartTime = booking.StartTime,
                 EndTime = booking.EndTime,
