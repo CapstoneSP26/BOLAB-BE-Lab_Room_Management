@@ -269,6 +269,7 @@ public class BookingsController : ControllerBase
                     date = result[i].StartTime.ToString("yyyy-MM-dd"),
                     status = result[i].BookingStatus.ToString(),
                     purpose = result[i].PurposeType.PurposeName,
+                    reason = result[i].Reason,
                     userName = username
                 };
             }
@@ -491,6 +492,7 @@ public class BookingsController : ControllerBase
     }
 
 
+
     /// <summary>
     /// Handles the HTTP GET request to retrieve unchecked booking requests for the current user.
     /// The method extracts the user Id from JWT claims, 
@@ -523,7 +525,6 @@ public class BookingsController : ControllerBase
 
             // Send the command through MediatR pipeline
             var result = await _mediator.Send(command, cancellationToken);
-
             // Return success response with the retrieved data
             return Ok(new
             {

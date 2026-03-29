@@ -1,4 +1,4 @@
-﻿using BookLAB.Application.Common.Interfaces.Repositories;
+using BookLAB.Application.Common.Interfaces.Repositories;
 using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
@@ -101,12 +101,13 @@ namespace BookLAB.API.Controllers
                     SameSite = SameSiteMode.None
                 });
 
-            //return Ok(new
-            //{
-            //    Role = role?.RoleId.ToString() ?? "",
-            //    Token = generatedToken,
-            //    AccountId = account.Id.ToString()
-            //});
+            // Validate returnUrl to avoid invalid redirect targets.
+            if (!Uri.TryCreate(returnUrl, UriKind.Absolute, out var parsedReturnUrl)
+                || (parsedReturnUrl.Scheme != Uri.UriSchemeHttp && parsedReturnUrl.Scheme != Uri.UriSchemeHttps))
+            {
+                returnUrl = "https://localhost:5173/";
+            }
+
             return Redirect(returnUrl);
         }
 
