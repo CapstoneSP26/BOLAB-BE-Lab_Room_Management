@@ -5,6 +5,9 @@ using BookLAB.Infrastructure.Identity;
 using BookLAB.Infrastructure.Persistence;
 using BookLAB.Infrastructure.Repositories;
 using BookLAB.Infrastructure.Services;
+using BookLAB.Infrastructure.Settings;
+using Hangfire;
+using Hangfire.PostgreSql;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,6 +26,18 @@ namespace BookLAB.Infrastructure
                 options.UseNpgsql(
                     configuration.GetConnectionString("DefaultConnection")));
 
+            // ===== HANGFIRE =====
+            services.AddHangfire(config =>
+                config.UsePostgreSqlStorage(configuration.GetConnectionString("DefaultConnection"),
+                new PostgreSqlStorageOptions
+                {
+                    SchemaName = "hangfire"
+                }));
+            services.AddHangfireServer();
+
+            // Ánh xạ cấu hình từ appsettings.json vào class EmailSettings
+            services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
+
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             // ===== IDENTITY =====
@@ -36,6 +51,7 @@ namespace BookLAB.Infrastructure
             services.AddScoped<ICalendarSyncService, GoogleCalendarSyncService>();
             services.AddScoped<QRCodeGenerator>();
             services.AddScoped<IQrManagements, QrManagements>();
+            services.AddTransient<IEmailService, EmailService>();
 
             // ===== REPOSITORIES =====
             services.AddScoped<IUserRepository, UserRepository>();
@@ -43,7 +59,8 @@ namespace BookLAB.Infrastructure
             services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
             services.AddScoped<IBookingRepository, BookingRepository>();
 
-
+            // ===== BACKGROUND JOBS =====
+            services.AddScoped<IBackgroundJobService, HangfireJobService>();
 
             return services;
         }

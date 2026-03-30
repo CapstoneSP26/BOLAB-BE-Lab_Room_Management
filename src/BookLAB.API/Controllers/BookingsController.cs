@@ -338,7 +338,7 @@ public class BookingsController : ControllerBase
         {
             Guid.TryParse(HttpContext.User.FindFirst("Id")?.Value, out var userId);
 
-            ViewBookingHistoryCommand command = new ViewBookingHistoryCommand
+            ViewUncheckedBookingRequestCommand command = new ViewUncheckedBookingRequestCommand
             {
                 userId = userId,
                 page = dto.page,
@@ -350,43 +350,38 @@ public class BookingsController : ControllerBase
             };
 
             var result = await _mediator.Send(command);
-            List<BookingLabManager> list = new List<BookingLabManager>();
+            //List<BookingLabManager> list = new List<BookingLabManager>();
 
-            foreach (var item in result)
-            {
-                list.Add(new BookingLabManager
-                {
-                    Id = item.Id,
-                    LabRoomId = item.LabRoomId,
-                    BuildingName = item.LabRoom.Building.BuildingName,
-                    BookedByUserId = item.CreatedBy ?? Guid.Empty,
-                    StartTime = item.StartTime,
-                    EndTime = item.EndTime,
-                    PurposeTypeName = item.PurposeType.PurposeName,
-                    Reason = item.Reason,
-                    BookingStatus = item.BookingStatus,
-                    BookingType = item.BookingType,
-                    StudentCount = item.StudentCount,
-                    Recur = item.Recur,
-                    CreatedAt = item.CreatedAt,
-                    UpdatedAt = item.UpdatedAt,
-                    CreatedBy = item.CreatedBy,
-                    UpdatedBy = item.UpdatedBy,
-                });
-
-            }
-
-            //ViewUncheckedBookingRequestCommand command = new ViewUncheckedBookingRequestCommand
+            //foreach (var item in result)
             //{
-            //    userId = HttpContext.User.FindFirst("Id")?.Value ?? "11111111-1111-1111-1111-111111111111"
-            //};
+            //    list.Add(new BookingLabManager
+            //    {
+            //        Id = item.Id,
+            //        LabRoomId = item.LabRoomId,
+            //        BuildingName = item.LabRoom.Building.BuildingName,
+            //        BookedByUserId = item.CreatedBy ?? Guid.Empty,
+            //        StartTime = item.StartTime,
+            //        EndTime = item.EndTime,
+            //        PurposeTypeName = item.PurposeType.PurposeName,
+            //        Reason = item.Reason,
+            //        BookingStatus = item.BookingStatus,
+            //        BookingType = item.BookingType,
+            //        StudentCount = item.StudentCount,
+            //        Recur = item.Recur,
+            //        CreatedAt = item.CreatedAt,
+            //        UpdatedAt = item.UpdatedAt,
+            //        CreatedBy = item.CreatedBy,
+            //        UpdatedBy = item.UpdatedBy,
+            //    });
 
-            //var result = await _mediator.Send(command);
+            //}
 
             return Ok(new
             {
-                success = true,
-                result = result
+                data = result,
+                total = result.Count,
+                page = dto.page,
+                limit = dto.limit
             });
         }
         catch (Exception ex)

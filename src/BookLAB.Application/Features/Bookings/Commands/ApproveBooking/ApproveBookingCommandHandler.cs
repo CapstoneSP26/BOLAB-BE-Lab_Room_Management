@@ -1,7 +1,8 @@
-﻿using BookLAB.Application.Common.Events;
-using BookLAB.Application.Common.Exceptions;
+﻿using BookLAB.Application.Common.Exceptions;
 using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Application.Common.Interfaces.Repositories;
+using BookLAB.Application.Common.Interfaces.Services;
+using BookLAB.Application.Features.Bookings.Events;
 using BookLAB.Domain.Entities;
 using BookLAB.Domain.Enums;
 using MediatR;
@@ -14,12 +15,14 @@ namespace BookLAB.Application.Features.Bookings.Commands.ApproveBooking
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMediator _mediator;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IBackgroundJobService _backgroundJobService;
 
-        public ApproveBookingCommandHandler(IUnitOfWork unitOfWork, IMediator mediator, ICurrentUserService currentUserService)
+        public ApproveBookingCommandHandler(IUnitOfWork unitOfWork, IMediator mediator, ICurrentUserService currentUserService, IBackgroundJobService backgroundJobService)
         {
             _unitOfWork = unitOfWork;
             _mediator = mediator;
             _currentUserService = currentUserService;
+            _backgroundJobService = backgroundJobService;
         }
 
         public async Task<bool> Handle(ApproveBookingCommand request, CancellationToken cancellationToken)
@@ -92,25 +95,17 @@ namespace BookLAB.Application.Features.Bookings.Commands.ApproveBooking
                 {
                     throw new NotFoundException(nameof(BookingRequest), booking.Id);
                 }
-                var book = await _unitOfWork.Repository<Booking>().Entities
-                    .FirstOrDefaultAsync(x => x.Id == booking.Id, cancellationToken);
-                if(book == null)
-                {
-                    throw new NotFoundException(nameof(Booking), booking.Id);
-                }
 
                 bookingRequest.BookingRequestStatus = BookingRequestStatus.Approved;
                 _unitOfWork.Repository<BookingRequest>().Update(bookingRequest);
 
-                book.BookingStatus = BookingStatus.Approved;
-                _unitOfWork.Repository<Booking>().Update(book);
+                booking.BookingStatus = BookingStatus.Approved;
+                _unitOfWork.Repository<Booking>().Update(booking);
 
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
                 await _unitOfWork.CommitTransactionAsync();
 
-                // throw event to notify other parts of the system that a booking has been approved
-                await _mediator.Publish(new BookingApprovedEvent(booking.Id), cancellationToken);
-
+                _mediator.Publish(new BookingApprovedEvent(booking.Id), cancellationToken);
                 return true;
             }
             catch

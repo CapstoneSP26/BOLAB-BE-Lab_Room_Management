@@ -2,5 +2,7 @@
 {
     public enum EmailType
     {
+        BookingApproved = 1,
+
     }
 }
