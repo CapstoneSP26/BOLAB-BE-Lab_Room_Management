@@ -5,21 +5,18 @@ using MediatR;
 
 namespace BookLAB.Application.Features.Bookings.Events
 {
-    public class BookingApprovedEventHandler : INotificationHandler<BookingApprovedEvent>
+    public class BookingRejectedEventHandler : INotificationHandler<BookingRejectedEvent>
     {
         private readonly IBackgroundJobService _jobService;
 
-        public BookingApprovedEventHandler(IBackgroundJobService jobService)
+        public BookingRejectedEventHandler(IBackgroundJobService jobService)
         {
             _jobService = jobService;
         }
 
-        public Task Handle(BookingApprovedEvent notification, CancellationToken cancellationToken)
+        public Task Handle(BookingRejectedEvent notification, CancellationToken cancellationToken)
         {
-            _jobService.Enqueue<CreateScheduleJob>(
-                x => x.Execute(notification.BookingId));
-
-            _jobService.Enqueue<ApproveBookingEmailJob>(
+            _jobService.Enqueue<RejectBookingEmailJob>(
                 x => x.Execute(notification.BookingId));
 
             return Task.CompletedTask;

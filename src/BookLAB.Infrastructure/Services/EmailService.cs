@@ -19,7 +19,12 @@ namespace BookLAB.Infrastructure.Services
         {
             var email = new MimeMessage();
             email.From.Add(new MailboxAddress(_settings.SenderName, _settings.SenderEmail));
-            email.To.Add(MailboxAddress.Parse(to));
+
+            var recipients = to.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var recipient in recipients)
+            {
+                email.To.Add(MailboxAddress.Parse(recipient.Trim()));
+            }
             email.Subject = subject;
 
             var builder = new BodyBuilder { HtmlBody = body };

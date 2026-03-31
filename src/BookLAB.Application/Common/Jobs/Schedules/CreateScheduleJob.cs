@@ -3,7 +3,7 @@ using BookLAB.Domain.Entities;
 using BookLAB.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
-namespace BookLAB.Application.Common.Jobs
+namespace BookLAB.Application.Common.Jobs.Schedules
 {
     public class CreateScheduleJob
     {

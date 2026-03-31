@@ -15,14 +15,12 @@ namespace BookLAB.Application.Features.Bookings.Commands.ApproveBooking
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMediator _mediator;
         private readonly ICurrentUserService _currentUserService;
-        private readonly IBackgroundJobService _backgroundJobService;
 
-        public ApproveBookingCommandHandler(IUnitOfWork unitOfWork, IMediator mediator, ICurrentUserService currentUserService, IBackgroundJobService backgroundJobService)
+        public ApproveBookingCommandHandler(IUnitOfWork unitOfWork, IMediator mediator, ICurrentUserService currentUserService)
         {
             _unitOfWork = unitOfWork;
             _mediator = mediator;
             _currentUserService = currentUserService;
-            _backgroundJobService = backgroundJobService;
         }
 
         public async Task<bool> Handle(ApproveBookingCommand request, CancellationToken cancellationToken)

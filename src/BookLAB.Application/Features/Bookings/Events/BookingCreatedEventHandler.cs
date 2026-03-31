@@ -1,25 +1,25 @@
 ﻿using BookLAB.Application.Common.Interfaces.Services;
 using BookLAB.Application.Common.Jobs.Emails;
-using BookLAB.Application.Common.Jobs.Schedules;
 using MediatR;
 
 namespace BookLAB.Application.Features.Bookings.Events
 {
-    public class BookingApprovedEventHandler : INotificationHandler<BookingApprovedEvent>
+
+    public class BookingCreatedEventHandler : INotificationHandler<BookingCreatedEvent>
     {
         private readonly IBackgroundJobService _jobService;
 
-        public BookingApprovedEventHandler(IBackgroundJobService jobService)
+        public BookingCreatedEventHandler(IBackgroundJobService jobService)
         {
             _jobService = jobService;
         }
 
-        public Task Handle(BookingApprovedEvent notification, CancellationToken cancellationToken)
+        public Task Handle(BookingCreatedEvent notification, CancellationToken cancellationToken)
         {
-            _jobService.Enqueue<CreateScheduleJob>(
+            _jobService.Enqueue<BookingSubmittedEmailJob>(
                 x => x.Execute(notification.BookingId));
 
-            _jobService.Enqueue<ApproveBookingEmailJob>(
+            _jobService.Enqueue<NotifyAdminNewBookingJob>(
                 x => x.Execute(notification.BookingId));
 
             return Task.CompletedTask;
