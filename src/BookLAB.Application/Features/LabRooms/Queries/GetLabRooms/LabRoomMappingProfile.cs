@@ -3,7 +3,7 @@ using BookLAB.Domain.Entities;
 
 namespace BookLAB.Application.Features.LabRooms.Queries.GetLabRooms;
 
-public class LabRoomMappingProfile : Profile
+public class LabRoomMappingProfile : AutoMapper.Profile
 {
     public LabRoomMappingProfile()
     {

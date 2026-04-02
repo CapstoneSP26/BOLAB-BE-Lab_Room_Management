@@ -4,7 +4,7 @@ using BookLAB.Domain.Enums;
 
 namespace BookLAB.Application.Features.Bookings.Queries.GetBookings
 {
-    public class BookingMappingProfile : Profile
+    public class BookingMappingProfile : AutoMapper.Profile
     {
         public BookingMappingProfile()
         {

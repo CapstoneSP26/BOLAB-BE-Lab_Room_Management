@@ -4,7 +4,7 @@ using BookLAB.Domain.Entities;
 
 namespace BookLAB.Application.Features.SlotTypes.Queries.GetSlotTypes;
 
-public class SlotTypeMappingProfile : Profile
+public class SlotTypeMappingProfile : AutoMapper.Profile
 {
     public SlotTypeMappingProfile()
     {
