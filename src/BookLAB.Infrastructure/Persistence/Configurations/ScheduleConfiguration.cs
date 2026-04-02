@@ -29,6 +29,9 @@ public class ScheduleConfiguration : IEntityTypeConfiguration<Schedule>
         builder.Property(s => s.SubjectCode)
             .HasMaxLength(20);
 
+        builder.Property(s => s.ImportHash)
+            .HasMaxLength(255); 
+
         builder.Property(s => s.CalendarEventId)
             .HasMaxLength(255)
             .IsRequired(false);
@@ -97,5 +100,8 @@ public class ScheduleConfiguration : IEntityTypeConfiguration<Schedule>
 
         // Index cho trạng thái để lọc lịch (VD: Active, Cancelled)
         builder.HasIndex(s => s.ScheduleStatus);
+
+        builder.HasIndex(s => s.ImportHash)
+               .IsUnique();
     }
 }

@@ -5,9 +5,6 @@ using BookLAB.Application.Features.Schedules.Common;
 using BookLAB.Domain.Entities;
 using BookLAB.Domain.Enums;
 using System.Globalization;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace BookLAB.Infrastructure.Services
 {
@@ -21,70 +18,6 @@ namespace BookLAB.Infrastructure.Services
         {
             _unitOfWork = unitOfWork;
             _scheduleRepository = scheduleRepository;
-        }
-
-        public RowResult<ScheduleImportDto> CheckSingleRowAsync(
-            ScheduleImportDto item,
-            Dictionary<string, LabRoom> roomMap,
-            Dictionary<string, User> lecturerMap,
-            Dictionary<string, Group> groupMap,
-            Dictionary<string, List<SlotFrame>> slotTypeMap,
-            CancellationToken ct)
-        {
-            var rowResult = new RowResult<ScheduleImportDto> { Data = item };
-            var normalizedRoomCode = item.RoomNo.Trim().TrimEnd('.');
-
-            // --- A. Check SlotTypeCode & SlotOrder ---
-            SlotFrame? targetFrame = null;
-            if (!slotTypeMap.TryGetValue(item.SlotTypeCode, out var frames))
-            {
-                rowResult.Messages.Add($"Mã hệ đào tạo '{item.SlotTypeCode}' không tồn tại.");
-                rowResult.Status = "Invalid";
-                rowResult.IsCritical = true;
-            }
-            else
-            {
-                targetFrame = frames.FirstOrDefault(f => f.OrderIndex == item.SlotOrder);
-                if (targetFrame == null)
-                {
-                    rowResult.Messages.Add($"Slot {item.SlotOrder} không có định nghĩa khung giờ trong hệ {item.SlotTypeCode}.");
-                    rowResult.Status = "Invalid";
-                    rowResult.IsCritical = true;
-                }
-            }
-
-            // --- B. Check LabRoom ---
-            if (!roomMap.TryGetValue(normalizedRoomCode, out var room))
-            {
-                rowResult.Messages.Add($"Phòng '{item.RoomNo}' không tồn tại trên hệ thống.");
-                rowResult.Status = "Invalid";
-                rowResult.IsCritical = true;
-            }
-
-            // --- C. Check Lecturer ---
-            if (!lecturerMap.ContainsKey(item.Lecturer))
-            {
-                rowResult.Messages.Add($"Cảnh báo: Không tìm thấy giảng viên '{item.Lecturer}'. Cần kiểm tra lại mã nhân viên.");
-                if (rowResult.Status != "Invalid") rowResult.Status = "Warning";
-            }
-
-            // --- D. Check GroupName ---
-            if (!groupMap.ContainsKey(item.GroupName))
-            {
-                rowResult.Messages.Add($"Không tìm thấy tên group");
-                rowResult.Status = "Invalid";
-                rowResult.IsCritical = true;
-            }
-
-            // --- E. Check DateTime Format ---
-            if (!DateTime.TryParseExact(item.Date, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var sessionDate))
-            {
-                rowResult.Messages.Add("Ngày học không hợp lệ (yêu cầu dd/MM/yyyy).");
-                rowResult.Status = "Invalid";
-                rowResult.IsCritical = true;
-            }
-
-            return rowResult;
         }
 
         public async Task<bool> AddScheduleAsync(Schedule schedule)

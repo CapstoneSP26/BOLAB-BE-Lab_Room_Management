@@ -1,4 +1,5 @@
-﻿using BookLAB.Application.Common.Models;
+﻿using BookLAB.Application.Common.Interfaces.Identity;
+using BookLAB.Application.Common.Models;
 using BookLAB.Application.Features.Schedules.Commands.ImportSchedule;
 using BookLAB.Application.Features.Schedules.Commands.ValidateImport;
 using BookLAB.Application.Features.Schedules.Common;
@@ -16,11 +17,13 @@ public class SchedulesController : ControllerBase
 {
     private readonly IMediator _mediator;
     private readonly ILogger<SchedulesController> _logger;
+    private readonly ICurrentUserService _currentUserService;
 
-    public SchedulesController(IMediator mediator, ILogger<SchedulesController> logger)
+    public SchedulesController(IMediator mediator, ILogger<SchedulesController> logger, ICurrentUserService currentUserService)
     {
         _mediator = mediator;
         _logger = logger;
+        _currentUserService = currentUserService;
     }
 
     /// <summary>
@@ -33,6 +36,12 @@ public class SchedulesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ValidateSchedules([FromBody] ValidateImportQuery query)
     {
+        query.CampusId = _currentUserService.CampusId;
+        // set index for each row (for error reporting)
+        for (int i = 0; i < query.Schedules.Count; i++)
+        {
+            query.Schedules[i].Index = i + 1; // +1 to convert from 0-based to 1-based index
+        }
         // MediatR dispatches to ValidateImportHandler
         var result = await _mediator.Send(query);
 

@@ -93,7 +93,7 @@ builder.Services.AddDbContext<BookLABDbContext>(opt =>
         b => b.MigrationsAssembly("BookLAB.API"));
 });
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
-builder.Services.AddScoped<IScheduleService, ScheduleService>();
+builder.Services.AddScoped<IScheduleImportService, ScheduleService>();
 builder.Services.AddScoped<IScheduleRepository, ScheduleRepository>();
 
 // Swagger/OpenAPI

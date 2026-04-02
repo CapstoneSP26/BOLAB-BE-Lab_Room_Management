@@ -2,6 +2,7 @@
 {
     public class ScheduleImportDto
     {
+        public int Index { get; set; }
         public string GroupName { get; set; } = string.Empty;
         public string SubjectCode { get; set; } = string.Empty;
         public string Date { get; set; } = string.Empty;

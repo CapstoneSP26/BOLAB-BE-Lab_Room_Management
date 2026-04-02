@@ -10,9 +10,9 @@ namespace BookLAB.Application.Features.Schedules.Commands.ImportSchedule
     public class ConfirmImportHandler : IRequestHandler<ConfirmImportCommand, bool>
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IScheduleService _scheduleService;
+        private readonly IScheduleImportService _scheduleService;
 
-        public ConfirmImportHandler(IUnitOfWork unitOfWork, IScheduleService scheduleService)
+        public ConfirmImportHandler(IUnitOfWork unitOfWork, IScheduleImportService scheduleService)
         {
             _unitOfWork = unitOfWork;
             _scheduleService = scheduleService;

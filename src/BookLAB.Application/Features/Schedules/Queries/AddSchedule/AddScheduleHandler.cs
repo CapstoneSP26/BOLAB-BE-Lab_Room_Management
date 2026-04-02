@@ -13,11 +13,11 @@ namespace BookLAB.Application.Features.Schedules.Queries.AddSchedule
     public class AddScheduleHandler : IRequestHandler<AddScheduleCommand, bool>
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IScheduleService _scheduleService;
+        private readonly IScheduleImportService _scheduleService;
         private readonly ILogger<AddScheduleHandler> _logger;
 
         public AddScheduleHandler(IUnitOfWork unitOfWork,
-            IScheduleService scheduleService,
+            IScheduleImportService scheduleService,
             ILogger<AddScheduleHandler> logger)
         {
             _unitOfWork = unitOfWork;

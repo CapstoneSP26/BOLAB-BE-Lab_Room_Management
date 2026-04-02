@@ -8,9 +8,9 @@ namespace BookLAB.Application.Features.Bookings.CheckConflict
 {
     public class CheckConflictHandler : IRequestHandler<CheckConflictCommand, bool>
     {
-        private readonly IScheduleService _scheduleService;
+        private readonly IScheduleImportService _scheduleService;
 
-        public CheckConflictHandler(IScheduleService scheduleService)
+        public CheckConflictHandler(IScheduleImportService scheduleService)
         {
             _scheduleService = scheduleService;
         }
