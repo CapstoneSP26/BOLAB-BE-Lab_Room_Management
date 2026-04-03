@@ -139,6 +139,7 @@ namespace BookLAB.API.Controllers
                 UpdatedAt = report.UpdatedAt,
                 CreatedBy = report.CreatedBy,
                 UpdatedBy = report.UpdatedBy,
+                UserName = schedule.User.FullName
             };
         }
 
@@ -313,6 +314,7 @@ namespace BookLAB.API.Controllers
                 .Include(r => r.Schedule)
                 .ThenInclude(s => s.LabRoom)
                 .ThenInclude(l => l.Building)
+                .Include(r => r.Schedule.User)
                 .Include(r => r.ReportType)
                 .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
 
