@@ -1,7 +1,8 @@
-﻿using BookLAB.Application.Common.Events;
-using BookLAB.Application.Common.Exceptions;
+﻿using BookLAB.Application.Common.Exceptions;
 using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Application.Common.Interfaces.Repositories;
+using BookLAB.Application.Common.Interfaces.Services;
+using BookLAB.Application.Features.Bookings.Events;
 using BookLAB.Domain.Entities;
 using BookLAB.Domain.Enums;
 using MediatR;
@@ -55,6 +56,13 @@ namespace BookLAB.Application.Features.Bookings.Commands.ApproveBooking
                 throw new BusinessException("The requester already has another confirmed schedule during this time period.");
             }
 
+            // Get Max Concurrent Bookings Policy for the room
+            var maxConcurrentBookingsPolicy = await  _unitOfWork.Repository<RoomPolicy>().Entities
+                .Where(rp => rp.LabRoomId == booking.LabRoomId && rp.PolicyKey == PolicyType.MaxConcurrentBookings)
+                .Select(rp => rp.PolicyValue)
+                .FirstOrDefaultAsync(cancellationToken);
+            var maxConcurrentBookings = int.TryParse(maxConcurrentBookingsPolicy, out var result) ? result : 1;
+
             // 5. ROOM CAPACITY & OCCUPANCY CHECK
             var activeSchedules = await _unitOfWork.Repository<Schedule>().Entities
                 .Where(s => s.LabRoomId == booking.LabRoomId &&
@@ -64,9 +72,9 @@ namespace BookLAB.Application.Features.Bookings.Commands.ApproveBooking
                     s.EndTime > booking.StartTime)
                 .ToListAsync(cancellationToken);
             // Validate occupancy count (Single vs Multi Occupancy)
-            if (booking.LabRoom.OverrideNumber <= activeSchedules.Count && booking.LabRoom.OverrideNumber > 0)
+            if (maxConcurrentBookings <= activeSchedules.Count)
             {
-                throw new BusinessException($"{booking.LabRoom.RoomName} has reached its maximum group limit ({booking.LabRoom.OverrideNumber}).");
+                throw new BusinessException($"{booking.LabRoom.RoomName} has reached its maximum group limit ({maxConcurrentBookings}).");
             }
 
             // Validate student capacity
@@ -76,24 +84,26 @@ namespace BookLAB.Application.Features.Bookings.Commands.ApproveBooking
                 throw new BusinessException($"Not enough capacity in {booking.LabRoom.RoomName}. Required: {booking.StudentCount}, Available: {booking.LabRoom.Capacity - currentStudents}.");
             }
 
-            var bookingRequest = await _unitOfWork.Repository<BookingRequest>().Entities
-                .FirstOrDefaultAsync(x => x.BookingId == booking.Id, cancellationToken);
-
             await _unitOfWork.BeginTransactionAsync();
             try
             {
-                if (bookingRequest != null)
+                var bookingRequest = await _unitOfWork.Repository<BookingRequest>().Entities
+                    .FirstOrDefaultAsync(x => x.BookingId == booking.Id, cancellationToken);
+                if (bookingRequest == null)
                 {
-                    bookingRequest.BookingRequestStatus = BookingRequestStatus.Approved;
-                    _unitOfWork.Repository<BookingRequest>().Update(bookingRequest);
+                    throw new NotFoundException(nameof(BookingRequest), booking.Id);
                 }
+
+                bookingRequest.BookingRequestStatus = BookingRequestStatus.Approved;
+                _unitOfWork.Repository<BookingRequest>().Update(bookingRequest);
+
+                booking.BookingStatus = BookingStatus.Approved;
+                _unitOfWork.Repository<Booking>().Update(booking);
 
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
                 await _unitOfWork.CommitTransactionAsync();
 
-                // throw event to notify other parts of the system that a booking has been approved
-                await _mediator.Publish(new BookingApprovedEvent(booking.Id), cancellationToken);
-
+                _mediator.Publish(new BookingApprovedEvent(booking.Id), cancellationToken);
                 return true;
             }
             catch

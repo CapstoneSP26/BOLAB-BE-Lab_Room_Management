@@ -1,12 +1,51 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using BookLAB.Application.Common.Interfaces.Services;
+using Microsoft.Extensions.Options;
+using MailKit.Net.Smtp;
+using MimeKit;
+using BookLAB.Infrastructure.Settings;
 
 namespace BookLAB.Infrastructure.Services
 {
-    internal class EmailService
+    public class EmailService : IEmailService
     {
+        private readonly EmailSettings _settings;
+
+        public EmailService(IOptions<EmailSettings> settings)
+        {
+            _settings = settings.Value;
+        }
+
+        public async Task SendEmailAsync(string to, string subject, string body)
+        {
+            var email = new MimeMessage();
+            email.From.Add(new MailboxAddress(_settings.SenderName, _settings.SenderEmail));
+
+            var recipients = to.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var recipient in recipients)
+            {
+                email.To.Add(MailboxAddress.Parse(recipient.Trim()));
+            }
+            email.Subject = subject;
+
+            var builder = new BodyBuilder { HtmlBody = body };
+            email.Body = builder.ToMessageBody();
+
+            using var smtp = new SmtpClient();
+            try
+            {
+                // Kết nối tới Server SMTP
+                await smtp.ConnectAsync(_settings.SmtpServer, _settings.SmtpPort, MailKit.Security.SecureSocketOptions.StartTls);
+
+                // Xác thực
+                await smtp.AuthenticateAsync(_settings.Username, _settings.Password);
+
+                // Gửi mail
+                await smtp.SendAsync(email);
+            }
+            finally
+            {
+                await smtp.DisconnectAsync(true);
+            }
+        }
     }
 }
