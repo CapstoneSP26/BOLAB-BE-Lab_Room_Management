@@ -32,6 +32,7 @@ public class AttendancesController : ControllerBase
     [HttpGet("schedule/{scheduleId:guid}")]
     [ProducesResponseType(typeof(List<AttendanceStudentDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [Authorize(Policy = "Lecturer")]
     public async Task<IActionResult> GetAttendanceList(Guid scheduleId)
     {
         var query = new GetAttendanceListQuery(scheduleId);
@@ -48,6 +49,7 @@ public class AttendancesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [Authorize(Policy = "Lecturer")]
     public async Task<IActionResult> SubmitAttendance([FromBody] SubmitAttendanceCommand command)
     {
         var result = await _mediator.Send(command);
@@ -74,6 +76,7 @@ public class AttendancesController : ControllerBase
     /// Returns 500 Internal Server Error if QR code generation fails.
     /// </returns>
     [HttpGet("generate-qrcode")]
+    [Authorize(Policy = "Lecturer")]
     public async Task<IActionResult> GenerateAttendanceQRCode([FromQuery] string scheduleId, [FromQuery] bool isCheckIn, CancellationToken cancellationToken)
     {
         try
@@ -140,6 +143,7 @@ public class AttendancesController : ControllerBase
     /// - 500 Internal Server Error if an unexpected exception occurs.
     /// </returns>
     [HttpGet("scan-qrcode")]
+    [Authorize(Policy = "Lecturer")]
     public async Task<IActionResult> ScanAttendanceQRCode([FromQuery] Guid qrId, [FromQuery] Guid scheduleId, [FromQuery] Guid studentId, [FromQuery] bool isCheckIn, CancellationToken cancellationToken)
     {
         try
@@ -189,6 +193,7 @@ public class AttendancesController : ControllerBase
     }
 
     [HttpGet("remove-qrcode")]
+    [Authorize(Policy = "Lecturer")]
     public async Task<IActionResult> RemoveAttendanceQRCode([FromQuery] string scheduleId, [FromQuery] bool isCheckIn, CancellationToken cancellationToken)
     {
         try

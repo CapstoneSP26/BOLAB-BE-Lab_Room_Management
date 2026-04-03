@@ -21,6 +21,8 @@ namespace BookLAB.API.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "Lecturer")]
+        [Authorize(Policy = "AcademicOffice_LabManager")]
         public async Task<ActionResult<List<SlotTypeDto>>> GetSlotTypes([FromQuery] int? campusId)
         {
             var query = new GetSlotTypesQuery { CampusId = campusId };

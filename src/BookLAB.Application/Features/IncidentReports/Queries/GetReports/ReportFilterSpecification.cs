@@ -30,6 +30,8 @@ namespace BookLAB.Application.Features.IncidentReports.Queries.GetReports
 
             if (query.RoomId.HasValue)
                 AddCriteria(x => x.Schedule.LabRoomId == query.RoomId);
+
+            AddCriteria(x => x.IsResolved == query.IsResolved);
         }
     }
 }
