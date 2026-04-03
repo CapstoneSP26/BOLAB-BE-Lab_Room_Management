@@ -5,9 +5,6 @@ using BookLAB.Application.Features.Schedules.Common;
 using BookLAB.Domain.Entities;
 using BookLAB.Domain.Enums;
 using System.Globalization;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace BookLAB.Infrastructure.Services
 {

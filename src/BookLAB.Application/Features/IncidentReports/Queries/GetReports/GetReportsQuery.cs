@@ -10,8 +10,8 @@ namespace BookLAB.Application.Features.IncidentReports.Queries.GetReports
         public int? RoomId { get; set; }
         public string? ReportType { get; set; }
         public bool? IsResolved { get; set; }
-        public string? FromDate { get; set; }
-        public string? ToDate { get; set; }
+        public DateTimeOffset? FromDate { get; set; }
+        public DateTimeOffset? ToDate { get; set; }
         public int? Page { get; set; } = 1;
         public int? Limit { get; set; } = 1000;
         public string? SortBy { get; set; }

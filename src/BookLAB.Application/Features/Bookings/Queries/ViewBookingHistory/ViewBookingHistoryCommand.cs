@@ -1,10 +1,5 @@
-﻿using BookLAB.Application.Common.Models;
-using BookLAB.Domain.DTOs;
-using BookLAB.Domain.Entities;
+﻿using BookLAB.Domain.Entities;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace BookLAB.Application.Features.Bookings.Queries.ViewBookingHistory
 {

@@ -338,7 +338,7 @@ public class BookingsController : ControllerBase
         {
             Guid.TryParse(HttpContext.User.FindFirst("Id")?.Value, out var userId);
 
-            ViewBookingHistoryCommand command = new ViewBookingHistoryCommand
+            ViewUncheckedBookingRequestCommand command = new ViewUncheckedBookingRequestCommand
             {
                 userId = userId,
                 page = dto.page,
@@ -350,43 +350,38 @@ public class BookingsController : ControllerBase
             };
 
             var result = await _mediator.Send(command);
-            List<BookingLabManager> list = new List<BookingLabManager>();
+            //List<BookingLabManager> list = new List<BookingLabManager>();
 
-            foreach (var item in result)
-            {
-                list.Add(new BookingLabManager
-                {
-                    Id = item.Id,
-                    LabRoomId = item.LabRoomId,
-                    BuildingName = item.LabRoom.Building.BuildingName,
-                    BookedByUserId = item.CreatedBy ?? Guid.Empty,
-                    StartTime = item.StartTime,
-                    EndTime = item.EndTime,
-                    PurposeTypeName = item.PurposeType.PurposeName,
-                    Reason = item.Reason,
-                    BookingStatus = item.BookingStatus,
-                    BookingType = item.BookingType,
-                    StudentCount = item.StudentCount,
-                    Recur = item.Recur,
-                    CreatedAt = item.CreatedAt,
-                    UpdatedAt = item.UpdatedAt,
-                    CreatedBy = item.CreatedBy,
-                    UpdatedBy = item.UpdatedBy,
-                });
-
-            }
-
-            //ViewUncheckedBookingRequestCommand command = new ViewUncheckedBookingRequestCommand
+            //foreach (var item in result)
             //{
-            //    userId = HttpContext.User.FindFirst("Id")?.Value ?? "11111111-1111-1111-1111-111111111111"
-            //};
+            //    list.Add(new BookingLabManager
+            //    {
+            //        Id = item.Id,
+            //        LabRoomId = item.LabRoomId,
+            //        BuildingName = item.LabRoom.Building.BuildingName,
+            //        BookedByUserId = item.CreatedBy ?? Guid.Empty,
+            //        StartTime = item.StartTime,
+            //        EndTime = item.EndTime,
+            //        PurposeTypeName = item.PurposeType.PurposeName,
+            //        Reason = item.Reason,
+            //        BookingStatus = item.BookingStatus,
+            //        BookingType = item.BookingType,
+            //        StudentCount = item.StudentCount,
+            //        Recur = item.Recur,
+            //        CreatedAt = item.CreatedAt,
+            //        UpdatedAt = item.UpdatedAt,
+            //        CreatedBy = item.CreatedBy,
+            //        UpdatedBy = item.UpdatedBy,
+            //    });
 
-            //var result = await _mediator.Send(command);
+            //}
 
             return Ok(new
             {
-                success = true,
-                result = result
+                data = result,
+                total = result.Count,
+                page = dto.page,
+                limit = dto.limit
             });
         }
         catch (Exception ex)
@@ -491,57 +486,6 @@ public class BookingsController : ControllerBase
         }
     }
 
-
-
-    /// <summary>
-    /// Handles the HTTP GET request to retrieve unchecked booking requests for the current user.
-    /// The method extracts the user Id from JWT claims, 
-    /// sends a ViewUncheckedBookingRequestCommand through MediatR, 
-    /// and returns the list of unchecked booking requests.
-    /// </summary>
-    /// <param name="cancellationToken">
-    /// Token provided by ASP.NET Core to cancel the request if the client disconnects or times out.
-    /// </param>
-    /// <returns>
-    /// An IActionResult indicating the result of the operation:
-    /// - 200 OK with the list of unchecked booking requests if successful.
-    /// - 401 Unauthorized if the user identity is invalid.
-    /// - 500 Internal Server Error if an unexpected exception occurs.
-    /// </returns>
-    [HttpGet("get-unchecked-booking-request")]
-    public async Task<IActionResult> GetUncheckedBookingRequestList(CancellationToken cancellationToken)
-    {
-        try
-        {
-            // Validate user identity from claims
-            if (!Guid.TryParse(HttpContext.User.FindFirst("Id")?.Value, out Guid userId))
-                return Unauthorized();
-
-            // Create command object with the userId
-            ViewUncheckedBookingRequestCommand command = new ViewUncheckedBookingRequestCommand
-            {
-                userId = userId
-            };
-
-            // Send the command through MediatR pipeline
-            var result = await _mediator.Send(command, cancellationToken);
-            // Return success response with the retrieved data
-            return Ok(new
-            {
-                success = true,
-                message = "Get unchecked booking request successfully!",
-                result = result
-            });
-        }
-        catch (Exception ex)
-        {
-            // Log the error with details for debugging
-            _logger.LogError(ex, "Something is wrong while getting unchecked booking requests: " + ex.Message);
-
-            // Return internal server error response
-            return Problem("Something is wrong while getting unchecked booking requests");
-        }
-    }
 
     [HttpGet("purposes")] // api/bookings/purposes
     public async Task<ActionResult<PagedList<PurposeTypeDto>>> GetPurposes([FromQuery] GetPurposeTypesQuery query)

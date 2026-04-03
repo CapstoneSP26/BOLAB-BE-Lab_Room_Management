@@ -5,6 +5,7 @@
         public Guid Id { get; set; }
         public Guid? ScheduleId { get; set; }
         public Guid UserId { get; set; }
+        public string? UserName { get; set; }
 
         public string? ReportType { get; set; }
         public string Description { get; set; } = string.Empty;
