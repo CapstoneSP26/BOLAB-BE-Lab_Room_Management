@@ -17,7 +17,7 @@ namespace BookLAB.Domain.Entities
         public Guid? UpdatedBy { get; set; }
         public bool IsDeleted { get; set; }
         public bool IsActive { get; set; } = true;
-        public Campus Campus { get; set; }
+        public Campus? Campus { get; set; }
         public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
         public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
     }

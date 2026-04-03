@@ -43,9 +43,20 @@ namespace BookLAB.Application.Features.Schedules.Commands.ImportSchedule
                 .ToDictionaryAsync(u => u.UserCode, u => u, cancellationToken);
 
             // Get Map Group 
-            var groupMap = await _unitOfWork.Repository<Group>().Entities
+            var groups = await _unitOfWork.Repository<Group>().Entities
                 .Where(g => groupNames.Contains(g.GroupName))
-                .ToDictionaryAsync(g => g.GroupName, g => g, cancellationToken);
+                .ToListAsync(cancellationToken);
+
+            var ambiguousGroupNames = groups
+                .GroupBy(g => g.GroupName)
+                .Where(g => g.Count() > 1)
+                .Select(g => g.Key)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            var groupMap = groups
+                .Where(g => !ambiguousGroupNames.Contains(g.GroupName))
+                .GroupBy(g => g.GroupName)
+                .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
 
             await _unitOfWork.BeginTransactionAsync();
             try
@@ -53,6 +64,11 @@ namespace BookLAB.Application.Features.Schedules.Commands.ImportSchedule
                 //  VALIDATION LOOP
                 foreach (var item in request.ValidSchedules)
                 {
+                    if (ambiguousGroupNames.Contains(item.GroupName))
+                    {
+                        throw new Exception($"Tên group '{item.GroupName}' đang bị trùng trên hệ thống. Không thể import an toàn.");
+                    }
+
                     var validation = _scheduleService.CheckSingleRowAsync(item, roomMap, lecturerMap, groupMap, slotTypeMap, cancellationToken);
                     if (validation.IsCritical)
                     {

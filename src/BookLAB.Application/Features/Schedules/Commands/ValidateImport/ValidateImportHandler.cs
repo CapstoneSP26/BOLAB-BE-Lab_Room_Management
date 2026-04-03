@@ -45,14 +45,42 @@ namespace BookLAB.Application.Features.Schedules.Commands.ValidateImport
                 .ToDictionaryAsync(u => u.UserCode, u => u, cancellationToken);
 
             // Get Map Group 
-            var groupMap = await _unitOfWork.Repository<Group>().Entities
+            var groups = await _unitOfWork.Repository<Group>().Entities
                 .Where(g => groupNames.Contains(g.GroupName))
-                .ToDictionaryAsync(g => g.GroupName, g => g, cancellationToken);
+                .ToListAsync(cancellationToken);
+
+            var ambiguousGroupNames = groups
+                .GroupBy(g => g.GroupName)
+                .Where(g => g.Count() > 1)
+                .Select(g => g.Key)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            var groupMap = groups
+                .Where(g => !ambiguousGroupNames.Contains(g.GroupName))
+                .GroupBy(g => g.GroupName)
+                .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
 
             // 2. VALIDATION LOOP
             foreach (var item in request.Schedules)
             {
+                if (ambiguousGroupNames.Contains(item.GroupName))
+                {
+                    response.Rows.Add(new RowResult<ScheduleImportDto>
+                    {
+                        RowNumber = response.Rows.Count + 2,
+                        Data = item,
+                        Status = "Invalid",
+                        IsCritical = true,
+                        Messages = new List<string>
+                        {
+                            $"Tên group '{item.GroupName}' đang bị trùng trên hệ thống. Vui lòng đổi tên group hoặc bổ sung tiêu chí định danh."
+                        }
+                    });
+                    continue;
+                }
+
                 var rowResult = _scheduleService.CheckSingleRowAsync(item, roomMap, lecturerMap, groupMap, slotTypeMap, cancellationToken);
+                rowResult.RowNumber = response.Rows.Count + 2;
                 response.Rows.Add(rowResult);
             }
 

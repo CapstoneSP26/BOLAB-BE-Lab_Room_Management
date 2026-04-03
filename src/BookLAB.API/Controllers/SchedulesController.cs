@@ -3,9 +3,11 @@ using BookLAB.Application.Features.Schedules.Commands.ImportSchedule;
 using BookLAB.Application.Features.Schedules.Commands.ValidateImport;
 using BookLAB.Application.Features.Schedules.Common;
 using BookLAB.Application.Features.Schedules.Queries.GetSchedules;
+using ClosedXML.Excel;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Globalization;
 
 namespace BookLAB.Api.Controllers;
 
@@ -39,6 +41,22 @@ public class SchedulesController : ControllerBase
         return Ok(result);
     }
 
+    [HttpPost("validate-file")]
+    [ProducesResponseType(typeof(ImportValidationResult<ScheduleImportDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ValidateSchedulesFile([FromForm] IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+        {
+            return BadRequest("File import không hợp lệ.");
+        }
+
+        var schedules = ParseSchedulesFromExcel(file);
+        var result = await _mediator.Send(new ValidateImportQuery { Schedules = schedules });
+
+        return Ok(result);
+    }
+
     /// <summary>
     /// Step 2: Officially imports the validated data into the database
     /// </summary>
@@ -58,6 +76,39 @@ public class SchedulesController : ControllerBase
         }
 
         return BadRequest(result);
+    }
+
+    [HttpPost("import-file")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ConfirmImportFile([FromForm] IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+        {
+            return BadRequest("File import không hợp lệ.");
+        }
+
+        var schedules = ParseSchedulesFromExcel(file);
+        var validation = await _mediator.Send(new ValidateImportQuery { Schedules = schedules });
+
+        if (!validation.CanCommit)
+        {
+            return BadRequest(validation);
+        }
+
+        var validSchedules = validation.Rows
+            .Where(r => !r.IsCritical)
+            .Select(r => r.Data)
+            .ToList();
+
+        var imported = await _mediator.Send(new ConfirmImportCommand { ValidSchedules = validSchedules });
+
+        return Ok(new
+        {
+            Imported = imported,
+            TotalRows = validation.Rows.Count,
+            ValidRows = validSchedules.Count
+        });
     }
 
     [HttpGet]
@@ -109,5 +160,129 @@ public class SchedulesController : ControllerBase
             // Return internal server error response
             return Problem("Something is wrong while getting unchecked booking requests");
         }
+    }
+
+    private static List<ScheduleImportDto> ParseSchedulesFromExcel(IFormFile file)
+    {
+        using var stream = file.OpenReadStream();
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.FirstOrDefault();
+
+        if (worksheet == null || worksheet.LastRowUsed() == null)
+        {
+            return new List<ScheduleImportDto>();
+        }
+
+        var schedules = new List<ScheduleImportDto>();
+        var lastRow = worksheet.LastRowUsed()!.RowNumber();
+
+        var headerIndexes = BuildHeaderIndexMap(worksheet.Row(1));
+
+        for (var rowNumber = 2; rowNumber <= lastRow; rowNumber++)
+        {
+            var row = worksheet.Row(rowNumber);
+
+            var groupName = GetCellValue(row, headerIndexes, "groupname", 1);
+            var subjectCode = GetCellValue(row, headerIndexes, "subjectcode", 2);
+            var date = GetCellValue(row, headerIndexes, "date", 3);
+            date = NormalizeExcelDate(date);
+            var slotOrderRaw = GetCellValue(row, headerIndexes, "slotorder", 4);
+            var slotTypeCode = GetCellValue(row, headerIndexes, "slottypecode", 5);
+            var roomNo = GetCellValue(row, headerIndexes, "roomno", 6);
+            var lecturer = GetCellValue(row, headerIndexes, "lecturer", 7);
+
+            if (string.IsNullOrWhiteSpace(groupName) &&
+                string.IsNullOrWhiteSpace(subjectCode) &&
+                string.IsNullOrWhiteSpace(date) &&
+                string.IsNullOrWhiteSpace(slotOrderRaw) &&
+                string.IsNullOrWhiteSpace(slotTypeCode) &&
+                string.IsNullOrWhiteSpace(roomNo) &&
+                string.IsNullOrWhiteSpace(lecturer))
+            {
+                continue;
+            }
+
+            _ = int.TryParse(slotOrderRaw, out var slotOrder);
+
+            schedules.Add(new ScheduleImportDto
+            {
+                GroupName = groupName,
+                SubjectCode = subjectCode,
+                Date = date,
+                SlotOrder = slotOrder,
+                SlotTypeCode = slotTypeCode,
+                RoomNo = roomNo,
+                Lecturer = lecturer
+            });
+        }
+
+        return schedules;
+    }
+
+    private static Dictionary<string, int> BuildHeaderIndexMap(IXLRow headerRow)
+    {
+        var map = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        var lastCell = headerRow.LastCellUsed()?.Address.ColumnNumber ?? 0;
+
+        for (var i = 1; i <= lastCell; i++)
+        {
+            var key = NormalizeHeader(headerRow.Cell(i).GetString());
+            if (!string.IsNullOrWhiteSpace(key) && !map.ContainsKey(key))
+            {
+                map[key] = i;
+            }
+        }
+
+        return map;
+    }
+
+    private static string GetCellValue(IXLRow row, Dictionary<string, int> headerIndexes, string expectedHeader, int fallbackIndex)
+    {
+        if (headerIndexes.TryGetValue(expectedHeader, out var index))
+        {
+            return row.Cell(index).GetString().Trim();
+        }
+
+        return row.Cell(fallbackIndex).GetString().Trim();
+    }
+
+    private static string NormalizeHeader(string raw)
+    {
+        return new string((raw ?? string.Empty)
+            .Trim()
+            .ToLowerInvariant()
+            .Where(char.IsLetterOrDigit)
+            .ToArray());
+    }
+
+    private static string NormalizeExcelDate(string raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            return string.Empty;
+        }
+
+        var trimmed = raw.Trim();
+
+        if (double.TryParse(trimmed, NumberStyles.Any, CultureInfo.InvariantCulture, out var oaDate) ||
+            double.TryParse(trimmed, NumberStyles.Any, CultureInfo.CurrentCulture, out oaDate))
+        {
+            try
+            {
+                var date = DateTime.FromOADate(oaDate);
+                return date.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture);
+            }
+            catch
+            {
+                return trimmed;
+            }
+        }
+
+        if (DateTime.TryParse(trimmed, out var parsedDate))
+        {
+            return parsedDate.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture);
+        }
+
+        return trimmed;
     }
 }
