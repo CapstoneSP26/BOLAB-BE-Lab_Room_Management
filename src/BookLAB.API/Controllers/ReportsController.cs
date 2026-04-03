@@ -118,7 +118,7 @@ namespace BookLAB.API.Controllers
             public bool IsResolved { get; set; }
         }
 
-        private static object MapToResponse(Report report, Schedule? schedule, string? reasonOverride = null)
+        private static object MapToResponse(Report report, Schedule? schedule, string? username = "unknown", string? reasonOverride = null)
         {
             var labRoom = schedule?.LabRoom;
             var building = labRoom?.Building;
@@ -139,7 +139,7 @@ namespace BookLAB.API.Controllers
                 UpdatedAt = report.UpdatedAt,
                 CreatedBy = report.CreatedBy,
                 UpdatedBy = report.UpdatedBy,
-                UserName = schedule.User.FullName
+                UserName = username,
             };
         }
 
@@ -314,7 +314,6 @@ namespace BookLAB.API.Controllers
                 .Include(r => r.Schedule)
                 .ThenInclude(s => s.LabRoom)
                 .ThenInclude(l => l.Building)
-                .Include(r => r.Schedule.User)
                 .Include(r => r.ReportType)
                 .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
 
@@ -337,10 +336,12 @@ namespace BookLAB.API.Controllers
                 FileType = img.FileType.ToString()
             });
 
+            var user = await _unitOfWork.Repository<User>().GetByIdAsync(report.CreatedBy);
+
             return Ok(new
             {
                 success = true,
-                data = MapToResponse(report, report.Schedule),
+                data = MapToResponse(report, report.Schedule, user.FullName),
                 images = mappedImages
             });
         }
