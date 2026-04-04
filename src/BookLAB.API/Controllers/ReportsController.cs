@@ -1,4 +1,4 @@
-﻿using BookLAB.Api.Controllers;
+using BookLAB.Api.Controllers;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Models;
 using BookLAB.Application.Features.Bookings.Queries.ViewBookingHistory;
@@ -263,35 +263,117 @@ namespace BookLAB.API.Controllers
         }
 
         [HttpGet("history")]
-        public async Task<IActionResult> GetReportHistoryAsync(CancellationToken cancellationToken)
+        public async Task<IActionResult> GetReportHistoryAsync([FromQuery] int page = 1, [FromQuery] int limit = 20, CancellationToken cancellationToken = default)
         {
-            var reports = await _unitOfWork.Repository<Report>().Entities
+            page = page <= 0 ? 1 : page;
+            limit = limit <= 0 ? 20 : limit;
+
+            var baseQuery = _unitOfWork.Repository<Report>().Entities
                 .Include(r => r.Schedule)
                 .ThenInclude(s => s.LabRoom)
                 .ThenInclude(l => l.Building)
-                .Include(r => r.ReportType)
+                .AsNoTracking();
+
+            var totalCount = await baseQuery.CountAsync(cancellationToken);
+            var totalPages = totalCount == 0 ? 0 : (int)Math.Ceiling(totalCount / (double)limit);
+
+            var reports = await baseQuery
                 .OrderByDescending(r => r.CreatedAt)
+                .Skip((page - 1) * limit)
+                .Take(limit)
                 .ToListAsync(cancellationToken);
 
-            var data = reports.Select(r => MapToResponse(r, r.Schedule)).ToList();
+            var createdByIds = reports
+                .Where(r => r.CreatedBy.HasValue)
+                .Select(r => r.CreatedBy!.Value)
+                .Distinct()
+                .ToList();
 
-            return Ok(new { data });
+            var users = await _unitOfWork.Repository<User>().Entities
+                .Where(u => createdByIds.Contains(u.Id))
+                .Select(u => new { u.Id, u.FullName })
+                .ToListAsync(cancellationToken);
+
+            var userNameMap = users.ToDictionary(u => u.Id, u => u.FullName);
+
+            var items = reports.Select(r => new
+            {
+                reportId = r.Id,
+                createdAt = r.CreatedAt,
+                isResolved = r.IsResolved,
+                buildingName = r.Schedule?.LabRoom?.Building?.BuildingName,
+                labRoomName = r.Schedule?.LabRoom?.RoomName,
+                reportedByName = r.CreatedBy.HasValue && userNameMap.TryGetValue(r.CreatedBy.Value, out var fullName)
+                    ? fullName
+                    : "Unknown",
+                description = r.Description
+            }).ToList();
+
+            return Ok(new
+            {
+                items,
+                page,
+                limit,
+                totalCount,
+                totalPages
+            });
         }
 
         [HttpGet("~/api/listreports")]
-        public async Task<IActionResult> GetReportListAsync(CancellationToken cancellationToken)
+        public async Task<IActionResult> GetReportListAsync([FromQuery] int page = 1, [FromQuery] int limit = 20, CancellationToken cancellationToken = default)
         {
-            var reports = await _unitOfWork.Repository<Report>().Entities
+            page = page <= 0 ? 1 : page;
+            limit = limit <= 0 ? 20 : limit;
+
+            var baseQuery = _unitOfWork.Repository<Report>().Entities
                 .Include(r => r.Schedule)
                 .ThenInclude(s => s.LabRoom)
                 .ThenInclude(l => l.Building)
-                .Include(r => r.ReportType)
+                .AsNoTracking();
+
+            var totalCount = await baseQuery.CountAsync(cancellationToken);
+            var totalPages = totalCount == 0 ? 0 : (int)Math.Ceiling(totalCount / (double)limit);
+
+            var reports = await baseQuery
                 .OrderByDescending(r => r.CreatedAt)
+                .Skip((page - 1) * limit)
+                .Take(limit)
                 .ToListAsync(cancellationToken);
 
-            var data = reports.Select(r => MapToResponse(r, r.Schedule)).ToList();
+            var createdByIds = reports
+                .Where(r => r.CreatedBy.HasValue)
+                .Select(r => r.CreatedBy!.Value)
+                .Distinct()
+                .ToList();
 
-            return Ok(new { data });
+            var users = await _unitOfWork.Repository<User>().Entities
+                .Where(u => createdByIds.Contains(u.Id))
+                .Select(u => new { u.Id, u.FullName })
+                .ToListAsync(cancellationToken);
+
+            var userNameMap = users.ToDictionary(u => u.Id, u => u.FullName);
+
+            var items = reports.Select(r => new
+            {
+                reportId = r.Id,
+                createdAt = r.CreatedAt,
+                isResolved = r.IsResolved,
+                buildingName = r.Schedule?.LabRoom?.Building?.BuildingName,
+                labRoomName = r.Schedule?.LabRoom?.RoomName,
+                reportedByName = r.CreatedBy.HasValue && userNameMap.TryGetValue(r.CreatedBy.Value, out var fullName)
+                    ? fullName
+                    : "Unknown",
+                description = r.Description
+            }).ToList();
+
+            return Ok(new
+            {
+                items,
+                page,
+                limit,
+                totalCount,
+                totalPages
+            });
         }
 
         [HttpGet("{id}")]
