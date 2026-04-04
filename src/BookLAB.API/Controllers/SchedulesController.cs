@@ -70,6 +70,48 @@ public class SchedulesController : ControllerBase
         return BadRequest(result);
     }
 
+    /// <summary>
+    /// Step 1: Validates the uploaded Excel file and returns a preview with potential errors
+    /// </summary>
+    /// <param name="file">The Excel file containing schedule data</param>
+    /// <returns>A list of validated rows with status (Valid/Invalid) and error messages</returns>
+    [HttpPost("import/flexible-validate")]
+    [ProducesResponseType(typeof(ImportValidationResult<ScheduleImportDto, Schedule>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ValidateFlexibleSchedules([FromBody] ValidateFlexibleImportQuery query)
+    {
+        query.CampusId = _currentUserService.CampusId;
+        // set index for each row (for error reporting)
+        for (int i = 0; i < query.Schedules.Count; i++)
+        {
+            query.Schedules[i].Index = i + 1; // +1 to convert from 0-based to 1-based index
+        }
+        // MediatR dispatches to ValidateImportHandler
+        var result = await _mediator.Send(query);
+
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Step 2: Officially imports the validated data into the database
+    /// </summary>
+    /// <param name="command">The list of confirmed schedule items to be saved</param>
+    /// <returns>A summary of the import operation (Total success/failure)</returns>
+    [HttpPost("import/flexible-commit")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ConfirmFlexibleImport([FromBody] ConfirmFlexibleImportCommand command)
+    {
+        // MediatR dispatches to ConfirmImportHandler (using AddRangeAsync logic)
+        command.CampusId = _currentUserService.CampusId;
+        var result = await _mediator.Send(command);
+
+        if (result.Success)
+            return Ok(result);
+
+        return BadRequest(result);
+    }
+
     [HttpGet]
     public async Task<IActionResult> GetSchedules([FromQuery] GetSchedulesQuery query)
     {

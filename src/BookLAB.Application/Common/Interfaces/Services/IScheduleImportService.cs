@@ -13,6 +13,12 @@ namespace BookLAB.Application.Common.Interfaces.Services
             CancellationToken ct,
             bool isAllowCreateImportData = false
         );
+        Task<ImportValidationResult<FlexibleScheduleImportDto, Schedule>> ValidateFlexibleAsync(
+            List<FlexibleScheduleImportDto> schedules,
+            int campusId,
+            CancellationToken ct,
+            bool isAllowCreateImportData = false
+        );
         string GenerateHash(ScheduleImportDto d);
     }
 }

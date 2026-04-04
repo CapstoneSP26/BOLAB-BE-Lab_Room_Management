@@ -9,22 +9,22 @@ using MediatR;
 
 namespace BookLAB.Application.Features.Schedules.Commands.ImportSchedule
 {
-    public class ConfirmImportHandler : IRequestHandler<ConfirmImportCommand, ImportResult>
+    public class ConfirmFlexibleImportHandler : IRequestHandler<ConfirmFlexibleImportCommand, ImportResult>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IScheduleImportService _scheduleImportService;
         private readonly ICurrentUserService _currentUserService;
 
-        public ConfirmImportHandler(IUnitOfWork unitOfWork, IScheduleImportService scheduleImportService, ICurrentUserService currentUserService)
+        public ConfirmFlexibleImportHandler(IUnitOfWork unitOfWork, IScheduleImportService scheduleImportService, ICurrentUserService currentUserService)
         {
             _unitOfWork = unitOfWork;
             _scheduleImportService = scheduleImportService;
             _currentUserService = currentUserService;
         }
 
-        public async Task<ImportResult> Handle(ConfirmImportCommand request, CancellationToken cancellationToken)
+        public async Task<ImportResult> Handle(ConfirmFlexibleImportCommand request, CancellationToken cancellationToken)
         {
-            var result = await _scheduleImportService.ValidateAsync(request.Schedules, request.CampusId, cancellationToken, true);
+            var result = await _scheduleImportService.ValidateFlexibleAsync(request.Schedules, request.CampusId, cancellationToken, true);
             var countUpdated = result.Rows.Count(r => r.Data.IsUpdated);
             var countNew = result.Rows.Count(r => !r.Data.IsUpdated);
             var now = DateTimeOffset.UtcNow;

@@ -108,5 +108,27 @@ namespace BookLAB.Application.Common.Extensions
             // 4. Convert sang UTC
             return vietnamDateTimeOffset.ToUniversalTime();
         }
+
+        /// <summary>
+        /// Chuyển string "HH:mm" (giờ VN) sang TimeOnly
+        /// </summary>
+        public static TimeOnly StringToVietnamTimeOnly(this string time)
+        {
+            return TimeOnly.ParseExact(time, "HH:mm", CultureInfo.InvariantCulture);
+        }
+
+        /// <summary>
+        /// check xem string có phải định dạng giờ Việt Nam hợp lệ hay không (HH:mm)
+        /// </summary>
+        public static bool IsValidVietnamTime(this string? time)
+        {
+            return TimeOnly.TryParseExact(
+                time?.Trim(),
+                "HH:mm",
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.None,
+                out _
+            );
+        }
     }
 }
