@@ -92,7 +92,7 @@ namespace BookLAB.Application.Features.Bookings.Commands.ApproveBooking
                 await _unitOfWork.CommitTransactionAsync();
 
                 // throw event to notify other parts of the system that a booking has been approved
-                await _mediator.Publish(new BookingApprovedEvent(booking.Id), cancellationToken);
+                await _mediator.Publish(new BookingApprovedEvent(booking.Id, currentUserId), cancellationToken);
 
                 return true;
             }

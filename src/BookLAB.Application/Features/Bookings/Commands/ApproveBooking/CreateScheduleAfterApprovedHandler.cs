@@ -22,11 +22,14 @@ namespace BookLAB.Application.Features.Bookings.Commands.ApproveBooking
             {
                 Id = Guid.NewGuid(),
                 BookingId = booking.Id,
+                SlotTypeId = booking.SlotTypeId.Value,
                 LabRoomId = booking.LabRoomId,
                 LecturerId = booking.CreatedBy ?? Guid.Empty,
                 StudentCount = booking.StudentCount,
                 StartTime = booking.StartTime,
                 EndTime = booking.EndTime,
+                CreatedAt = DateTimeOffset.Now.ToOffset(TimeSpan.Zero),
+                CreatedBy = notification.userId,
                 ScheduleStatus = ScheduleStatus.Active,
                 ScheduleType = ScheduleType.Booking
             };

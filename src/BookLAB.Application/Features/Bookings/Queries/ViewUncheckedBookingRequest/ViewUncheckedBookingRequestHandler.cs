@@ -3,6 +3,7 @@ using AutoMapper.QueryableExtensions;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Models;
 using BookLAB.Domain.Entities;
+using BookLAB.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -84,9 +85,11 @@ namespace BookLAB.Application.Features.Bookings.Queries.ViewUncheckedBookingRequ
                         (request.buildingId == null || b.Booking.LabRoom.BuildingId == request.buildingId)
                     );
 
+                request.status = request.status.ToLower().Equals(BookingStatus.PendingApproval.ToString().ToLower()) ? "Pending" : request.status;
+
                 if (!request.status.Equals("all", StringComparison.OrdinalIgnoreCase))
                 {
-                    query = query.Where(b => b.Booking.BookingStatus.ToString().ToLower() == request.status.ToLower());
+                    query = query.Where(b => b.BookingRequestStatus.ToString().ToLower() == request.status.ToLower());
                 }
 
                 var result = await query

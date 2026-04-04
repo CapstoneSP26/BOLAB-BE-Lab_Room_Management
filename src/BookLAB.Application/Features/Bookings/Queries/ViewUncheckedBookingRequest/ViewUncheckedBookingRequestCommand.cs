@@ -1,5 +1,6 @@
 ﻿using BookLAB.Application.Common.Models;
 using BookLAB.Domain.Entities;
+using BookLAB.Domain.Enums;
 using MediatR;
 using System;
 using System.Collections.Generic;
