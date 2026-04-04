@@ -1,6 +1,5 @@
 ﻿using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Interfaces.Services;
-using BookLAB.Application.Common.Models;
 using BookLAB.Application.Features.Schedules.Common;
 using BookLAB.Domain.Entities;
 using BookLAB.Domain.Enums;

@@ -10,5 +10,7 @@
         public string SlotTypeCode { get; set; } = string.Empty;
         public string RoomNo { get; set; } = string.Empty;
         public string Lecturer { get; set; } = string.Empty;
+        public bool IsUpdated { get; set; } = false;
+        public bool IsValid { get; set; } = true;
     }
 }

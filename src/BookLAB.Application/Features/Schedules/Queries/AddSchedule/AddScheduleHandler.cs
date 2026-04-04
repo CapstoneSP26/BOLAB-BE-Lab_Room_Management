@@ -3,21 +3,16 @@ using BookLAB.Application.Common.Interfaces.Services;
 using BookLAB.Domain.Entities;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Text;
-
 namespace BookLAB.Application.Features.Schedules.Queries.AddSchedule
 {
     public class AddScheduleHandler : IRequestHandler<AddScheduleCommand, bool>
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IScheduleImportService _scheduleService;
+        private readonly IScheduleService _scheduleService;
         private readonly ILogger<AddScheduleHandler> _logger;
 
         public AddScheduleHandler(IUnitOfWork unitOfWork,
-            IScheduleImportService scheduleService,
+            IScheduleService scheduleService,
             ILogger<AddScheduleHandler> logger)
         {
             _unitOfWork = unitOfWork;

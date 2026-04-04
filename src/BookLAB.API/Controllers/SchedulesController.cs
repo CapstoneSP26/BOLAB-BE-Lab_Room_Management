@@ -4,9 +4,11 @@ using BookLAB.Application.Features.Schedules.Commands.ImportSchedule;
 using BookLAB.Application.Features.Schedules.Commands.ValidateImport;
 using BookLAB.Application.Features.Schedules.Common;
 using BookLAB.Application.Features.Schedules.Queries.GetSchedules;
+using BookLAB.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace BookLAB.Api.Controllers;
 
@@ -31,8 +33,8 @@ public class SchedulesController : ControllerBase
     /// </summary>
     /// <param name="file">The Excel file containing schedule data</param>
     /// <returns>A list of validated rows with status (Valid/Invalid) and error messages</returns>
-    [HttpPost("validate")]
-    [ProducesResponseType(typeof(ImportValidationResult<ScheduleImportDto>), StatusCodes.Status200OK)]
+    [HttpPost("import/validate")]
+    [ProducesResponseType(typeof(ImportValidationResult<ScheduleImportDto, Schedule>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ValidateSchedules([FromBody] ValidateImportQuery query)
     {
@@ -53,18 +55,17 @@ public class SchedulesController : ControllerBase
     /// </summary>
     /// <param name="command">The list of confirmed schedule items to be saved</param>
     /// <returns>A summary of the import operation (Total success/failure)</returns>
-    [HttpPost("import")]
+    [HttpPost("import/commit")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ConfirmImport([FromBody] ConfirmImportCommand command)
     {
         // MediatR dispatches to ConfirmImportHandler (using AddRangeAsync logic)
+        command.CampusId = _currentUserService.CampusId;
         var result = await _mediator.Send(command);
 
-        if (result)
-        {
+        if(result.Success)
             return Ok(result);
-        }
 
         return BadRequest(result);
     }

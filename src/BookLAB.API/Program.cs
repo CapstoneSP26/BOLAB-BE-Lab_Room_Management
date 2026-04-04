@@ -2,19 +2,19 @@ using BookLAB.API.Middlewares;
 using BookLAB.Application;
 using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Application.Common.Interfaces.Repositories;
-using BookLAB.Application.Common.Interfaces.Services;
 using BookLAB.Infrastructure;
 using BookLAB.Infrastructure.Identity;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.Google;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using QRCoder;
-using System.Text;
 using BookLAB.Infrastructure.Persistence;
 using BookLAB.Infrastructure.Repositories;
 using BookLAB.Infrastructure.Services;
+using Hangfire;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using QRCoder;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -68,7 +68,7 @@ builder.Services.AddCors(opt =>
                    "https://localhost:5173",
                    "http://localhost:5173",
                    "http://localhost:5176",
-                   "http://localhost:5174",
+                   "https://localhost:5174",
                    "http://localhost:5175",
                    "http://localhost:3000"
                );
@@ -93,7 +93,7 @@ builder.Services.AddDbContext<BookLABDbContext>(opt =>
         b => b.MigrationsAssembly("BookLAB.API"));
 });
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
-builder.Services.AddScoped<IScheduleImportService, ScheduleService>();
+
 builder.Services.AddScoped<IScheduleRepository, ScheduleRepository>();
 
 // Swagger/OpenAPI
@@ -120,5 +120,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.UseHangfireDashboard();
 
 app.Run();

@@ -30,6 +30,7 @@ public class ScheduleConfiguration : IEntityTypeConfiguration<Schedule>
             .HasMaxLength(20);
 
         builder.Property(s => s.ImportHash)
+            .IsRequired(false)
             .HasMaxLength(255); 
 
         builder.Property(s => s.CalendarEventId)

@@ -1,6 +1,7 @@
 ﻿using BookLAB.Application.Common.Exceptions;
 using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Application.Common.Interfaces.Repositories;
+using BookLAB.Application.Features.Bookings.Events;
 using BookLAB.Domain.Entities;
 using BookLAB.Domain.Enums;
 using MediatR;
@@ -12,11 +13,13 @@ namespace BookLAB.Application.Features.Bookings.Commands.RejectBooking
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IMediator _mediator;
 
-        public RejectBookingCommandHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService)
+        public RejectBookingCommandHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService, IMediator mediator)
         {
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
+            _mediator = mediator;
         }
 
         public async Task<bool> Handle(RejectBookingCommand request, CancellationToken cancellationToken)
@@ -34,25 +37,28 @@ namespace BookLAB.Application.Features.Bookings.Commands.RejectBooking
             if (booking.BookingStatus != BookingStatus.PendingApproval)
                 throw new BusinessException("This booking is not in pending status");
 
-            var bookingRequest = await _unitOfWork.Repository<BookingRequest>().Entities
-                .FirstOrDefaultAsync(x => x.BookingId == booking.Id, cancellationToken);
-
             await _unitOfWork.BeginTransactionAsync();
             try
             {
+                var bookingRequest = await _unitOfWork.Repository<BookingRequest>().Entities
+                   .FirstOrDefaultAsync(x => x.BookingId == booking.Id, cancellationToken);
+                if (bookingRequest == null)
+                {
+                    throw new NotFoundException(nameof(BookingRequest), booking.Id);
+                }
+
                 booking.BookingStatus = BookingStatus.Rejected;
                 _unitOfWork.Repository<Booking>().Update(booking);
 
-                if (bookingRequest != null)
-                {
-                    bookingRequest.BookingRequestStatus = BookingRequestStatus.Rejected;
-                    bookingRequest.ResponseContext = request.Reason; 
-
-                    _unitOfWork.Repository<BookingRequest>().Update(bookingRequest);
-                }
+                bookingRequest.BookingRequestStatus = BookingRequestStatus.Rejected;
+                bookingRequest.ResponseContext = request.Reason; 
+                _unitOfWork.Repository<BookingRequest>().Update(bookingRequest);
+          
 
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
                 await _unitOfWork.CommitTransactionAsync();
+
+                _mediator.Publish(new BookingRejectedEvent(booking.Id), cancellationToken);
 
                 return true;
             }

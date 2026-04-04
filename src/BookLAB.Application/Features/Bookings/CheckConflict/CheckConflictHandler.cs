@@ -1,16 +1,13 @@
 ﻿using BookLAB.Application.Common.Interfaces.Services;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace BookLAB.Application.Features.Bookings.CheckConflict
 {
     public class CheckConflictHandler : IRequestHandler<CheckConflictCommand, bool>
     {
-        private readonly IScheduleImportService _scheduleService;
+        private readonly IScheduleService _scheduleService;
 
-        public CheckConflictHandler(IScheduleImportService scheduleService)
+        public CheckConflictHandler(IScheduleService scheduleService)
         {
             _scheduleService = scheduleService;
         }

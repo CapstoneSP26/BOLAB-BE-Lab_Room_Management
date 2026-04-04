@@ -7,15 +7,12 @@ namespace BookLAB.Application.Common.Interfaces.Services
 {
     public interface IScheduleImportService
     {
-        RowResult<ScheduleImportDto> CheckSingleRowAsync(
-            List<ScheduleImportDto> scheduleImportList,
-            ScheduleImportDto item,
-            Dictionary<string, LabRoom> roomMap,
-            Dictionary<string, User> lecturerMap,
-            Dictionary<string, Group> groupMap,
-            Dictionary<string, List<SlotFrame>> slotTypeMap,
-            List<string> existingHashes,
-            CancellationToken ct
+        Task<ImportValidationResult<ScheduleImportDto, Schedule>> ValidateAsync(
+            List<ScheduleImportDto> schedules,
+            int campusId,
+            CancellationToken ct,
+            bool isAllowCreateImportData = false
         );
+        string GenerateHash(ScheduleImportDto d);
     }
 }

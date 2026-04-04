@@ -1,10 +1,12 @@
-﻿using BookLAB.Application.Features.Schedules.Common;
+﻿using BookLAB.Application.Common.Models;
+using BookLAB.Application.Features.Schedules.Common;
 using MediatR;
 
 namespace BookLAB.Application.Features.Schedules.Commands.ImportSchedule
 {
-    public class ConfirmImportCommand : IRequest<bool>
+    public class ConfirmImportCommand : IRequest<ImportResult>
     {
-        public List<ScheduleImportDto> ValidSchedules { get; set; } = new();
+        public List<ScheduleImportDto> Schedules { get; set; } = new();
+        public int CampusId { get; set; }
     }
 }
