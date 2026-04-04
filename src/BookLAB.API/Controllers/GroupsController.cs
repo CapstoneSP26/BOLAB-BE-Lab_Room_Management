@@ -43,8 +43,7 @@ namespace BookLAB.API.Controllers
         [ProducesResponseType(typeof(Guid), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [Authorize(Policy = "Lecturer")]
-        [Authorize(Policy = "AcademicOffice")]
+        [Authorize(Policy = "AcademicOffice_Lecturer")]
         public async Task<IActionResult> CreateGroup([FromBody] CreateGroupCommand command, CancellationToken cancellationToken)
         {
             try
@@ -67,8 +66,7 @@ namespace BookLAB.API.Controllers
         [HttpGet]
         [ProducesResponseType(typeof(List<GroupDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [Authorize(Policy = "Lecturer")]
-        [Authorize(Policy = "AcademicOffice_LabManager")]
+        [Authorize(Policy = "AcademicOffice_LabManager_Lecturer")]
         public async Task<IActionResult> GetGroups(CancellationToken cancellationToken)
         {
             try
@@ -94,8 +92,7 @@ namespace BookLAB.API.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [Authorize(Policy = "Lecturer")]
-        [Authorize(Policy = "AcademicOffice_LabManager")]
+        [Authorize(Policy = "AcademicOffice_LabManager_Lecturer")]
         public async Task<IActionResult> GetGroupById(Guid id, CancellationToken cancellationToken)
         {
             try
@@ -122,8 +119,7 @@ namespace BookLAB.API.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [Authorize(Policy = "Lecturer")]
-        [Authorize(Policy = "AcademicOffice")]
+        [Authorize(Policy = "AcademicOffice_Lecturer")]
         public async Task<IActionResult> UpdateGroup(Guid id, [FromBody] UpdateGroupCommand command, CancellationToken cancellationToken)
         {
             try
@@ -149,8 +145,7 @@ namespace BookLAB.API.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [Authorize(Policy = "Lecturer")]
-        [Authorize(Policy = "AcademicOffice")]
+        [Authorize(Policy = "AcademicOffice_Lecturer")]
         public async Task<IActionResult> DeleteGroup(Guid id, CancellationToken cancellationToken)
         {
             try
@@ -181,8 +176,7 @@ namespace BookLAB.API.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [Authorize(Policy = "Lecturer")]
-        [Authorize(Policy = "AcademicOffice")]
+        [Authorize(Policy = "AcademicOffice_Lecturer")]
         public async Task<IActionResult> AddGroupMember(Guid groupId, [FromBody] AddGroupMemberCommand command, CancellationToken cancellationToken)
         {
             try
@@ -209,8 +203,7 @@ namespace BookLAB.API.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [Authorize(Policy = "Lecturer")]
-        [Authorize(Policy = "AcademicOffice")]
+        [Authorize(Policy = "AcademicOffice_Lecturer")]
         public async Task<IActionResult> GetGroupMembers(Guid groupId, CancellationToken cancellationToken)
         {
             try
@@ -238,8 +231,7 @@ namespace BookLAB.API.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [Authorize(Policy = "Lecturer")]
-        [Authorize(Policy = "AcademicOffice")]
+        [Authorize(Policy = "AcademicOffice_Lecturer")]
         public async Task<IActionResult> UpdateGroupMember(Guid groupId, Guid userId, [FromBody] UpdateGroupMemberCommand command, CancellationToken cancellationToken)
         {
             try
@@ -266,8 +258,7 @@ namespace BookLAB.API.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [Authorize(Policy = "Lecturer")]
-        [Authorize(Policy = "AcademicOffice")]
+        [Authorize(Policy = "AcademicOffice_Lecturer")]
         public async Task<IActionResult> RemoveGroupMember(Guid groupId, Guid userId, CancellationToken cancellationToken)
         {
             try

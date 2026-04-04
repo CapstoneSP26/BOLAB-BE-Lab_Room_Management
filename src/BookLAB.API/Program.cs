@@ -78,6 +78,19 @@ builder.Services.AddAuthorization(options =>
             && (context.User.FindFirst(claim => claim.Type == "Role").Value == "1"
             || context.User.FindFirst(claim => claim.Type == "Role").Value == "2")));
 
+    options.AddPolicy("AcademicOffice_LabManager_Lecturer",
+        policyBuilder => policyBuilder.RequireAssertion(
+            context => context.User.HasClaim(claim => claim.Type == "Role")
+            && (context.User.FindFirst(claim => claim.Type == "Role").Value == "1"
+            || context.User.FindFirst(claim => claim.Type == "Role").Value == "2"
+            || context.User.FindFirst(claim => claim.Type == "Role").Value == "3")));
+
+    options.AddPolicy("AcademicOffice_Lecturer",
+        policyBuilder => policyBuilder.RequireAssertion(
+            context => context.User.HasClaim(claim => claim.Type == "Role")
+            && (context.User.FindFirst(claim => claim.Type == "Role").Value == "1"
+            || context.User.FindFirst(claim => claim.Type == "Role").Value == "3")));
+
     options.AddPolicy("Lecturer",
         policyBuilder => policyBuilder.RequireAssertion(
             context => context.User.HasClaim(claim => claim.Type == "Role")

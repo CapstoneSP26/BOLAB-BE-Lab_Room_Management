@@ -209,8 +209,7 @@ public class BookingsController : ControllerBase
 
     [HttpGet]
     [ProducesResponseType(typeof(PagedList<Application.Features.Bookings.Queries.GetBookings.BookingDto>), StatusCodes.Status200OK)]
-    [Authorize(Policy = "Lecturer")]
-    [Authorize(Policy = "AcademicOffice_LabManager")]
+    [Authorize(Policy = "AcademicOffice_LabManager_Lecturer")]
     public async Task<IActionResult> GetBookings([FromQuery] GetBookingsQuery query)
     {
         // The Specification logic is encapsulated inside the Handler
@@ -231,8 +230,7 @@ public class BookingsController : ControllerBase
     /// If an error occurs, returns a 500 Internal Server Error.
     /// </returns>
     [HttpGet("history")]
-    [Authorize(Policy = "Lecturer")]
-    [Authorize(Policy = "AcademicOffice_LabManager")]
+    [Authorize(Policy = "AcademicOffice_LabManager_Lecturer")]
     public async Task<IActionResult> GetBookingHistoryList([FromQuery] ViewBookingHistoryDTO dto)
     {
         try
@@ -359,6 +357,7 @@ public class BookingsController : ControllerBase
                 startDate = dto.startDate,
                 endDate = dto.endDate,
                 labRoomId = dto.labRoomId,
+                buildingId = dto.buildingId
             };
 
             var result = await _mediator.Send(command);
@@ -405,8 +404,7 @@ public class BookingsController : ControllerBase
 
 
     [HttpPost("check-conflict")]
-    [Authorize(Policy = "Lecturer")]
-    [Authorize(Policy = "AcademicOffice_LabManager")]
+    [Authorize(Policy = "AcademicOffice_LabManager_Lecturer")]
     public async Task<IActionResult> CheckConflictAsync([FromBody] CreateBookingCommand booking)
     {
         if (booking == null) return Ok(new
@@ -503,8 +501,7 @@ public class BookingsController : ControllerBase
 
 
     [HttpGet("purposes")] // api/bookings/purposes
-    [Authorize(Policy = "AcademicOffice_LabManager")]
-    [Authorize(Policy = "Lecturer")]
+    [Authorize(Policy = "AcademicOffice_LabManager_Lecturer")]
     public async Task<ActionResult<PagedList<PurposeTypeDto>>> GetPurposes([FromQuery] GetPurposeTypesQuery query)
     {
         return Ok(await _mediator.Send(query));

@@ -218,8 +218,7 @@ namespace BookLAB.API.Controllers
         }
 
         [HttpGet("reasons")]
-        [Authorize(Policy = "Lecturer")]
-        [Authorize(Policy = "AcademicOffice_LabManager")]
+        [Authorize(Policy = "AcademicOffice_LabManager_Lecturer")]
         public IActionResult GetReportReasons()
         {
             var reasons = new[]
@@ -234,8 +233,7 @@ namespace BookLAB.API.Controllers
         }
 
         [HttpGet("my-reports")]
-        [Authorize(Policy = "Lecturer")]
-        [Authorize(Policy = "AcademicOffice_LabManager")]
+        [Authorize(Policy = "AcademicOffice_LabManager_Lecturer")]
         public async Task<IActionResult> GetMyReportsAsync(CancellationToken cancellationToken)
         {
             Guid.TryParse(HttpContext.User.FindFirst("Id")?.Value, out var userId);
@@ -271,8 +269,7 @@ namespace BookLAB.API.Controllers
         }
 
         [HttpGet("history")]
-        [Authorize(Policy = "Lecturer")]
-        [Authorize(Policy = "AcademicOffice_LabManager")]
+        [Authorize(Policy = "AcademicOffice_LabManager_Lecturer")]
         public async Task<IActionResult> GetReportHistoryAsync(CancellationToken cancellationToken)
         {
             var reports = await _unitOfWork.Repository<Report>().Entities
@@ -289,8 +286,7 @@ namespace BookLAB.API.Controllers
         }
 
         [HttpGet("~/api/listreports")]
-        [Authorize(Policy = "Lecturer")]
-        [Authorize(Policy = "AcademicOffice_LabManager")]
+        [Authorize(Policy = "AcademicOffice_LabManager_Lecturer")]
         public async Task<IActionResult> GetReportListAsync(CancellationToken cancellationToken)
         {
             var reports = await _unitOfWork.Repository<Report>().Entities

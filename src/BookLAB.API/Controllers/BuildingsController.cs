@@ -29,8 +29,7 @@ namespace BookLAB.Api.Controllers
         [ProducesResponseType(typeof(BuildingDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [Authorize(Policy = "Lecturer")]
-        [Authorize(Policy = "AcademicOffice_LabManager")]
+        [Authorize(Policy = "AcademicOffice_LabManager_Lecturer")]
         public async Task<IActionResult> GetBuildingByName(string buildingName, CancellationToken cancellationToken)
         {
             var query = new GetBuildingByNameQuery { BuildingName = buildingName };
@@ -43,8 +42,7 @@ namespace BookLAB.Api.Controllers
         }
 
         [HttpGet]
-        [Authorize(Policy = "Lecturer")]
-        [Authorize(Policy = "AcademicOffice_LabManager")]
+        [Authorize(Policy = "AcademicOffice_LabManager_Lecturer")]
         public async Task<ActionResult<PagedList<BuildingDto>>> GetBuildings([FromQuery] GetBuildingsQuery query)
         {
             return Ok(await _mediator.Send(query));

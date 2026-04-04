@@ -63,8 +63,7 @@ public class SchedulesController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize(Policy = "Lecturer")]
-    [Authorize(Policy = "AcademicOffice_LabManager")]
+    [Authorize(Policy = "AcademicOffice_LabManager_Lecturer")]
     public async Task<IActionResult> GetSchedules([FromQuery] GetSchedulesQuery query)
     {
         // MediatR sẽ chuyển hướng query này đến GetSchedulesQueryHandler
@@ -74,8 +73,7 @@ public class SchedulesController : ControllerBase
     }
 
     [HttpGet("schedule-attendance")]
-    [Authorize(Policy = "Lecturer")]
-    [Authorize(Policy = "AcademicOffice_LabManager")]
+    [Authorize(Policy = "AcademicOffice_LabManager_Lecturer")]
     public async Task<IActionResult> GetScheduleInAttendance([FromQuery] GetSchedulesQuery query, CancellationToken cancellationToken)
     {
         try

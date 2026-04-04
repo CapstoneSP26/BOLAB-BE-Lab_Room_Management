@@ -80,7 +80,8 @@ namespace BookLAB.Application.Features.Bookings.Queries.ViewUncheckedBookingRequ
                         labOwners.Contains(b.Booking.LabRoomId) &&
                         b.Booking.StartTime >= startBoundary &&
                         b.Booking.StartTime < endBoundaryExclusive &&
-                        (request.labRoomId == null || b.Booking.LabRoomId == request.labRoomId) // thêm filter labRoomId
+                        (request.labRoomId == null || b.Booking.LabRoomId == request.labRoomId) && // thêm filter labRoomId
+                        (request.buildingId == null || b.Booking.LabRoom.BuildingId == request.buildingId)
                     );
 
                 if (!request.status.Equals("all", StringComparison.OrdinalIgnoreCase))
