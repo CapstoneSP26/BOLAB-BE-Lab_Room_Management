@@ -1,0 +1,58 @@
+name: CD Production (Oracle via SSH)
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy-production:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to Oracle VPS over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.ORACLE_HOST }}
+          username: ${{ secrets.ORACLE_USER }}
+          key: ${{ secrets.ORACLE_SSH_KEY }}
+          port: ${{ secrets.ORACLE_PORT }}
+          script_stop: true
+          script: |
+            set -e
+
+            APP_DIR="${{ secrets.ORACLE_APP_DIR }}"
+
+            if [ -z "$APP_DIR" ]; then
+              echo "ORACLE_APP_DIR is not set"
+              exit 1
+            fi
+
+            if [ ! -d "$APP_DIR" ]; then
+              echo "App directory does not exist: $APP_DIR"
+              exit 1
+            fi
+
+            cd "$APP_DIR"
+
+            echo "Pulling latest code from main..."
+            git fetch origin main
+            git checkout main
+            git pull origin main
+
+            if [ -f "docker-compose.yml" ] || [ -f "docker-compose.yaml" ]; then
+              echo "docker-compose file found. Deploying with Docker Compose..."
+              docker compose down
+              docker compose up -d --build
+              docker image prune -f
+            elif [ -f "Dockerfile" ]; then
+              echo "Dockerfile found. Building and restarting single container..."
+              docker build -t booklab-api:latest .
+              docker rm -f booklab-api || true
+              docker run -d --name booklab-api --restart unless-stopped -p 8080:8080 booklab-api:latest
+              docker image prune -f
+            else
+              echo "No Dockerfile or docker-compose.yml found in $APP_DIR"
+              exit 1
+            fi
+
+            echo "Production deploy completed successfully."

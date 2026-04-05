@@ -1,0 +1,22 @@
+name: CD Staging (Render)
+
+on:
+  push:
+    branches: [develop]
+
+jobs:
+  deploy-staging:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger Render deploy hook (staging)
+        env:
+          RENDER_DEPLOY_HOOK_STAGING: ${{ secrets.RENDER_DEPLOY_HOOK_STAGING }}
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK_STAGING" ]; then
+            echo "RENDER_DEPLOY_HOOK_STAGING is not set"
+            exit 1
+          fi
+
+          curl -fsS -X POST "$RENDER_DEPLOY_HOOK_STAGING"
+          echo "Render staging deploy triggered successfully."
