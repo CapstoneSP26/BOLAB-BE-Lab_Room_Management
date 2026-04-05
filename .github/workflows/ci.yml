@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main, Feature/Add_CICD]
+    branches: [main, Develop]
   pull_request:
-    branches: [main, Feature/Add_CICD]
+    branches: [main, Develop]
 
 jobs:
   build-test:
