@@ -1,29 +1,30 @@
+﻿
 using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Interfaces.Services;
 using BookLAB.Application.Common.Models;
 using BookLAB.Domain.Entities;
+using BookLAB.Domain.Enums;
 using MediatR;
 
-namespace BookLAB.Application.Features.Users.Commands.ImportUsers
+namespace BookLAB.Application.Features.Schedules.Commands.ImportSchedule
 {
-    public class ConfirmUserImportHandler : IRequestHandler<ConfirmUserImportCommand, ImportResult>
+    public class ConfirmFlexibleImportHandler : IRequestHandler<ConfirmFlexibleImportCommand, ImportResult>
     {
-        private readonly IUserImportService _userImportService;
-        private readonly ICurrentUserService _currentUserService;
         private readonly IUnitOfWork _unitOfWork;
-        public ConfirmUserImportHandler(IUserImportService userImportService, IUnitOfWork unitOfWork, ICurrentUserService currentUserService)
+        private readonly IScheduleImportService _scheduleImportService;
+        private readonly ICurrentUserService _currentUserService;
+
+        public ConfirmFlexibleImportHandler(IUnitOfWork unitOfWork, IScheduleImportService scheduleImportService, ICurrentUserService currentUserService)
         {
-            _userImportService = userImportService;
             _unitOfWork = unitOfWork;
+            _scheduleImportService = scheduleImportService;
             _currentUserService = currentUserService;
         }
 
-        public async Task<ImportResult> Handle(ConfirmUserImportCommand request, CancellationToken cancellationToken)
+        public async Task<ImportResult> Handle(ConfirmFlexibleImportCommand request, CancellationToken cancellationToken)
         {
-            var response = await _userImportService.ValidateAsync(request.Users, request.CampusId, cancellationToken, true);
-            var result = response.result;
-            var maps = response.maps;
+            var result = await _scheduleImportService.ValidateFlexibleAsync(request.Schedules, request.CampusId, cancellationToken, true);
             var countUpdated = result.Rows.Count(r => r.Data.IsUpdated);
             var countNew = result.Rows.Count(r => !r.Data.IsUpdated);
             var now = DateTimeOffset.UtcNow;
@@ -38,7 +39,7 @@ namespace BookLAB.Application.Features.Users.Commands.ImportUsers
             await _unitOfWork.BeginTransactionAsync();
             try
             {
-                var newUsers = new List<User>();
+                var newSchedules = new List<Schedule>();
                 foreach (var row in result.Rows)
                 {
                     var entity = row.ConvertedEntity;
@@ -46,26 +47,20 @@ namespace BookLAB.Application.Features.Users.Commands.ImportUsers
                     {
                         entity.UpdatedAt = now;
                         entity.UpdatedBy = _currentUserService.UserId;
-                        _unitOfWork.Repository<UserRole>().DeleteRange(maps.UserMap[entity.Email].UserRoles);
-                        _unitOfWork.Repository<User>().Update(entity);
+                        _unitOfWork.Repository<Schedule>().Update(entity);
                     }
                     else
                     {
+                        entity.ScheduleStatus = ScheduleStatus.Active;
+                        entity.ScheduleType = ScheduleType.Academic;
                         entity.CreatedAt = now;
                         entity.CreatedBy = _currentUserService.UserId;
-                        newUsers.Add(entity);
-                    }
+                        newSchedules.Add(entity);
+                    }                
                 }
-                if (newUsers.Any())
+                if (newSchedules.Any())
                 {
-                    await _unitOfWork.Repository<User>().AddRangeAsync(newUsers);
-                    foreach (var user in newUsers)
-                    {
-                        foreach (var role in user.UserRoles)
-                        {
-                            role.UserId = user.Id;
-                        }
-                    }
+                    await _unitOfWork.Repository<Schedule>().AddRangeAsync(newSchedules);
                 }
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
                 await _unitOfWork.CommitTransactionAsync();

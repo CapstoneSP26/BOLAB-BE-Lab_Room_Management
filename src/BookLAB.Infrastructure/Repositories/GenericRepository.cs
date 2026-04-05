@@ -28,6 +28,7 @@ namespace BookLAB.Infrastructure.Repositories
         public void Update(T entity) => _context.Set<T>().Update(entity);
 
         public void Delete(T entity) => _context.Set<T>().Remove(entity);
+        public void DeleteRange(IEnumerable<T> entities) => _context.Set<T>().RemoveRange(entities);
 
         public async Task<List<T>> GetAllAsync() => await _context.Set<T>().ToListAsync();
     }

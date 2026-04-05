@@ -4,9 +4,9 @@ using MediatR;
 
 namespace BookLAB.Application.Features.Schedules.Commands.ImportSchedule
 {
-    public class ConfirmImportCommand : IRequest<ImportResult>
+    public class ConfirmFlexibleImportCommand : IRequest<ImportResult>
     {
-        public List<ScheduleImportDto> Schedules { get; set; } = new();
+        public List<FlexibleScheduleImportDto> Schedules { get; set; } = new();
         public int CampusId { get; set; }
     }
 }

@@ -2,7 +2,6 @@ using BookLAB.API.Middlewares;
 using BookLAB.Application;
 using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Application.Common.Interfaces.Repositories;
-using BookLAB.Application.Common.Interfaces.Services;
 using BookLAB.Infrastructure;
 using BookLAB.Infrastructure.Identity;
 using BookLAB.Infrastructure.Persistence;
@@ -94,7 +93,7 @@ builder.Services.AddDbContext<BookLABDbContext>(opt =>
         b => b.MigrationsAssembly("BookLAB.API"));
 });
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
-builder.Services.AddScoped<IScheduleService, ScheduleService>();
+
 builder.Services.AddScoped<IScheduleRepository, ScheduleRepository>();
 
 // Swagger/OpenAPI

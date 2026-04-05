@@ -48,6 +48,8 @@ namespace BookLAB.Infrastructure
             services.AddScoped<IBookingService, BookingService>();
             //services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IScheduleService, ScheduleService>();
+            services.AddScoped<IScheduleImportService, ScheduleImportService>();
+            services.AddScoped<IUserImportService, UserImportService>();
             services.AddScoped<ICalendarSyncService, GoogleCalendarSyncService>();
             services.AddScoped<QRCodeGenerator>();
             services.AddScoped<IQrManagements, QrManagements>();

@@ -6,7 +6,7 @@ namespace BookLAB.Application.Features.Users.Commands.ImportUsers
     {
         public ConfirmUserImportCommandValidator()
         {
-            RuleFor(x => x.ValidUsers)
+            RuleFor(x => x.Users)
                 .NotNull()
                 .WithMessage("Danh sách user không được để trống.")
                 .Must(x => x.Count > 0)

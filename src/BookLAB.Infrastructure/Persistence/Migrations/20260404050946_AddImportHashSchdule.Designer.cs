@@ -3,6 +3,7 @@ using System;
 using BookLAB.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BookLAB.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(BookLABDbContext))]
-    partial class BookLABDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260404050946_AddImportHashSchdule")]
+    partial class AddImportHashSchdule
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -395,7 +398,6 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = 1,
-                            BuildingImageUrl = "",
                             BuildingName = "Science Building",
                             CampusId = 1,
                             Description = "Science faculty building"
@@ -403,7 +405,6 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = 2,
-                            BuildingImageUrl = "",
                             BuildingName = "Engineering Building",
                             CampusId = 1,
                             Description = "Engineering labs"
@@ -411,7 +412,6 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = 3,
-                            BuildingImageUrl = "",
                             BuildingName = "Admin Building",
                             CampusId = 2,
                             Description = "Administration"
@@ -429,10 +429,6 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                     b.Property<string>("Address")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
-
-                    b.Property<string>("CampusCode")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
 
                     b.Property<string>("CampusImageUrl")
                         .HasMaxLength(2048)
