@@ -1,8 +1,5 @@
 ﻿using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace BookLAB.Infrastructure.Repositories
 {

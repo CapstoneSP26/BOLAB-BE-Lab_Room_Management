@@ -15,6 +15,7 @@ namespace BookLAB.Domain.Entities
         public ScheduleStatus ScheduleStatus { get; set; }
         public int StudentCount { get; set; }
         public string? SubjectCode { get; set; }
+        public string? ImportHash { get; set; } // For tracking imported schedules
         public DateTimeOffset StartTime { get; set; }
         public DateTimeOffset EndTime { get; set; }
 

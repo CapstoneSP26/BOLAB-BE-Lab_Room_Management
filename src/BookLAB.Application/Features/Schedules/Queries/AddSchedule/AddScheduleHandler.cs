@@ -3,11 +3,6 @@ using BookLAB.Application.Common.Interfaces.Services;
 using BookLAB.Domain.Entities;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Text;
-
 namespace BookLAB.Application.Features.Schedules.Queries.AddSchedule
 {
     public class AddScheduleHandler : IRequestHandler<AddScheduleCommand, bool>

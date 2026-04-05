@@ -10,15 +10,6 @@ namespace BookLAB.Application.Common.Interfaces.Services
 {
     public interface IScheduleService
     {
-        RowResult<ScheduleImportDto> CheckSingleRowAsync(
-            ScheduleImportDto item,
-            Dictionary<string, LabRoom> roomMap,
-            Dictionary<string, User> lecturerMap,
-            Dictionary<string, Group> groupMap,
-            Dictionary<string, List<SlotFrame>> slotTypeMap,
-            CancellationToken ct
-        );
-
         public Schedule ConvertToScheduleEntity(
             ScheduleImportDto item,
             Dictionary<string, LabRoom> roomMap,
