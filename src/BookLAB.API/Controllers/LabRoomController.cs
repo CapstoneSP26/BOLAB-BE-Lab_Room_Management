@@ -1,9 +1,14 @@
 ﻿using BookLAB.Application.Common.Models;
+using BookLAB.Application.Features.LabRooms.Commands.ImportLabRooms;
+using BookLAB.Application.Features.LabRooms.Commands.ValidateImportLabRooms;
+using BookLAB.Application.Features.LabRooms.Common;
 using BookLAB.Application.Features.LabRooms.Queries.GetLabRoomPolicies;
 using BookLAB.Application.Features.LabRooms.Queries.GetLabRooms;
+using ClosedXML.Excel;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Globalization;
 
 namespace BookLAB.API.Controllers
 {
@@ -37,6 +42,25 @@ namespace BookLAB.API.Controllers
             return Ok(result);
         }
 
-    }
+        //[HttpPost("validate-import")]
+        //[ProducesResponseType(typeof(ImportValidationResult<LabRoomImportDto>), StatusCodes.Status200OK)]
+        //[ProducesResponseType(StatusCodes.Status400BadRequest)]
+        //public async Task<IActionResult> ValidateImport([FromBody] ValidateLabRoomImportQuery query)
+        //{
+        //    var result = await _mediator.Send(query);
+        //    return Ok(result);
+        //}
 
+
+
+        //[HttpPost("import")]
+        //[ProducesResponseType(StatusCodes.Status200OK)]
+        //[ProducesResponseType(StatusCodes.Status400BadRequest)]
+        //public async Task<IActionResult> ConfirmImport([FromBody] ConfirmLabRoomImportCommand command)
+        //{
+        //    var result = await _mediator.Send(command);
+        //    return Ok(result);
+        //}
+
+    }
 }

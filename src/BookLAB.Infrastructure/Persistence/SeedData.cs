@@ -72,9 +72,9 @@ namespace BookLAB.Infrastructure.Persistence
 
             // Buildings
             modelBuilder.Entity<Building>().HasData(
-                new Building { Id = 1, CampusId = 1, BuildingName = "Science Building", Description = "Science faculty building", BuildingImageUrl = null },
-                new Building { Id = 2, CampusId = 1, BuildingName = "Engineering Building", Description = "Engineering labs", BuildingImageUrl = null },
-                new Building { Id = 3, CampusId = 2, BuildingName = "Admin Building", Description = "Administration", BuildingImageUrl = null }
+                new Building { Id = 1, CampusId = 1, BuildingName = "Science Building", Description = "Science faculty building", BuildingImageUrl = string.Empty },
+                new Building { Id = 2, CampusId = 1, BuildingName = "Engineering Building", Description = "Engineering labs", BuildingImageUrl = string.Empty },
+                new Building { Id = 3, CampusId = 2, BuildingName = "Admin Building", Description = "Administration", BuildingImageUrl = string.Empty }
             );
 
             // LabRooms (int PK)

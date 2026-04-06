@@ -4,6 +4,7 @@
     {
         public int Id { get; set; }
         public string CampusName { get; set; } = null!;
+        public string? CampusCode { get; set; }
         public string? Address { get; set; }
         public string? CampusImageUrl { get; set; }
         public bool IsActive { get; set; } = true;
