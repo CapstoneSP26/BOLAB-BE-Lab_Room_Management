@@ -8,6 +8,7 @@ using Google.Apis.Calendar.v3.Data;
 using Google.Apis.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace BookLAB.Infrastructure.Services;
@@ -17,6 +18,7 @@ public class GoogleCalendarSyncService : ICalendarSyncService, IDisposable
     private readonly IUnitOfWork _unitOfWork;
     private readonly IConfiguration _configuration;
     private readonly ILogger<GoogleCalendarSyncService> _logger;
+    private readonly IHostEnvironment _environment;
     private readonly string _calendarId;
     private readonly string _timeZone;
     private CalendarService? _calendarService;
@@ -25,11 +27,13 @@ public class GoogleCalendarSyncService : ICalendarSyncService, IDisposable
     public GoogleCalendarSyncService(
         IUnitOfWork unitOfWork,
         IConfiguration configuration,
-        ILogger<GoogleCalendarSyncService> logger)
+        ILogger<GoogleCalendarSyncService> logger,
+        IHostEnvironment environment)
     {
         _unitOfWork = unitOfWork;
         _configuration = configuration;
         _logger = logger;
+        _environment = environment;
         _calendarId = _configuration["GoogleCalendar:CalendarId"] ?? "primary";
         _timeZone = _configuration["GoogleCalendar:TimeZone"] ?? "Asia/Ho_Chi_Minh";
     }
@@ -195,6 +199,12 @@ public class GoogleCalendarSyncService : ICalendarSyncService, IDisposable
         {
             _logger.LogError("Google Calendar credentials path not configured");
             throw new InvalidOperationException("Google Calendar credentials path not configured in appsettings.");
+        }
+
+        // Handle relative paths by combining with content root
+        if (!Path.IsPathRooted(credentialPath))
+        {
+            credentialPath = Path.Combine(_environment.ContentRootPath, credentialPath);
         }
 
         if (!File.Exists(credentialPath))
