@@ -169,12 +169,12 @@ namespace BookLAB.Infrastructure.Services
                 {
                     if(existingUser.UserCode == code)
                     {
-                        AddError(row, "Email", $"Email ${email} cùng UserCode ${code} đã tồn tại", ErrorSeverity.Warning);
+                        AddError(row, "Email", $"User đã tồn tại", ErrorSeverity.Warning);
                         dto.IsUpdated = true;
                     }
                     else
                     {
-                        AddError(row, "Email", "Đã tồn tại.", ErrorSeverity.Error);
+                        AddError(row, "Email", "Email Đã tồn tại.", ErrorSeverity.Error);
                     }
                 }
             }
@@ -185,7 +185,7 @@ namespace BookLAB.Infrastructure.Services
                     AddError(row, "UserCode", "Trùng trong file.", ErrorSeverity.Error);
                 else if (ctx.ExistingCodes.Contains(code) && !string.IsNullOrWhiteSpace(email) && !ctx.UserMap.ContainsKey(email))
                 {
-                    AddError(row, "UserCode", "Đã tồn tại.", ErrorSeverity.Error);
+                    AddError(row, "UserCode", "UserCode Đã tồn tại.", ErrorSeverity.Error);
                 }
             }
         }
@@ -205,27 +205,11 @@ namespace BookLAB.Infrastructure.Services
             var roles = RoleHelper.ParseRoles(dto.RoleNames);
             if (dto.IsUpdated)
             {
+
                 var existingUser = maps.UserMap[dto.Email.Trim().ToLower()];
-                return new User
-                {
-                    Id = existingUser.Id,
-                    FullName = dto.FullName.Trim(),
-                    Email = existingUser.Email,
-                    UserCode = existingUser.UserCode,
-                    CampusId = maps.CampusMap[dto.CampusCode.Trim()].Id,
-                    UserImageUrl = existingUser.UserImageUrl,
-                    Provider = existingUser.Provider,
-                    ProviderId = existingUser.ProviderId,
-                    CreatedAt = existingUser.CreatedAt,
-                    CreatedBy = existingUser.CreatedBy,
-                    IsActive = existingUser.IsActive,
-                    IsDeleted = existingUser.IsDeleted,
-                    UserRoles = roles.Select(r => new UserRole
-                    {
-                        RoleId = maps.RoleMap[r].Id,
-                        UserId = existingUser.Id
-                    }).ToList()
-                };
+                existingUser.FullName = dto.FullName.Trim();
+
+                return existingUser;
             }
             else
             {

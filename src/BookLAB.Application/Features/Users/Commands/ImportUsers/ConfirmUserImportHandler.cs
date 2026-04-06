@@ -1,9 +1,12 @@
+using BookLAB.Application.Common.Helpers;
 using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Interfaces.Services;
 using BookLAB.Application.Common.Models;
 using BookLAB.Domain.Entities;
 using MediatR;
+using System.Collections;
+using System.Data;
 
 namespace BookLAB.Application.Features.Users.Commands.ImportUsers
 {
@@ -38,7 +41,10 @@ namespace BookLAB.Application.Features.Users.Commands.ImportUsers
             await _unitOfWork.BeginTransactionAsync();
             try
             {
-                var newUsers = new List<User>();
+                
+
+                var newUserList = new List<User>();
+                var newUserRoleList = new List<UserRole>();
                 foreach (var row in result.Rows)
                 {
                     var entity = row.ConvertedEntity;
@@ -46,26 +52,45 @@ namespace BookLAB.Application.Features.Users.Commands.ImportUsers
                     {
                         entity.UpdatedAt = now;
                         entity.UpdatedBy = _currentUserService.UserId;
-                        _unitOfWork.Repository<UserRole>().DeleteRange(maps.UserMap[entity.Email].UserRoles);
+                        var roles = RoleHelper.ParseRoles(row.Data.RoleNames);
+                        var newUserRoles = roles.Select(r => new UserRole
+                        {
+                            RoleId = maps.RoleMap[r].Id,
+                            UserId = entity.Id
+                        }).ToList();
+                        var deletedUserRoles = entity.UserRoles
+                            .Where(a => !newUserRoles.Any(b => b.UserId == a.UserId && b.RoleId == a.RoleId))
+                            .ToList();
+                        var addedUserRoles = newUserRoles
+                            .Where(a => !entity.UserRoles.Any(b => b.UserId == a.UserId && b.RoleId == a.RoleId))
+                            .ToList();
+                        _unitOfWork.Repository<UserRole>().DeleteRange(deletedUserRoles);
+
+                        newUserRoleList.AddRange(addedUserRoles);
                         _unitOfWork.Repository<User>().Update(entity);
                     }
                     else
                     {
                         entity.CreatedAt = now;
                         entity.CreatedBy = _currentUserService.UserId;
-                        newUsers.Add(entity);
+                        newUserList.Add(entity);
                     }
                 }
-                if (newUsers.Any())
+                if (newUserList.Any())
                 {
-                    await _unitOfWork.Repository<User>().AddRangeAsync(newUsers);
-                    foreach (var user in newUsers)
+                    await _unitOfWork.Repository<User>().AddRangeAsync(newUserList);
+                    foreach (var user in newUserList)
                     {
                         foreach (var role in user.UserRoles)
                         {
                             role.UserId = user.Id;
                         }
                     }
+                }
+                if (newUserRoleList.Any())
+                {
+                    await _unitOfWork.Repository<UserRole>().AddRangeAsync(newUserRoleList);
+
                 }
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
                 await _unitOfWork.CommitTransactionAsync();

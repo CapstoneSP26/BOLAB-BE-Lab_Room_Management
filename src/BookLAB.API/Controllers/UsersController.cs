@@ -41,6 +41,7 @@ namespace BookLAB.API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> ConfirmImport([FromBody] ConfirmUserImportCommand command)
         {
+            command.CampusId = _currentUserService.CampusId;
             var result = await _mediator.Send(command);
             return Ok(result);
         }

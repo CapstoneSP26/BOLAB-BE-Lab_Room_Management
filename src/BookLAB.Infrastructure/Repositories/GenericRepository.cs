@@ -21,6 +21,10 @@ namespace BookLAB.Infrastructure.Repositories
             _context.Set<T>().Update(entity);
             await _context.SaveChangesAsync();
         }
+        public void AddRange(IEnumerable<T> entities)
+        {
+            _context.Set<T>().AddRange(entities);
+        }
         public async Task AddRangeAsync(IEnumerable<T> entities)
         {
             await _context.Set<T>().AddRangeAsync(entities);
