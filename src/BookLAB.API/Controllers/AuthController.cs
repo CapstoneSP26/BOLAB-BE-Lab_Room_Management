@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -37,10 +38,19 @@ namespace BookLAB.API.Controllers
             var callbackPath = _linkGenerator.GetPathByName(HttpContext, "GoogleLoginCallback") ?? "/api/Auth/login/google/callback";
             var callbackUrl = $"{Request.Scheme}://{Request.Host}{callbackPath}?returnUrl={Uri.EscapeDataString(returnUrl ?? string.Empty)}";
 
+            var forcedCallbackUrl = HttpContext.RequestServices
+                .GetRequiredService<IConfiguration>()
+                ["Authentication:Google:RedirectUri"];
+
             var properties = new AuthenticationProperties
             {
-                RedirectUri = callbackUrl
+                RedirectUri = string.IsNullOrWhiteSpace(forcedCallbackUrl) ? callbackUrl : forcedCallbackUrl
             };
+
+            if (!string.IsNullOrWhiteSpace(returnUrl))
+            {
+                properties.Items["returnUrl"] = returnUrl;
+            }
 
             // Challenge sẽ yêu cầu xác thực bằng Google
             return Challenge(properties, GoogleDefaults.AuthenticationScheme);
@@ -54,6 +64,12 @@ namespace BookLAB.API.Controllers
             if (!result.Succeeded)
             {
                 return Unauthorized();
+            }
+
+            if (string.IsNullOrWhiteSpace(returnUrl) && result.Properties?.Items != null
+                && result.Properties.Items.TryGetValue("returnUrl", out var savedReturnUrl))
+            {
+                returnUrl = savedReturnUrl;
             }
 
             var account = await _userRepository.GetByProviderUserIdAsync(
