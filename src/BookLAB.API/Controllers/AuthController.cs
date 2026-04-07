@@ -34,11 +34,12 @@ namespace BookLAB.API.Controllers
         [HttpGet("login/google")]
         public async Task<IActionResult> GoogleLogin([FromQuery] string returnUrl)
         {
-            var redirectUrl = _linkGenerator.GetPathByName(HttpContext, "GoogleLoginCallback") + $"?returnUrl={returnUrl}";
+            var callbackPath = _linkGenerator.GetPathByName(HttpContext, "GoogleLoginCallback") ?? "/api/Auth/login/google/callback";
+            var callbackUrl = $"{Request.Scheme}://{Request.Host}{callbackPath}?returnUrl={Uri.EscapeDataString(returnUrl ?? string.Empty)}";
 
             var properties = new AuthenticationProperties
             {
-                RedirectUri = redirectUrl
+                RedirectUri = callbackUrl
             };
 
             // Challenge sẽ yêu cầu xác thực bằng Google
