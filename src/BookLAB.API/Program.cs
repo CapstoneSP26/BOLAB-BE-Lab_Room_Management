@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -45,10 +44,6 @@ builder.Services.AddAuthentication(options =>
         options.CorrelationCookie.HttpOnly = true;
         options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
         options.CorrelationCookie.SameSite = SameSiteMode.None;
-
-        options.NonceCookie.HttpOnly = true;
-        options.NonceCookie.SecurePolicy = CookieSecurePolicy.Always;
-        options.NonceCookie.SameSite = SameSiteMode.None;
 
         options.Events.OnRedirectToAuthorizationEndpoint = context =>
         {
@@ -121,7 +116,6 @@ builder.Services.Configure<CookiePolicyOptions>(options =>
 {
     options.MinimumSameSitePolicy = SameSiteMode.None;
     options.Secure = CookieSecurePolicy.Always;
-    options.HttpOnly = HttpOnlyPolicy.Always;
 });
 
 builder.Services.AddHttpClient("BackendApi", client =>
