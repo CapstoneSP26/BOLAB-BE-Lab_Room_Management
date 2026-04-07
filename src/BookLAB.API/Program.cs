@@ -22,8 +22,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme; // Yêu cầu đăng nhập bằng JWT Bearer
-    options.DefaultSignInScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme; // API yêu cầu đăng nhập bằng JWT Bearer
+    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme; // cần cho Google OAuth sign-in flow
 })
     .AddCookie()
     .AddGoogle(GoogleDefaults.AuthenticationScheme, options =>
@@ -147,6 +147,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+app.UseSwagger();
+app.UseSwaggerUI();
+
 app.UseCors("CorsPolicy");
 app.UseHttpsRedirection();
 
