@@ -395,6 +395,7 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = 1,
+                            BuildingImageUrl = "",
                             BuildingName = "Science Building",
                             CampusId = 1,
                             Description = "Science faculty building"
@@ -402,6 +403,7 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = 2,
+                            BuildingImageUrl = "",
                             BuildingName = "Engineering Building",
                             CampusId = 1,
                             Description = "Engineering labs"
@@ -409,6 +411,7 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = 3,
+                            BuildingImageUrl = "",
                             BuildingName = "Admin Building",
                             CampusId = 2,
                             Description = "Administration"
@@ -426,6 +429,10 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                     b.Property<string>("Address")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
+
+                    b.Property<string>("CampusCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<string>("CampusImageUrl")
                         .HasMaxLength(2048)
@@ -1327,6 +1334,10 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("GroupId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("ImportHash")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
@@ -1353,7 +1364,7 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
-                    b.Property<int>("SlotTypeId")
+                    b.Property<int?>("SlotTypeId")
                         .HasColumnType("integer");
 
                     b.Property<DateTimeOffset>("StartTime")
@@ -1378,6 +1389,9 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.HasIndex("GroupId");
+
+                    b.HasIndex("ImportHash")
+                        .IsUnique();
 
                     b.HasIndex("LabRoomId");
 
@@ -1975,8 +1989,7 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                     b.HasOne("BookLAB.Domain.Entities.SlotType", "SlotType")
                         .WithMany()
                         .HasForeignKey("SlotTypeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Booking");
 

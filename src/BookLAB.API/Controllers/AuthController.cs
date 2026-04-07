@@ -3,6 +3,7 @@ using BookLAB.Application.Features.LoginWithGoogle;
 using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -73,11 +74,11 @@ namespace BookLAB.API.Controllers
                 .Build();
 
             var claims = new List<Claim>
-    {
-        new Claim("Id", account.Id.ToString()),
-        new Claim("Role", role?.RoleId.ToString() ?? ""),
-        new Claim("CampusId", account.CampusId.ToString())
-    };
+            {
+                new Claim("Id", account.Id.ToString()),
+                new Claim("Role", role?.RoleId.ToString() ?? ""),
+                new Claim("CampusId", account.CampusId.ToString())
+            };
 
             var symetricKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(configuration["JWT:SecretKey"]));
@@ -102,12 +103,31 @@ namespace BookLAB.API.Controllers
                     SameSite = SameSiteMode.None
                 });
 
-            // Validate returnUrl to avoid invalid redirect targets.
-            if (!Uri.TryCreate(returnUrl, UriKind.Absolute, out var parsedReturnUrl)
-                || (parsedReturnUrl.Scheme != Uri.UriSchemeHttp && parsedReturnUrl.Scheme != Uri.UriSchemeHttps))
+            switch (role.RoleId)
             {
-                returnUrl = "https://localhost:5173/";
+                case 1:
+                    returnUrl = "https://localhost:5173/labmanager/dashboard";
+                    break;
+                case 2:
+                    returnUrl = "https://localhost:5173/labmanager/dashboard";
+                    break;
+                case 3:
+                    returnUrl = "https://localhost:5173/";
+                    break;
+                case 4:
+                    returnUrl = "https://localhost:5173/";
+                    break;
+                default:
+                    returnUrl = "https://localhost:5173/";
+                    break;
             }
+
+            // Validate returnUrl to avoid invalid redirect targets.
+            //if (!Uri.TryCreate(returnUrl, UriKind.Absolute, out var parsedReturnUrl)
+            //    || (parsedReturnUrl.Scheme != Uri.UriSchemeHttp && parsedReturnUrl.Scheme != Uri.UriSchemeHttps))
+            //{
+            //    returnUrl = "https://localhost:5173/";
+            //}
 
             return Redirect(returnUrl);
         }

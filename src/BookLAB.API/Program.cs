@@ -2,7 +2,6 @@ using BookLAB.API.Middlewares;
 using BookLAB.Application;
 using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Application.Common.Interfaces.Repositories;
-using BookLAB.Application.Common.Interfaces.Services;
 using BookLAB.Infrastructure;
 using BookLAB.Infrastructure.Identity;
 using BookLAB.Infrastructure.Persistence;
@@ -21,11 +20,18 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddAuthentication(options =>
 {
+    //options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    //options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme; // Yêu cầu đăng nhập bằng JWT Bearer
+    //options.DefaultSignInScheme = JwtBearerDefaults.AuthenticationScheme;
+
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme; // Yêu cầu đăng nhập bằng JWT Bearer
-    options.DefaultSignInScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
 })
-    .AddCookie()
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/login";
+        options.AccessDeniedPath = "/";
+    })
     .AddGoogle(GoogleDefaults.AuthenticationScheme, options =>
     {
         options.ClientId = builder.Configuration["Authentication:Google:ClientId"]!;
@@ -57,6 +63,44 @@ builder.Services.AddAuthentication(options =>
             }
         };
     });
+
+builder.Services.AddAuthorization(options =>
+{
+
+    options.AddPolicy("AcademicOffice",
+        policyBuilder => policyBuilder.RequireAssertion(
+            context => context.User.HasClaim(claim => claim.Type == "Role") &&
+            context.User.FindFirst(claim => claim.Type == "Role").Value == "1"));
+
+    options.AddPolicy("AcademicOffice_LabManager",
+        policyBuilder => policyBuilder.RequireAssertion(
+            context => context.User.HasClaim(claim => claim.Type == "Role")
+            && (context.User.FindFirst(claim => claim.Type == "Role").Value == "1"
+            || context.User.FindFirst(claim => claim.Type == "Role").Value == "2")));
+
+    options.AddPolicy("AcademicOffice_LabManager_Lecturer",
+        policyBuilder => policyBuilder.RequireAssertion(
+            context => context.User.HasClaim(claim => claim.Type == "Role")
+            && (context.User.FindFirst(claim => claim.Type == "Role").Value == "1"
+            || context.User.FindFirst(claim => claim.Type == "Role").Value == "2"
+            || context.User.FindFirst(claim => claim.Type == "Role").Value == "3")));
+
+    options.AddPolicy("AcademicOffice_Lecturer",
+        policyBuilder => policyBuilder.RequireAssertion(
+            context => context.User.HasClaim(claim => claim.Type == "Role")
+            && (context.User.FindFirst(claim => claim.Type == "Role").Value == "1"
+            || context.User.FindFirst(claim => claim.Type == "Role").Value == "3")));
+
+    options.AddPolicy("Lecturer",
+        policyBuilder => policyBuilder.RequireAssertion(
+            context => context.User.HasClaim(claim => claim.Type == "Role")
+            && context.User.FindFirst(claim => claim.Type == "Role").Value == "3"));
+
+    options.AddPolicy("Student",
+        policyBuilder => policyBuilder.RequireAssertion(
+            context => context.User.HasClaim(claim => claim.Type == "Role")
+            && context.User.FindFirst(claim => claim.Type == "Role").Value == "4"));
+});
 
 builder.Services.AddCors(opt =>
 {
@@ -94,7 +138,7 @@ builder.Services.AddDbContext<BookLABDbContext>(opt =>
         b => b.MigrationsAssembly("BookLAB.API"));
 });
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
-builder.Services.AddScoped<IScheduleService, ScheduleService>();
+
 builder.Services.AddScoped<IScheduleRepository, ScheduleRepository>();
 
 // Swagger/OpenAPI

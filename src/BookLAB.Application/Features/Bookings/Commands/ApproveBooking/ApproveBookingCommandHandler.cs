@@ -1,7 +1,6 @@
 ﻿using BookLAB.Application.Common.Exceptions;
 using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Application.Common.Interfaces.Repositories;
-using BookLAB.Application.Common.Interfaces.Services;
 using BookLAB.Application.Features.Bookings.Events;
 using BookLAB.Domain.Entities;
 using BookLAB.Domain.Enums;
@@ -103,7 +102,9 @@ namespace BookLAB.Application.Features.Bookings.Commands.ApproveBooking
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
                 await _unitOfWork.CommitTransactionAsync();
 
-                _mediator.Publish(new BookingApprovedEvent(booking.Id), cancellationToken);
+                // throw event to notify other parts of the system that a booking has been approved
+                await _mediator.Publish(new BookingApprovedEvent(booking.Id, currentUserId), cancellationToken);
+
                 return true;
             }
             catch
