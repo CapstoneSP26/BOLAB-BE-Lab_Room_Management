@@ -11,7 +11,6 @@ using Hangfire;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -34,29 +33,27 @@ builder.Services.AddAuthentication(options =>
         options.CallbackPath = "/signin-google";
         options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme; // Override lại ChallengeScheme để đăng nhập bằng Cookie (cơ mà trong AuthController.GoogleLogin trả về Result.Challenge với authentication scheme là Google nên sẽ trỏ về bên Google yêu cầu xác nhận bên đó trước, không dùng Cookie này nữa)
 
-        var forcedRedirectUri = builder.Configuration["Authentication:Google:RedirectUri"];
-        if (!string.IsNullOrWhiteSpace(forcedRedirectUri))
+        options.Events.OnRedirectToAuthorizationEndpoint = context =>
         {
-            options.Events = new OAuthEvents
+            var forcedRedirectUri = builder.Configuration["Authentication:Google:RedirectUri"];
+            var targetUri = context.RedirectUri;
+
+            if (!string.IsNullOrWhiteSpace(forcedRedirectUri)
+                && Uri.TryCreate(forcedRedirectUri, UriKind.Absolute, out var redirectUriValue))
             {
-                OnRedirectToAuthorizationEndpoint = context =>
-                {
-                    var redirectUri = Uri.EscapeDataString(forcedRedirectUri);
-                    var authorizationEndpoint = context.RedirectUri;
+                targetUri = System.Text.RegularExpressions.Regex.Replace(
+                    targetUri,
+                    @"redirect_uri=[^&]*",
+                    $"redirect_uri={Uri.EscapeDataString(redirectUriValue.ToString())}");
+            }
+            else
+            {
+                targetUri = targetUri.Replace("redirect_uri=http%3A%2F%2F", "redirect_uri=https%3A%2F%2F");
+            }
 
-                    if (authorizationEndpoint.Contains("redirect_uri="))
-                    {
-                        authorizationEndpoint = System.Text.RegularExpressions.Regex.Replace(
-                            authorizationEndpoint,
-                            @"redirect_uri=[^&]*",
-                            $"redirect_uri={redirectUri}");
-                    }
-
-                    context.Response.Redirect(authorizationEndpoint);
-                    return Task.CompletedTask;
-                }
-            };
-        }
+            context.Response.Redirect(targetUri);
+            return Task.CompletedTask;
+        };
     }).AddJwtBearer(x =>
     {
         x.SaveToken = true;
