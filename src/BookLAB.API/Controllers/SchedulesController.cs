@@ -36,6 +36,7 @@ public class SchedulesController : ControllerBase
     [HttpPost("import/validate")]
     [ProducesResponseType(typeof(ImportValidationResult<ScheduleImportDto, Schedule>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [Authorize(Policy = "AcademicOffice")]
     public async Task<IActionResult> ValidateSchedules([FromBody] ValidateImportQuery query)
     {
         query.CampusId = _currentUserService.CampusId;
@@ -58,6 +59,7 @@ public class SchedulesController : ControllerBase
     [HttpPost("import/commit")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [Authorize(Policy = "AcademicOffice")]
     public async Task<IActionResult> ConfirmImport([FromBody] ConfirmImportCommand command)
     {
         // MediatR dispatches to ConfirmImportHandler (using AddRangeAsync logic)
@@ -113,6 +115,7 @@ public class SchedulesController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Policy = "AcademicOffice_LabManager_Lecturer")]
     public async Task<IActionResult> GetSchedules([FromQuery] GetSchedulesQuery query)
     {
         // MediatR sẽ chuyển hướng query này đến GetSchedulesQueryHandler
@@ -122,6 +125,7 @@ public class SchedulesController : ControllerBase
     }
 
     [HttpGet("schedule-attendance")]
+    [Authorize(Policy = "AcademicOffice_LabManager_Lecturer")]
     public async Task<IActionResult> GetScheduleInAttendance([FromQuery] GetSchedulesQuery query, CancellationToken cancellationToken)
     {
         try

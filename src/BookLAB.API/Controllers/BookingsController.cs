@@ -52,6 +52,7 @@ public class BookingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [Authorize(Policy = "Lecturer")]
     public async Task<IActionResult> SyncToCalendar(Guid id, CancellationToken cancellationToken)
     {
         try
@@ -88,6 +89,7 @@ public class BookingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [Authorize(Policy = "Lecturer")]
     public async Task<IActionResult> UpdateCalendarEvent(Guid id, CancellationToken cancellationToken)
     {
         try
@@ -117,6 +119,7 @@ public class BookingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [Authorize(Policy = "Lecturer")]
     public async Task<IActionResult> DeleteCalendarEvent(Guid id, CancellationToken cancellationToken)
     {
         try
@@ -142,6 +145,7 @@ public class BookingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [Authorize(Policy = "AcademicOffice_LabManager")]
     public async Task<IActionResult> ApproveBooking(Guid id, [FromBody] ApproveBookingCommand command)
     {
         // Safety check: Ensure the ID in URL matches the ID in the command body
@@ -164,6 +168,7 @@ public class BookingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [Authorize(Policy = "AcademicOffice_LabManager")]
     public async Task<IActionResult> RejectBooking(Guid id, [FromBody] RejectBookingCommand command)
     {
         // Consistency check: The ID in URL must match the ID in the payload
@@ -186,6 +191,7 @@ public class BookingsController : ControllerBase
     [HttpPost]
     [ProducesResponseType(typeof(Guid), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [Authorize(Policy = "Lecturer")]
     public async Task<IActionResult> CreateBooking([FromBody] CreateBookingCommand command)
     {
         // Execute command and get the resulting Guid
@@ -203,6 +209,7 @@ public class BookingsController : ControllerBase
 
     [HttpGet]
     [ProducesResponseType(typeof(PagedList<Application.Features.Bookings.Queries.GetBookings.BookingDto>), StatusCodes.Status200OK)]
+    [Authorize(Policy = "AcademicOffice_LabManager_Lecturer")]
     public async Task<IActionResult> GetBookings([FromQuery] GetBookingsQuery query)
     {
         // The Specification logic is encapsulated inside the Handler
@@ -223,6 +230,7 @@ public class BookingsController : ControllerBase
     /// If an error occurs, returns a 500 Internal Server Error.
     /// </returns>
     [HttpGet("history")]
+    [Authorize(Policy = "AcademicOffice_LabManager_Lecturer")]
     public async Task<IActionResult> GetBookingHistoryList([FromQuery] ViewBookingHistoryDTO dto)
     {
         try
@@ -302,6 +310,7 @@ public class BookingsController : ControllerBase
     /// Returns a 500 Internal Server Error if an exception occurs.
     /// </returns>
     [HttpGet("stats")]
+    [Authorize(Policy = "Lecturer")]
     public async Task<IActionResult> GetBookingStats([FromQuery] GetBookingStatsRequestDTO dto)
     {
         try
@@ -332,6 +341,7 @@ public class BookingsController : ControllerBase
         }
     }
     [HttpGet("get-unchecked-booking-request")]
+    [Authorize(Policy = "AcademicOffice_LabManager")]
     public async Task<IActionResult> GetUncheckedBookingRequestList([FromQuery] ViewBookingHistoryDTO dto)
     {
         try
@@ -347,6 +357,7 @@ public class BookingsController : ControllerBase
                 startDate = dto.startDate,
                 endDate = dto.endDate,
                 labRoomId = dto.labRoomId,
+                buildingId = dto.buildingId
             };
 
             var result = await _mediator.Send(command);
@@ -393,6 +404,7 @@ public class BookingsController : ControllerBase
 
 
     [HttpPost("check-conflict")]
+    [Authorize(Policy = "AcademicOffice_LabManager_Lecturer")]
     public async Task<IActionResult> CheckConflictAsync([FromBody] CreateBookingCommand booking)
     {
         if (booking == null) return Ok(new
@@ -437,6 +449,7 @@ public class BookingsController : ControllerBase
     /// - 500 Internal Server Error if an unexpected exception occurs.
     /// </returns>
     [HttpPost("add")]
+    [Authorize(Policy = "AcademicOffice")]
     public async Task<IActionResult> AddScheduleAsync([FromBody] ScheduleDto dtos, CancellationToken cancellationToken)
     {
         try
@@ -488,6 +501,7 @@ public class BookingsController : ControllerBase
 
 
     [HttpGet("purposes")] // api/bookings/purposes
+    [Authorize(Policy = "AcademicOffice_LabManager_Lecturer")]
     public async Task<ActionResult<PagedList<PurposeTypeDto>>> GetPurposes([FromQuery] GetPurposeTypesQuery query)
     {
         return Ok(await _mediator.Send(query));

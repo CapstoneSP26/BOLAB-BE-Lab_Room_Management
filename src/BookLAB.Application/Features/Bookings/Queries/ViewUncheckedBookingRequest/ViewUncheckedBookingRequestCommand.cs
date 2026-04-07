@@ -1,5 +1,6 @@
 ﻿using BookLAB.Application.Common.Models;
 using BookLAB.Domain.Entities;
+using BookLAB.Domain.Enums;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -15,6 +16,7 @@ namespace BookLAB.Application.Features.Bookings.Queries.ViewUncheckedBookingRequ
         public string status { get; set; }
         public DateTimeOffset startDate { get; set; }
         public DateTimeOffset endDate { get; set; }
+        public int? buildingId { get; set; }
         public int? labRoomId { get; set; }
     }
 }

@@ -27,6 +27,7 @@ namespace BookLAB.API.Controllers
         }
 
         [HttpGet("{id}/policies")]
+        [Authorize(Policy = "AcademicOffice_LabManager_Lecturer")]
         public async Task<IActionResult> GetPolicies(int id)
         {
             var query = new GetLabRoomPoliciesQuery { LabRoomId = id };
@@ -36,6 +37,7 @@ namespace BookLAB.API.Controllers
 
         [HttpGet]
         [ProducesResponseType(typeof(PagedList<LabRoomDto>), StatusCodes.Status200OK)]
+        [Authorize(Policy = "AcademicOffice_LabManager_Lecturer")]
         public async Task<IActionResult> GetLabRooms([FromQuery] GetLabRoomsQuery query)
         {
             var result = await _mediator.Send(query);

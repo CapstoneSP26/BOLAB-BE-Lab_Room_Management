@@ -36,6 +36,7 @@ namespace BookLAB.API.Controllers
         }
         
         [HttpGet("get-incident-reports")]
+        [Authorize(Policy = "AcademicOffice_LabManager")]
         public async Task<IActionResult> GetReportedReportAsync()
         {
             try
@@ -63,6 +64,7 @@ namespace BookLAB.API.Controllers
         }
 
         [HttpGet("listreports")]
+        [Authorize(Policy = "AcademicOffice_LabManager")]
         public async Task<IActionResult> GetUnresolvedReports([FromQuery] ReportRequestDto dto)
         {
             try
@@ -116,7 +118,7 @@ namespace BookLAB.API.Controllers
             public bool IsResolved { get; set; }
         }
 
-        private static object MapToResponse(Report report, Schedule? schedule, string? reasonOverride = null)
+        private static object MapToResponse(Report report, Schedule? schedule, string? username = "unknown", string? reasonOverride = null)
         {
             var labRoom = schedule?.LabRoom;
             var building = labRoom?.Building;
@@ -137,11 +139,13 @@ namespace BookLAB.API.Controllers
                 UpdatedAt = report.UpdatedAt,
                 CreatedBy = report.CreatedBy,
                 UpdatedBy = report.UpdatedBy,
+                UserName = username,
             };
         }
 
         [HttpPost]
         [Consumes("multipart/form-data")]
+        [Authorize(Policy = "Lecturer")]
         public async Task<IActionResult> CreateReportAsync([FromForm] CreateReportRequest request, CancellationToken cancellationToken)
         {
             try
@@ -214,6 +218,7 @@ namespace BookLAB.API.Controllers
         }
 
         [HttpGet("reasons")]
+        [Authorize(Policy = "AcademicOffice_LabManager_Lecturer")]
         public IActionResult GetReportReasons()
         {
             var reasons = new[]
@@ -228,6 +233,7 @@ namespace BookLAB.API.Controllers
         }
 
         [HttpGet("my-reports")]
+        [Authorize(Policy = "AcademicOffice_LabManager_Lecturer")]
         public async Task<IActionResult> GetMyReportsAsync(CancellationToken cancellationToken)
         {
             Guid.TryParse(HttpContext.User.FindFirst("Id")?.Value, out var userId);
@@ -263,6 +269,7 @@ namespace BookLAB.API.Controllers
         }
 
         [HttpGet("history")]
+        [Authorize(Policy = "AcademicOffice_LabManager_Lecturer")]
         public async Task<IActionResult> GetReportHistoryAsync(CancellationToken cancellationToken)
         {
             var reports = await _unitOfWork.Repository<Report>().Entities
@@ -279,6 +286,7 @@ namespace BookLAB.API.Controllers
         }
 
         [HttpGet("~/api/listreports")]
+        [Authorize(Policy = "AcademicOffice_LabManager_Lecturer")]
         public async Task<IActionResult> GetReportListAsync(CancellationToken cancellationToken)
         {
             var reports = await _unitOfWork.Repository<Report>().Entities
@@ -295,6 +303,7 @@ namespace BookLAB.API.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize(Policy = "AcademicOffice_LabManager")]
         public async Task<IActionResult> GetReportDetailAsync([FromRoute] Guid id, CancellationToken cancellationToken)
         {
             var report = await _unitOfWork.Repository<Report>().Entities
@@ -323,42 +332,53 @@ namespace BookLAB.API.Controllers
                 FileType = img.FileType.ToString()
             });
 
+            var user = await _unitOfWork.Repository<User>().GetByIdAsync(report.CreatedBy);
+
             return Ok(new
             {
                 success = true,
-                data = MapToResponse(report, report.Schedule),
+                data = MapToResponse(report, report.Schedule, user.FullName),
                 images = mappedImages
             });
         }
 
         [HttpPatch("{id}/resolve")]
+        [Authorize(Policy = "AcademicOffice_LabManager")]
         public async Task<IActionResult> ResolveReportAsync([FromRoute] Guid id, [FromBody] ResolveReportRequest request, CancellationToken cancellationToken)
         {
-            Guid.TryParse(HttpContext.User.FindFirst("Id")?.Value, out var userId);
-
-            var report = await _unitOfWork.Repository<Report>().Entities
-                .Include(r => r.Schedule)
-                .ThenInclude(s => s.LabRoom)
-                .ThenInclude(l => l.Building)
-                .Include(r => r.ReportType)
-                .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
-
-            if (report == null)
+            try
             {
-                return NotFound(new { success = false, message = "Report not found" });
+                Guid.TryParse(HttpContext.User.FindFirst("Id")?.Value, out var userId);
+
+                var report = await _unitOfWork.Repository<Report>().Entities
+                    .Include(r => r.Schedule)
+                    .ThenInclude(s => s.LabRoom)
+                    .ThenInclude(l => l.Building)
+                    .Include(r => r.ReportType)
+                    .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
+
+                if (report == null)
+                {
+                    return NotFound(new { success = false, message = "Report not found" });
+                }
+
+                report.IsResolved = request.IsResolved;
+                report.UpdatedAt = DateTimeOffset.UtcNow;
+                report.UpdatedBy = userId == Guid.Empty ? report.UpdatedBy : userId;
+
+                _unitOfWork.Repository<Report>().Update(report);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                return Ok(new { data = MapToResponse(report, report.Schedule) });
+            } catch (Exception ex)
+            {
+                return BadRequest(ex);
             }
-
-            report.IsResolved = request.IsResolved;
-            report.UpdatedAt = DateTimeOffset.UtcNow;
-            report.UpdatedBy = userId == Guid.Empty ? report.UpdatedBy : userId;
-
-            _unitOfWork.Repository<Report>().Update(report);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-            return Ok(new { data = MapToResponse(report, report.Schedule) });
+            
         }
 
         [HttpPost("resolved")]
+        [Authorize(Policy = "AcademicOffice_LabManager")]
         public async Task<IActionResult> ResolveReport([FromQuery] Guid reportId, [FromBody] TempReport tempReport)
         {
             try
