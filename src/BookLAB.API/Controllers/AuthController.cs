@@ -38,13 +38,10 @@ namespace BookLAB.API.Controllers
             var callbackPath = _linkGenerator.GetPathByName(HttpContext, "GoogleLoginCallback") ?? "/api/Auth/login/google/callback";
             var callbackUrl = $"{Request.Scheme}://{Request.Host}{callbackPath}?returnUrl={Uri.EscapeDataString(returnUrl ?? string.Empty)}";
 
-            var forcedCallbackUrl = HttpContext.RequestServices
-                .GetRequiredService<IConfiguration>()
-                ["Authentication:Google:RedirectUri"];
-
             var properties = new AuthenticationProperties
             {
-                RedirectUri = string.IsNullOrWhiteSpace(forcedCallbackUrl) ? callbackUrl : forcedCallbackUrl
+                // RedirectUri ở đây là URL nội bộ sau khi Google callback thành công
+                RedirectUri = callbackUrl
             };
 
             if (!string.IsNullOrWhiteSpace(returnUrl))
