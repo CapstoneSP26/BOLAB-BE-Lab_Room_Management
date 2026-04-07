@@ -1,78 +1,83 @@
 ﻿
+using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Interfaces.Services;
+using BookLAB.Application.Common.Models;
 using BookLAB.Domain.Entities;
+using BookLAB.Domain.Enums;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
 namespace BookLAB.Application.Features.Schedules.Commands.ImportSchedule
 {
-    public class ConfirmImportHandler : IRequestHandler<ConfirmImportCommand, bool>
+    public class ConfirmImportHandler : IRequestHandler<ConfirmImportCommand, ImportResult>
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IScheduleService _scheduleService;
+        private readonly IScheduleImportService _scheduleImportService;
+        private readonly ICurrentUserService _currentUserService;
 
-        public ConfirmImportHandler(IUnitOfWork unitOfWork, IScheduleService scheduleService)
+        public ConfirmImportHandler(IUnitOfWork unitOfWork, IScheduleImportService scheduleImportService, ICurrentUserService currentUserService)
         {
             _unitOfWork = unitOfWork;
-            _scheduleService = scheduleService;
+            _scheduleImportService = scheduleImportService;
+            _currentUserService = currentUserService;
         }
 
-        public async Task<bool> Handle(ConfirmImportCommand request, CancellationToken cancellationToken)
+        public async Task<ImportResult> Handle(ConfirmImportCommand request, CancellationToken cancellationToken)
         {
-            // 1. PRE-FETCH DATA (Optimize performance, avoid N+1 Query)
-            var slotTypeCodes = request.ValidSchedules.Select(s => s.SlotTypeCode).Distinct().ToList();
-            var roomCodes = request.ValidSchedules.Select(s => s.RoomNo.Trim().TrimEnd('.')).Distinct().ToList();
-            var lecturerNames = request.ValidSchedules.Select(s => s.Lecturer).Distinct().ToList();
-            var groupNames = request.ValidSchedules.Select(s => s.GroupName).Distinct().ToList();
-
-            // Get Map SlotType along with SlotFrame
-            var slotTypeMap = await _unitOfWork.Repository<SlotType>().Entities
-                .Include(st => st.SlotFrames)
-                .Where(st => slotTypeCodes.Contains(st.Code))
-                .ToDictionaryAsync(st => st.Code, st => st.SlotFrames.ToList(), cancellationToken);
-
-            // Get Map From LabRoom
-            var roomMap = await _unitOfWork.Repository<LabRoom>().Entities
-                .Where(r => roomCodes.Contains(r.RoomNo))
-                .ToDictionaryAsync(r => r.RoomNo, r => r, cancellationToken);
-
-            // Get Map Lecturer 
-            var lecturerMap = await _unitOfWork.Repository<User>().Entities
-                .Where(u => lecturerNames.Contains(u.UserCode))
-                .ToDictionaryAsync(u => u.UserCode, u => u, cancellationToken);
-
-            // Get Map Group 
-            var groupMap = await _unitOfWork.Repository<Group>().Entities
-                .Where(g => groupNames.Contains(g.GroupName))
-                .ToDictionaryAsync(g => g.GroupName, g => g, cancellationToken);
+            var result = await _scheduleImportService.ValidateAsync(request.Schedules, request.CampusId, cancellationToken, true);
+            var countUpdated = result.Rows.Count(r => r.Data.IsUpdated);
+            var countNew = result.Rows.Count(r => !r.Data.IsUpdated);
+            var now = DateTimeOffset.UtcNow;
+            if (!result.CanCommit)
+            {
+                return new ImportResult
+                {
+                    Success = false,
+                };
+            }
 
             await _unitOfWork.BeginTransactionAsync();
             try
             {
-                //  VALIDATION LOOP
-                foreach (var item in request.ValidSchedules)
+                var newSchedules = new List<Schedule>();
+                foreach (var row in result.Rows)
                 {
-                    var validation = _scheduleService.CheckSingleRowAsync(item, roomMap, lecturerMap, groupMap, slotTypeMap, cancellationToken);
-                    if (validation.IsCritical)
+                    var entity = row.ConvertedEntity;
+                    if (row.Data.IsUpdated)
                     {
-                        throw new Exception($"Dữ liệu đã thay đổi: {string.Join(", ", validation.Messages)}");
+                        entity.UpdatedAt = now;
+                        entity.UpdatedBy = _currentUserService.UserId;
+                        _unitOfWork.Repository<Schedule>().Update(entity);
                     }
-
-                    var newSchedule = _scheduleService.ConvertToScheduleEntity(item, roomMap, lecturerMap, groupMap, slotTypeMap, cancellationToken);
-                    await _unitOfWork.Repository<Schedule>().AddAsync(newSchedule);
+                    else
+                    {
+                        entity.ScheduleStatus = ScheduleStatus.Active;
+                        entity.ScheduleType = ScheduleType.Academic;
+                        entity.CreatedAt = now;
+                        entity.CreatedBy = _currentUserService.UserId;
+                        newSchedules.Add(entity);
+                    }                
                 }
-
+                if (newSchedules.Any())
+                {
+                    await _unitOfWork.Repository<Schedule>().AddRangeAsync(newSchedules);
+                }
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
                 await _unitOfWork.CommitTransactionAsync();
-                return true;
+
+                return new ImportResult
+                {
+                    Success = true,
+                    CreatedCount = countNew,
+                    UpdatedCount = countUpdated,
+                    TotalProcessed = result.Rows.Count,
+                };
             }
             catch
             {
                 await _unitOfWork.RollbackTransactionAsync();
                 throw;
             }
-
 
         }
     }

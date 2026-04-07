@@ -153,7 +153,7 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("ScheduleId")
                         .HasColumnType("uuid");
 
-                    b.Property<int>("SlotTypeId")
+                    b.Property<int?>("SlotTypeId")
                         .HasColumnType("integer");
 
                     b.Property<DateTimeOffset>("StartTime")
@@ -395,6 +395,7 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = 1,
+                            BuildingImageUrl = "",
                             BuildingName = "Science Building",
                             CampusId = 1,
                             Description = "Science faculty building"
@@ -402,6 +403,7 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = 2,
+                            BuildingImageUrl = "",
                             BuildingName = "Engineering Building",
                             CampusId = 1,
                             Description = "Engineering labs"
@@ -409,6 +411,7 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = 3,
+                            BuildingImageUrl = "",
                             BuildingName = "Admin Building",
                             CampusId = 2,
                             Description = "Administration"
@@ -426,6 +429,10 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                     b.Property<string>("Address")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
+
+                    b.Property<string>("CampusCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<string>("CampusImageUrl")
                         .HasMaxLength(2048)
@@ -1033,6 +1040,38 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                     b.HasIndex("ScheduleId");
 
                     b.ToTable("Reports", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("21212121-2121-2121-2121-212121212121"),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 20, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedBy = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Description = "Projector not working",
+                            IsResolved = false,
+                            ReportTypeId = 1,
+                            ScheduleId = new Guid("27272727-2727-2727-2727-272727272727")
+                        },
+                        new
+                        {
+                            Id = new Guid("22222222-2222-2222-2222-222222222221"),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 21, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedBy = new Guid("22222222-2222-2222-2222-222222222222"),
+                            Description = "Broken chair",
+                            IsResolved = false,
+                            ReportTypeId = 1,
+                            ScheduleId = new Guid("28282828-2828-2828-2828-282828282828")
+                        },
+                        new
+                        {
+                            Id = new Guid("23232323-2323-2323-2323-232323232323"),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 22, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedBy = new Guid("33333333-3333-3333-3333-333333333333"),
+                            Description = "AC not cooling",
+                            IsResolved = false,
+                            ReportTypeId = 1,
+                            ScheduleId = new Guid("29292929-2929-2929-2929-292929292929")
+                        });
                 });
 
             modelBuilder.Entity("BookLAB.Domain.Entities.ReportImage", b =>
@@ -1105,6 +1144,53 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                     b.HasKey("ReportTypeId");
 
                     b.ToTable("ReportTypes", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            ReportTypeId = 1,
+                            ReportTypeName = "Thiết bị hư hỏng"
+                        },
+                        new
+                        {
+                            ReportTypeId = 2,
+                            ReportTypeName = "Thiết bị mất"
+                        },
+                        new
+                        {
+                            ReportTypeId = 3,
+                            ReportTypeName = "Vấn đề vệ sinh"
+                        },
+                        new
+                        {
+                            ReportTypeId = 4,
+                            ReportTypeName = "Điều hòa không hoạt động"
+                        },
+                        new
+                        {
+                            ReportTypeId = 5,
+                            ReportTypeName = "Vấn đề chiếu sáng"
+                        },
+                        new
+                        {
+                            ReportTypeId = 6,
+                            ReportTypeName = "Bàn ghế hư hỏng"
+                        },
+                        new
+                        {
+                            ReportTypeId = 7,
+                            ReportTypeName = "Mất kết nối mạng"
+                        },
+                        new
+                        {
+                            ReportTypeId = 8,
+                            ReportTypeName = "Khóa cửa hỏng"
+                        },
+                        new
+                        {
+                            ReportTypeId = 9,
+                            ReportTypeName = "Khác"
+                        });
                 });
 
             modelBuilder.Entity("BookLAB.Domain.Entities.Role", b =>
@@ -1248,6 +1334,10 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("GroupId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("ImportHash")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
@@ -1274,7 +1364,7 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
-                    b.Property<int>("SlotTypeId")
+                    b.Property<int?>("SlotTypeId")
                         .HasColumnType("integer");
 
                     b.Property<DateTimeOffset>("StartTime")
@@ -1299,6 +1389,9 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.HasIndex("GroupId");
+
+                    b.HasIndex("ImportHash")
+                        .IsUnique();
 
                     b.HasIndex("LabRoomId");
 
@@ -1675,8 +1768,7 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                     b.HasOne("BookLAB.Domain.Entities.SlotType", "SlotType")
                         .WithMany()
                         .HasForeignKey("SlotTypeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("LabRoom");
 
@@ -1897,8 +1989,7 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                     b.HasOne("BookLAB.Domain.Entities.SlotType", "SlotType")
                         .WithMany()
                         .HasForeignKey("SlotTypeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Booking");
 

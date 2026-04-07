@@ -17,6 +17,10 @@ public class CampusConfiguration : IEntityTypeConfiguration<Campus>
             .HasMaxLength(150)
             .IsRequired();
 
+        builder.Property(c => c.CampusCode)
+            .HasMaxLength(50)
+            .IsRequired(false);
+
         builder.Property(c => c.Address)
             .HasMaxLength(500)
             .IsRequired(false);

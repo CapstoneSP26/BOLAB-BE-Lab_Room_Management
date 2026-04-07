@@ -2,6 +2,7 @@
 using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Policies;
+using BookLAB.Application.Features.Bookings.Events;
 using BookLAB.Domain.Entities;
 using BookLAB.Domain.Enums;
 using MediatR;
@@ -14,15 +15,18 @@ namespace BookLAB.Application.Features.Bookings.Commands.CreateBooking
         private readonly IUnitOfWork _unitOfWork;
         private readonly IPolicyEvaluator _policyEvaluator;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IMediator _mediator;
 
         public CreateBookingCommandHandler(
         IUnitOfWork unitOfWork,
         IPolicyEvaluator policyEvaluator,
-        ICurrentUserService currentUserService)
+        ICurrentUserService currentUserService,
+        IMediator mediator)
         {
             _unitOfWork = unitOfWork;
             _policyEvaluator = policyEvaluator;
             _currentUserService = currentUserService;
+            _mediator = mediator;
         }
 
         public async Task<Guid> Handle(CreateBookingCommand request, CancellationToken ct)
@@ -102,6 +106,7 @@ namespace BookLAB.Application.Features.Bookings.Commands.CreateBooking
 
                 await _unitOfWork.SaveChangesAsync(ct);
                 await _unitOfWork.CommitTransactionAsync();
+                _mediator.Publish(new BookingCreatedEvent(booking.Id));
 
                 return booking.Id;
             }
