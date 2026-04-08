@@ -38,7 +38,7 @@ namespace BookLAB.Application.Common.Jobs.Schedules
                 StartTime = booking.StartTime,
                 EndTime = booking.EndTime,
                 ScheduleStatus = ScheduleStatus.Active,
-                ScheduleType = ScheduleType.Booking,
+                ScheduleType = ScheduleType.Personal,
                 CreatedAt = DateTimeOffset.UtcNow,
                 CreatedBy = booking.CreatedBy
             };

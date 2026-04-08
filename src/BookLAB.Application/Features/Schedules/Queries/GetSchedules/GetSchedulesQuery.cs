@@ -14,6 +14,7 @@ namespace BookLAB.Application.Features.Schedules.Queries.GetSchedules
         public string? SubjectCode { get; set; }
         public DateTimeOffset? FromDate { get; set; }
         public DateTimeOffset? ToDate { get; set; }
+        public ScheduleStatus? ExcludedStatus { get; set; }
 
         // Pagination & Sorting
         public int PageNumber { get; set; } = 1;
