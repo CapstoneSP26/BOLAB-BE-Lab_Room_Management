@@ -1,6 +1,7 @@
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Models;
 using BookLAB.Application.Features.Auth.Queries.GetProfile;
+using BookLAB.Application.Features.LoginWithGoogle;
 using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
@@ -131,7 +132,6 @@ namespace BookLAB.API.Controllers
 
             return Redirect(returnUrl);
         }
-
 
         [HttpGet("sign-out")]
         public async Task<IActionResult> SignOut()

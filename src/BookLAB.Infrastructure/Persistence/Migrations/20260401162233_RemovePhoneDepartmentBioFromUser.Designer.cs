@@ -3,6 +3,7 @@ using System;
 using BookLAB.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BookLAB.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(BookLABDbContext))]
-    partial class BookLABDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260401162233_RemovePhoneDepartmentBioFromUser")]
+    partial class RemovePhoneDepartmentBioFromUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -395,7 +398,6 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = 1,
-                            BuildingImageUrl = "",
                             BuildingName = "Science Building",
                             CampusId = 1,
                             Description = "Science faculty building"
@@ -403,7 +405,6 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = 2,
-                            BuildingImageUrl = "",
                             BuildingName = "Engineering Building",
                             CampusId = 1,
                             Description = "Engineering labs"
@@ -411,7 +412,6 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = 3,
-                            BuildingImageUrl = "",
                             BuildingName = "Admin Building",
                             CampusId = 2,
                             Description = "Administration"
@@ -429,10 +429,6 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                     b.Property<string>("Address")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
-
-                    b.Property<string>("CampusCode")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
 
                     b.Property<string>("CampusImageUrl")
                         .HasMaxLength(2048)
@@ -940,11 +936,16 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("UserId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid>("UserId1")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
                     b.HasIndex("IsGlobal");
 
                     b.HasIndex("UserId");
+
+                    b.HasIndex("UserId1");
 
                     b.ToTable("Notifications", (string)null);
                 });
@@ -1329,10 +1330,6 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("GroupId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("ImportHash")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
-
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
@@ -1359,7 +1356,7 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
-                    b.Property<int?>("SlotTypeId")
+                    b.Property<int>("SlotTypeId")
                         .HasColumnType("integer");
 
                     b.Property<DateTimeOffset>("StartTime")
@@ -1384,9 +1381,6 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.HasIndex("GroupId");
-
-                    b.HasIndex("ImportHash")
-                        .IsUnique();
 
                     b.HasIndex("LabRoomId");
 
@@ -1607,6 +1601,9 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
                         .HasDefaultValue(false);
+
+                    b.Property<DateTimeOffset?>("LastLogin")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Provider")
                         .HasMaxLength(100)
@@ -1903,10 +1900,16 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("BookLAB.Domain.Entities.Notification", b =>
                 {
-                    b.HasOne("BookLAB.Domain.Entities.User", "User")
+                    b.HasOne("BookLAB.Domain.Entities.User", null)
                         .WithMany("Notifications")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("BookLAB.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId1")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("User");
                 });
@@ -1978,7 +1981,8 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                     b.HasOne("BookLAB.Domain.Entities.SlotType", "SlotType")
                         .WithMany()
                         .HasForeignKey("SlotTypeId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("Booking");
 

@@ -3,7 +3,7 @@ using BookLAB.Domain.Entities;
 
 namespace BookLAB.Application.Features.Schedules.Queries.GetSchedules;
 
-public class ScheduleMappingProfile : Profile
+public class ScheduleMappingProfile : AutoMapper.Profile
 {
     public ScheduleMappingProfile()
     {

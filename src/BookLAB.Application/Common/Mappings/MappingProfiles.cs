@@ -10,7 +10,7 @@ using System.Text;
 
 namespace BookLAB.Application.Common.Mappings
 {
-    public class MappingProfiles : Profile
+    public class MappingProfiles : AutoMapper.Profile
     {
         public MappingProfiles()
         {

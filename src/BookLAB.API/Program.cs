@@ -1,6 +1,9 @@
+using BookLAB.API.Hubs;
 using BookLAB.API.Middlewares;
+using BookLAB.API.Services;
 using BookLAB.Application;
 using BookLAB.Application.Common.Interfaces.Identity;
+using BookLAB.Application.Common.Interfaces.Integration;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Infrastructure;
 using BookLAB.Infrastructure.Identity;
@@ -131,6 +134,8 @@ builder.Services.AddApplicationServices();
 // Infrastructure layer
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddControllers();
+builder.Services.AddSignalR();
+builder.Services.AddScoped<INotificationService, SignalRNotificationService>();
 
 builder.Services.AddDbContext<BookLABDbContext>(opt =>
 {
@@ -165,6 +170,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<NotificationsHub>("/hubs/notifications");
 app.UseHangfireDashboard();
 
 app.Run();

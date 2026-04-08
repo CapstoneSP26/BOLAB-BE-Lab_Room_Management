@@ -3,6 +3,7 @@ using System;
 using BookLAB.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BookLAB.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(BookLABDbContext))]
-    partial class BookLABDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260408065943_FixNotificationUserId1ForeignKey")]
+    partial class FixNotificationUserId1ForeignKey
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -940,11 +943,16 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("UserId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("UserId1")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
                     b.HasIndex("IsGlobal");
 
                     b.HasIndex("UserId");
+
+                    b.HasIndex("UserId1");
 
                     b.ToTable("Notifications", (string)null);
                 });
@@ -1903,10 +1911,14 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("BookLAB.Domain.Entities.Notification", b =>
                 {
-                    b.HasOne("BookLAB.Domain.Entities.User", "User")
+                    b.HasOne("BookLAB.Domain.Entities.User", null)
                         .WithMany("Notifications")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("BookLAB.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId1");
 
                     b.Navigation("User");
                 });
