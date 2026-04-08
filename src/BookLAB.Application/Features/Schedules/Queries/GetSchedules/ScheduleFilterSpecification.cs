@@ -26,6 +26,13 @@ namespace BookLAB.Application.Features.Schedules.Queries.GetSchedules
             if (!string.IsNullOrEmpty(query.SubjectCode))
                 AddCriteria(s => s.SubjectCode.Contains(query.SubjectCode));
 
+            if (query.ExcludedStatus.HasValue)
+            {
+                AddCriteria(s => s.ScheduleStatus != query.ExcludedStatus.Value);
+            }
+
+            AddCriteria(s => s.IsActive && !s.IsDeleted);
+
             ApplyOrderBy(s => s.StartTime);
         }
     }
