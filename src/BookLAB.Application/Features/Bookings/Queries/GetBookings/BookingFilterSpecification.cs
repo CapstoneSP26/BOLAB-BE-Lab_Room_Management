@@ -28,7 +28,6 @@ namespace BookLAB.Application.Features.Bookings.Queries.GetBookings
             {
                 AddCriteria(b => b.Booking.BookingStatus == query.Status.Value);
             }
-
             ApplyOrderBy(b => b.Booking.StartTime);
 
         }

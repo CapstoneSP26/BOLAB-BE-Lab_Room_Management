@@ -1,4 +1,6 @@
 using BookLAB.Application.Common.Interfaces.Repositories;
+using BookLAB.Application.Common.Models;
+using BookLAB.Application.Features.Auth.Queries.GetProfile;
 using BookLAB.Application.Features.LoginWithGoogle;
 using MediatR;
 using Microsoft.AspNetCore.Authentication;
@@ -57,8 +59,7 @@ namespace BookLAB.API.Controllers
                 return Unauthorized();
             }
 
-            var account = await _userRepository.GetByProviderUserIdAsync(
-                result.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var account = await _userRepository.GetByEmailAsync(result.Principal?.FindFirst(ClaimTypes.Email)?.Value);
 
             if (account == null)
             {
@@ -141,6 +142,13 @@ namespace BookLAB.API.Controllers
                 success = true,
                 message = "Sign out successfully!"
             });
+        }
+
+        [HttpGet("profile")]
+        public async Task<ActionResult<UserProfileDto>> GetProfile()
+        {
+            var result = await _mediator.Send(new GetProfileQuery());
+            return Ok(result);
         }
     }
 }
