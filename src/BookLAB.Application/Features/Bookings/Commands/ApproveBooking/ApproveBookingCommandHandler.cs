@@ -1,5 +1,6 @@
 using BookLAB.Application.Common.Exceptions;
 using BookLAB.Application.Common.Interfaces.Identity;
+using BookLAB.Application.Common.Interfaces.Integration;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Features.Bookings.Events;
 using BookLAB.Domain.Entities;
@@ -14,12 +15,18 @@ namespace BookLAB.Application.Features.Bookings.Commands.ApproveBooking
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMediator _mediator;
         private readonly ICurrentUserService _currentUserService;
+        private readonly INotificationService _notificationService;
 
-        public ApproveBookingCommandHandler(IUnitOfWork unitOfWork, IMediator mediator, ICurrentUserService currentUserService)
+        public ApproveBookingCommandHandler(
+            IUnitOfWork unitOfWork,
+            IMediator mediator,
+            ICurrentUserService currentUserService,
+            INotificationService notificationService)
         {
             _unitOfWork = unitOfWork;
             _mediator = mediator;
             _currentUserService = currentUserService;
+            _notificationService = notificationService;
         }
 
         public async Task<bool> Handle(ApproveBookingCommand request, CancellationToken cancellationToken)
@@ -99,9 +106,10 @@ namespace BookLAB.Application.Features.Bookings.Commands.ApproveBooking
                 booking.BookingStatus = BookingStatus.Approved;
                 _unitOfWork.Repository<Booking>().Update(booking);
 
+                Notification? createdNotification = null;
                 if (booking.CreatedBy.HasValue)
                 {
-                    await _unitOfWork.Repository<Notification>().AddAsync(new Notification
+                    createdNotification = new Notification
                     {
                         UserId = booking.CreatedBy.Value,
                         Title = "Booking approved",
@@ -111,11 +119,27 @@ namespace BookLAB.Application.Features.Bookings.Commands.ApproveBooking
                         CreatedAt = DateTimeOffset.UtcNow,
                         Metadata = $"{{\"bookingId\":\"{booking.Id}\"}}",
                         IsGlobal = false
-                    });
+                    };
+
+                    await _unitOfWork.Repository<Notification>().AddAsync(createdNotification);
                 }
 
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
                 await _unitOfWork.CommitTransactionAsync();
+
+                if (createdNotification?.UserId is Guid notificationUserId)
+                {
+                    await _notificationService.NotifyNotificationCreatedAsync(notificationUserId, new
+                    {
+                        id = createdNotification.Id,
+                        type = createdNotification.Type,
+                        title = createdNotification.Title,
+                        message = createdNotification.Message,
+                        isRead = createdNotification.IsRead,
+                        createdAt = createdNotification.CreatedAt,
+                        metadata = createdNotification.Metadata
+                    }, cancellationToken);
+                }
 
                 // throw event to notify other parts of the system that a booking has been approved
                 await _mediator.Publish(new BookingApprovedEvent(booking.Id, currentUserId), cancellationToken);

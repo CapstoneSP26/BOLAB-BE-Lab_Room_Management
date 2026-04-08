@@ -1,6 +1,7 @@
-﻿namespace BookLAB.Application.Common.Interfaces.Integration
+namespace BookLAB.Application.Common.Interfaces.Integration
 {
-    internal interface INotificationService
+    public interface INotificationService
     {
+        Task NotifyNotificationCreatedAsync(Guid userId, object payload, CancellationToken cancellationToken = default);
     }
 }
