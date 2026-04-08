@@ -1,4 +1,4 @@
-﻿using BookLAB.Application.Common.Exceptions;
+using BookLAB.Application.Common.Exceptions;
 using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Policies;
@@ -104,9 +104,21 @@ namespace BookLAB.Application.Features.Bookings.Commands.CreateBooking
                 };
                 await _unitOfWork.Repository<BookingRequest>().AddAsync(bookingRequest);
 
+                await _unitOfWork.Repository<Notification>().AddAsync(new Notification
+                {
+                    UserId = currentUserId,
+                    Title = "Booking request submitted",
+                    Message = $"Your booking request for room {room.RoomName} has been submitted and is waiting for approval.",
+                    Type = "BookingCreated",
+                    IsRead = false,
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    Metadata = $"{{\"bookingId\":\"{booking.Id}\"}}",
+                    IsGlobal = false
+                });
+
                 await _unitOfWork.SaveChangesAsync(ct);
                 await _unitOfWork.CommitTransactionAsync();
-                _mediator.Publish(new BookingCreatedEvent(booking.Id));
+                await _mediator.Publish(new BookingCreatedEvent(booking.Id), ct);
 
                 return booking.Id;
             }

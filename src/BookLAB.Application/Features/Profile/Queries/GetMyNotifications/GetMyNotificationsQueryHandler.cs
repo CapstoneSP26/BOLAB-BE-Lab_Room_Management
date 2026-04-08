@@ -41,7 +41,7 @@ public class GetMyNotificationsQueryHandler : IRequestHandler<GetMyNotifications
                 UserId = n.UserId,
                 Title = n.Title,
                 Message = n.Message,
-                Type = "Notification",  // TODO: Use actual notification type from entity
+                Type = n.Type,
                 IsRead = n.IsRead,
                 CreatedAt = n.CreatedAt,
                 ReadAt = n.ReadAt

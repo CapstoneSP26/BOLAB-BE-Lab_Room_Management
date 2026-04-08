@@ -1,4 +1,4 @@
-﻿using BookLAB.Application.Common.Exceptions;
+using BookLAB.Application.Common.Exceptions;
 using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Features.Bookings.Events;
@@ -98,6 +98,21 @@ namespace BookLAB.Application.Features.Bookings.Commands.ApproveBooking
 
                 booking.BookingStatus = BookingStatus.Approved;
                 _unitOfWork.Repository<Booking>().Update(booking);
+
+                if (booking.CreatedBy.HasValue)
+                {
+                    await _unitOfWork.Repository<Notification>().AddAsync(new Notification
+                    {
+                        UserId = booking.CreatedBy.Value,
+                        Title = "Booking approved",
+                        Message = $"Your booking for room {booking.LabRoom.RoomName} has been approved.",
+                        Type = "BookingApproved",
+                        IsRead = false,
+                        CreatedAt = DateTimeOffset.UtcNow,
+                        Metadata = $"{{\"bookingId\":\"{booking.Id}\"}}",
+                        IsGlobal = false
+                    });
+                }
 
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
                 await _unitOfWork.CommitTransactionAsync();

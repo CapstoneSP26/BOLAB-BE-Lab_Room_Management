@@ -1,4 +1,4 @@
-﻿using BookLAB.Application.Common.Exceptions;
+using BookLAB.Application.Common.Exceptions;
 using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Features.Bookings.Events;
@@ -53,12 +53,26 @@ namespace BookLAB.Application.Features.Bookings.Commands.RejectBooking
                 bookingRequest.BookingRequestStatus = BookingRequestStatus.Rejected;
                 bookingRequest.ResponseContext = request.Reason; 
                 _unitOfWork.Repository<BookingRequest>().Update(bookingRequest);
-          
+
+                if (booking.CreatedBy.HasValue)
+                {
+                    await _unitOfWork.Repository<Notification>().AddAsync(new Notification
+                    {
+                        UserId = booking.CreatedBy.Value,
+                        Title = "Booking rejected",
+                        Message = $"Your booking request has been rejected. Reason: {request.Reason}",
+                        Type = "BookingRejected",
+                        IsRead = false,
+                        CreatedAt = DateTimeOffset.UtcNow,
+                        Metadata = $"{{\"bookingId\":\"{booking.Id}\"}}",
+                        IsGlobal = false
+                    });
+                }
 
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
                 await _unitOfWork.CommitTransactionAsync();
 
-                _mediator.Publish(new BookingRejectedEvent(booking.Id), cancellationToken);
+                await _mediator.Publish(new BookingRejectedEvent(booking.Id), cancellationToken);
 
                 return true;
             }
