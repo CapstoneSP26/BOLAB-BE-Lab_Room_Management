@@ -270,7 +270,7 @@ namespace BookLAB.API.Controllers
 
         [HttpGet("history")]
         [Authorize(Policy = "AcademicOffice_LabManager_Lecturer")]
-        public async Task<IActionResult> GetReportHistoryAsync(CancellationToken cancellationToken)
+        public async Task<IActionResult> GetReportHistoryAsync([FromQuery] int page = 1, [FromQuery] int limit = 20, CancellationToken cancellationToken = default)
         {
             page = page <= 0 ? 1 : page;
             limit = limit <= 0 ? 20 : limit;
@@ -328,7 +328,7 @@ namespace BookLAB.API.Controllers
 
         [HttpGet("~/api/listreports")]
         [Authorize(Policy = "AcademicOffice_LabManager_Lecturer")]
-        public async Task<IActionResult> GetReportListAsync(CancellationToken cancellationToken)
+        public async Task<IActionResult> GetReportListAsync([FromQuery] int page = 1, [FromQuery] int limit = 20, CancellationToken cancellationToken = default)
         {
             page = page <= 0 ? 1 : page;
             limit = limit <= 0 ? 20 : limit;

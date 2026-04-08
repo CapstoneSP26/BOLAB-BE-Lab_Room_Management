@@ -1,5 +1,4 @@
 using BookLAB.Application.Common.Models;
-using BookLAB.Application.Common.Security;
 using BookLAB.Application.Features.Profile.Commands.ChangePassword;
 using BookLAB.Application.Features.Profile.Commands.MarkNotificationAsRead;
 using BookLAB.Application.Features.Profile.Commands.UpdateAvatar;
@@ -10,6 +9,7 @@ using BookLAB.Application.Features.Profile.Queries.GetMyProfile;
 using BookLAB.Application.Features.Profile.Queries.GetProfileStatistics;
 using BookLAB.Application.Features.Profile.Queries.GetRecentActivities;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BookLAB.API.Controllers;
