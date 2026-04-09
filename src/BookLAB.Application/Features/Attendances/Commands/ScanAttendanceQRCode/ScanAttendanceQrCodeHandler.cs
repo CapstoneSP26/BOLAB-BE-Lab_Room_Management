@@ -1,5 +1,6 @@
 ﻿using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Interfaces.Services;
+using BookLAB.Application.Common.Models;
 using BookLAB.Application.Features.Attendances.Commands.ScanAttendanceQRCode;
 using BookLAB.Domain.Entities;
 using BookLAB.Domain.Enums;
@@ -13,7 +14,7 @@ using System.Text;
 
 namespace BookLAB.Application.Features.Attendances.Commands.ScanAttendanceQRCode
 {
-    public class ScanAttendanceQrCodeHandler : IRequestHandler<ScanAttendanceQrCodeCommand, bool>
+    public class ScanAttendanceQrCodeHandler : IRequestHandler<ScanAttendanceQrCodeCommand, ResultMessage<bool>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IQrManagements _qrManagements;
@@ -38,23 +39,26 @@ namespace BookLAB.Application.Features.Attendances.Commands.ScanAttendanceQRCode
         /// <param name="request">The command containing scheduleId, studentId, attendanceId, and check-in flag.</param>
         /// <param name="cancellationToken">Token to cancel the operation if requested.</param>
         /// <returns>True if attendance was recorded successfully, false otherwise.</returns>
-        public async Task<bool> Handle(ScanAttendanceQrCodeCommand request, CancellationToken cancellationToken)
+        public async Task<ResultMessage<bool>> Handle(ScanAttendanceQrCodeCommand request, CancellationToken cancellationToken)
         {
             // Ensure the QR code does not already exist in the system
             if (_qrManagements.CheckQrCodeExist(new Qr { scheduleId = request.scheduleId, isCheckIn = request.IsCheckIn }))
-                return false;
+                return new ResultMessage<bool> { Success = false, Message = "QR code already exists." };
 
             // Verify that the schedule exists in the database
             if (!await _unitOfWork.Repository<Schedule>().Entities.AnyAsync(s => s.Id == request.scheduleId, cancellationToken))
-                return false;
+                return new ResultMessage<bool> { Success = false, Message = "Schedule does not exist." };
 
             // Verify that the student exists in the user repository
             if (!await _userRepository.IfExisted(request.studentId))
-                return false;
+                return new ResultMessage<bool> { Success = false, Message = "Student does not exist." };
 
             // Prevent invalid check-out if AttendanceId is provided incorrectly
             if ((request.AttendanceId != null && request.AttendanceId != Guid.Empty) && !request.IsCheckIn)
-                return false;
+                return new ResultMessage<bool> { Success = false, Message = "Invalid check-out attempt." };
+
+            if (_unitOfWork.Repository<Attendance>().Entities.Any(x => x.ScheduleId == request.scheduleId && x.UserId == request.studentId && !x.CheckInTime.HasValue == request.IsCheckIn))
+                return new ResultMessage<bool> { Success = false, Message = "Attendance record already exists." };
 
             // Build the Attendance record depending on check-in or check-out
             var attendance = request.IsCheckIn
@@ -95,7 +99,7 @@ namespace BookLAB.Application.Features.Attendances.Commands.ScanAttendanceQRCode
                 // Commit transaction if everything succeeds
                 await _unitOfWork.CommitTransactionAsync();
 
-                return true; // Attendance recorded successfully
+                return new ResultMessage<bool> { Success = true, Message = "Attendance recorded successfully.", Data = true };
             }
             catch (Exception ex)
             {
@@ -105,7 +109,7 @@ namespace BookLAB.Application.Features.Attendances.Commands.ScanAttendanceQRCode
                 // Log the exception with details for debugging
                 _logger.LogError(ex, "Error scanning QR code for ScheduleId {ScheduleId}", request.scheduleId);
 
-                return false; // Return false if an exception was thrown
+                return new ResultMessage<bool> { Success = false }; // Return false if an exception was thrown
             }
         }
 

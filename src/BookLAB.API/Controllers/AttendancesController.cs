@@ -143,7 +143,7 @@ public class AttendancesController : ControllerBase
     /// - 500 Internal Server Error if an unexpected exception occurs.
     /// </returns>
     [HttpGet("scan-qrcode")]
-    [Authorize(Policy = "Lecturer")]
+    [Authorize(Policy = "Student")]
     public async Task<IActionResult> ScanAttendanceQRCode([FromQuery] Guid qrId, [FromQuery] Guid scheduleId, [FromQuery] Guid studentId, [FromQuery] bool isCheckIn, CancellationToken cancellationToken)
     {
         try
@@ -170,16 +170,16 @@ public class AttendancesController : ControllerBase
             var result = await _mediator.Send(command, cancellationToken);
 
             // Return failure response if the QR code scan was unsuccessful
-            if (!result)
+            if (!result.Success)
             {
-                return BadRequest("Failed to scan the QR code. Please ensure the QR code is valid and try again.");
+                return BadRequest(result.Message);
             }
 
             // Return success response if the QR code scan was successful
             return Ok(new
             {
-                success = true,
-                message = "QR code scanned successfully."
+                success = result.Success,
+                message = result.Message
             });
         }
         catch (Exception ex)
