@@ -57,7 +57,7 @@ namespace BookLAB.Application.Features.Attendances.Commands.ScanAttendanceQRCode
             if ((request.AttendanceId != null && request.AttendanceId != Guid.Empty) && !request.IsCheckIn)
                 return new ResultMessage<bool> { Success = false, Message = "Invalid check-out attempt." };
 
-            if (_unitOfWork.Repository<Attendance>().Entities.Any(x => x.ScheduleId == request.scheduleId && x.UserId == request.studentId && !x.CheckInTime.HasValue == request.IsCheckIn))
+            if (_unitOfWork.Repository<Attendance>().Entities.Any(x => x.ScheduleId == request.scheduleId && x.UserId == request.studentId && x.CheckInTime.HasValue == request.IsCheckIn))
                 return new ResultMessage<bool> { Success = false, Message = "Attendance record already exists." };
 
             // Build the Attendance record depending on check-in or check-out
