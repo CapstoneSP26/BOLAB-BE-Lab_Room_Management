@@ -1,5 +1,6 @@
-﻿using BookLAB.Application.Common.Exceptions;
+using BookLAB.Application.Common.Exceptions;
 using BookLAB.Application.Common.Interfaces.Identity;
+using BookLAB.Application.Common.Interfaces.Integration;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Features.Bookings.Events;
 using BookLAB.Domain.Entities;
@@ -14,12 +15,18 @@ namespace BookLAB.Application.Features.Bookings.Commands.RejectBooking
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUserService _currentUserService;
         private readonly IMediator _mediator;
+        private readonly INotificationService _notificationService;
 
-        public RejectBookingCommandHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService, IMediator mediator)
+        public RejectBookingCommandHandler(
+            IUnitOfWork unitOfWork,
+            ICurrentUserService currentUserService,
+            IMediator mediator,
+            INotificationService notificationService)
         {
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
             _mediator = mediator;
+            _notificationService = notificationService;
         }
 
         public async Task<bool> Handle(RejectBookingCommand request, CancellationToken cancellationToken)
@@ -53,12 +60,43 @@ namespace BookLAB.Application.Features.Bookings.Commands.RejectBooking
                 bookingRequest.BookingRequestStatus = BookingRequestStatus.Rejected;
                 bookingRequest.ResponseContext = request.Reason; 
                 _unitOfWork.Repository<BookingRequest>().Update(bookingRequest);
-          
+
+                Notification? createdNotification = null;
+                if (booking.CreatedBy.HasValue)
+                {
+                    createdNotification = new Notification
+                    {
+                        UserId = booking.CreatedBy.Value,
+                        Title = "Booking rejected",
+                        Message = $"Your booking request has been rejected. Reason: {request.Reason}",
+                        Type = "BookingRejected",
+                        IsRead = false,
+                        CreatedAt = DateTimeOffset.UtcNow,
+                        Metadata = $"{{\"bookingId\":\"{booking.Id}\"}}",
+                        IsGlobal = false
+                    };
+
+                    await _unitOfWork.Repository<Notification>().AddAsync(createdNotification);
+                }
 
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
                 await _unitOfWork.CommitTransactionAsync();
 
-                _mediator.Publish(new BookingRejectedEvent(booking.Id), cancellationToken);
+                if (createdNotification?.UserId is Guid notificationUserId)
+                {
+                    await _notificationService.NotifyNotificationCreatedAsync(notificationUserId, new
+                    {
+                        id = createdNotification.Id,
+                        type = createdNotification.Type,
+                        title = createdNotification.Title,
+                        message = createdNotification.Message,
+                        isRead = createdNotification.IsRead,
+                        createdAt = createdNotification.CreatedAt,
+                        metadata = createdNotification.Metadata
+                    }, cancellationToken);
+                }
+
+                await _mediator.Publish(new BookingRejectedEvent(booking.Id), cancellationToken);
 
                 return true;
             }

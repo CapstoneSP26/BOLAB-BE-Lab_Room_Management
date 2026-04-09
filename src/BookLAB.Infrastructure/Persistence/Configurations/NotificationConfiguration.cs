@@ -1,4 +1,4 @@
-﻿using BookLAB.Domain.Entities;
+using BookLAB.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
@@ -51,7 +51,7 @@ namespace BookLAB.Infrastructure.Persistence.Configurations
                 .HasDefaultValue(false);
 
             // Quan hệ với bảng Users
-            builder.HasOne<User>()
+            builder.HasOne(n => n.User)
                 .WithMany(u => u.Notifications)
                 .HasForeignKey(n => n.UserId)
                 .OnDelete(DeleteBehavior.Cascade);

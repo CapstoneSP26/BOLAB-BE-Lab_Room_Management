@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -16,7 +16,7 @@ namespace BookLAB.Domain.Entities
         public DateTimeOffset? ReadAt { get; set; }
         public string Metadata { get; set; }
         public bool IsGlobal { get; set; } = false;
-        public User User { get; set; }
+        public User? User { get; set; }
     }
 
 }

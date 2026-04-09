@@ -41,8 +41,6 @@ namespace BookLAB.Application.Features.Users.Commands.ImportUsers
             await _unitOfWork.BeginTransactionAsync();
             try
             {
-                
-
                 var newUserList = new List<User>();
                 var newUserRoleList = new List<UserRole>();
                 foreach (var row in result.Rows)

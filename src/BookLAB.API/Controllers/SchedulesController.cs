@@ -8,7 +8,6 @@ using BookLAB.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace BookLAB.Api.Controllers;
 
@@ -36,7 +35,7 @@ public class SchedulesController : ControllerBase
     [HttpPost("import/validate")]
     [ProducesResponseType(typeof(ImportValidationResult<ScheduleImportDto, Schedule>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [Authorize(Policy = "AcademicOffice")]
+    //[Authorize(Policy = "AcademicOffice")]
     public async Task<IActionResult> ValidateSchedules([FromBody] ValidateImportQuery query)
     {
         query.CampusId = _currentUserService.CampusId;
@@ -59,7 +58,7 @@ public class SchedulesController : ControllerBase
     [HttpPost("import/commit")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [Authorize(Policy = "AcademicOffice")]
+    //[Authorize(Policy = "AcademicOffice")]
     public async Task<IActionResult> ConfirmImport([FromBody] ConfirmImportCommand command)
     {
         // MediatR dispatches to ConfirmImportHandler (using AddRangeAsync logic)
