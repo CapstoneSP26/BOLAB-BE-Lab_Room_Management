@@ -232,9 +232,9 @@ namespace BookLAB.Infrastructure.Persistence
 
             // Attendances
             modelBuilder.Entity<Attendance>().HasData(
-                new Attendance { Id = attendance1Id, ScheduleId = schedule1Id, UserId = user2Id, CheckInTime = null, CheckOutTime = null, CheckInMethod = AttendanceCheckInMethod.FaceId, AttendanceStatus = AttendanceStatus.NotYet, CreatedAt = new DateTimeOffset(2025, 1, 16, 0, 0, 0, TimeSpan.Zero), CreatedBy = user1Id },
-                new Attendance { Id = attendance2Id, ScheduleId = schedule2Id, UserId = user3Id, CheckInTime = null, CheckOutTime = null, CheckInMethod = AttendanceCheckInMethod.QR, AttendanceStatus = AttendanceStatus.NotYet, CreatedAt = new DateTimeOffset(2025, 1, 17, 0, 0, 0, TimeSpan.Zero), CreatedBy = user2Id },
-                new Attendance { Id = attendance3Id, ScheduleId = schedule3Id, UserId = user1Id, CheckInTime = null, CheckOutTime = null, CheckInMethod = AttendanceCheckInMethod.Manual, AttendanceStatus = AttendanceStatus.NotYet, CreatedAt = new DateTimeOffset(2025, 1, 18, 0, 0, 0, TimeSpan.Zero), CreatedBy = user3Id }
+                new Attendance { Id = attendance1Id, ScheduleId = schedule1Id, UserId = user2Id, CheckInTime = null, CheckOutTime = null, CheckInMethod = AttendanceCheckInMethod.FaceId, AttendanceStatus = AttendanceStatus.Absent, CreatedAt = new DateTimeOffset(2025, 1, 16, 0, 0, 0, TimeSpan.Zero), CreatedBy = user1Id },
+                new Attendance { Id = attendance2Id, ScheduleId = schedule2Id, UserId = user3Id, CheckInTime = null, CheckOutTime = null, CheckInMethod = AttendanceCheckInMethod.QR, AttendanceStatus = AttendanceStatus.Absent, CreatedAt = new DateTimeOffset(2025, 1, 17, 0, 0, 0, TimeSpan.Zero), CreatedBy = user2Id },
+                new Attendance { Id = attendance3Id, ScheduleId = schedule3Id, UserId = user1Id, CheckInTime = null, CheckOutTime = null, CheckInMethod = AttendanceCheckInMethod.Manual, AttendanceStatus = AttendanceStatus.Absent, CreatedAt = new DateTimeOffset(2025, 1, 18, 0, 0, 0, TimeSpan.Zero), CreatedBy = user3Id }
             );
 
             // EmailTemplates (int PK)
