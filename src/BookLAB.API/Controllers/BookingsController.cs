@@ -20,6 +20,7 @@ using MediatR;
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using BookLAB.Application.Features.Bookings.Commands.CancelBooking;
 
 namespace BookLAB.API.Controllers;
 
@@ -480,5 +481,25 @@ public class BookingsController : ControllerBase
     public async Task<ActionResult<PagedList<PurposeTypeDto>>> GetPurposes([FromQuery] GetPurposeTypesQuery query)
     {
         return Ok(await _mediator.Send(query));
+    }
+
+    [HttpPost("cancel/{id:guid}")]
+    [Authorize(Policy = "Lecturer")]
+    public async Task<IActionResult> CancelBooking([FromRoute] Guid id, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var command = new CancelBookingCommand { BookingId = id };
+            var result = await _mediator.Send(command, cancellationToken);
+
+            if (result.Success)
+                return Ok(new { success = true, message = result.Message });
+            return Conflict(new { success = false, message = result.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error while canceling booking with Id {BookingId}", id);
+            return StatusCode(500, new { success = false, message = "Internal server error" });
+        }
     }
 }
