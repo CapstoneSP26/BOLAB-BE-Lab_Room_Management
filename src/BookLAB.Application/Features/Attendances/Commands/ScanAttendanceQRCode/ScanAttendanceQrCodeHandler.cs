@@ -57,7 +57,7 @@ namespace BookLAB.Application.Features.Attendances.Commands.ScanAttendanceQRCode
             if ((request.AttendanceId != null && request.AttendanceId != Guid.Empty) && !request.IsCheckIn)
                 return new ResultMessage<bool> { Success = false, Message = "Invalid check-out attempt." };
 
-            if (_unitOfWork.Repository<Attendance>().Entities.Any(x => x.ScheduleId == request.scheduleId && x.UserId == request.studentId && x.CheckInTime.HasValue == request.IsCheckIn))
+            if (_unitOfWork.Repository<Attendance>().Entities.Any(x => x.ScheduleId == request.scheduleId && x.UserId == request.studentId && x.CheckInTime.HasValue == request.IsCheckIn && x.AttendanceStatus.Equals(AttendanceStatus.Present)))
                 return new ResultMessage<bool> { Success = false, Message = "Attendance record already exists." };
 
             // Build the Attendance record depending on check-in or check-out
@@ -85,8 +85,28 @@ namespace BookLAB.Application.Features.Attendances.Commands.ScanAttendanceQRCode
                     UpdatedBy = request.LecturerId,            // Track who updated it
                 };
 
+            var existedAttendanceId = (await _unitOfWork.Repository<Attendance>().Entities.FirstOrDefaultAsync(x => x.UserId == request.studentId && x.ScheduleId == request.scheduleId, cancellationToken)).Id;
+
             try
             {
+                if (existedAttendanceId != null)
+                {
+                    attendance.Id = existedAttendanceId;
+                    await _unitOfWork.BeginTransactionAsync();
+
+                    // Add the new attendance record to the repository
+                    await _unitOfWork.Repository<Attendance>().UpdateAsync(attendance);
+
+                    // Save changes to the database
+                    await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                    // Commit transaction if everything succeeds
+                    await _unitOfWork.CommitTransactionAsync();
+
+                    return new ResultMessage<bool> { Success = true, Message = "Attendance recorded successfully.", Data = true };
+                }
+
+            
                 // Begin transaction to ensure data consistency
                 await _unitOfWork.BeginTransactionAsync();
 

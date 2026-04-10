@@ -361,36 +361,11 @@ public class BookingsController : ControllerBase
             };
 
             var result = await _mediator.Send(command);
-            //List<BookingLabManager> list = new List<BookingLabManager>();
-
-            //foreach (var item in result)
-            //{
-            //    list.Add(new BookingLabManager
-            //    {
-            //        Id = item.Id,
-            //        LabRoomId = item.LabRoomId,
-            //        BuildingName = item.LabRoom.Building.BuildingName,
-            //        BookedByUserId = item.CreatedBy ?? Guid.Empty,
-            //        StartTime = item.StartTime,
-            //        EndTime = item.EndTime,
-            //        PurposeTypeName = item.PurposeType.PurposeName,
-            //        Reason = item.Reason,
-            //        BookingStatus = item.BookingStatus,
-            //        BookingType = item.BookingType,
-            //        StudentCount = item.StudentCount,
-            //        Recur = item.Recur,
-            //        CreatedAt = item.CreatedAt,
-            //        UpdatedAt = item.UpdatedAt,
-            //        CreatedBy = item.CreatedBy,
-            //        UpdatedBy = item.UpdatedBy,
-            //    });
-
-            //}
 
             return Ok(new
             {
-                data = result,
-                total = result.Count,
+                data = result.list,
+                total = result.total,
                 page = dto.page,
                 limit = dto.limit
             });
@@ -506,5 +481,4 @@ public class BookingsController : ControllerBase
     {
         return Ok(await _mediator.Send(query));
     }
-
 }
