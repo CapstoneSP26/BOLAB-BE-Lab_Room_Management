@@ -3,10 +3,11 @@ using BookLAB.Application.Features.LabRooms.Commands.CreateLabRoom;
 using BookLAB.Application.Features.LabRooms.Commands.DeleteLabRoom;
 using BookLAB.Application.Features.LabRooms.Commands.ImportLabRooms;
 using BookLAB.Application.Features.LabRooms.Commands.UpdateLabRoom;
+using BookLAB.Application.Features.LabRooms.Commands.UpdatePolicy;
 using BookLAB.Application.Features.LabRooms.Commands.ValidateImportLabRooms;
-using BookLAB.Application.Features.LabRooms.Common;
 using BookLAB.Application.Features.LabRooms.Queries.GetLabRoomPolicies;
 using BookLAB.Application.Features.LabRooms.Queries.GetLabRooms;
+using BookLAB.Domain.Enums;
 using ClosedXML.Excel;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -36,6 +37,30 @@ namespace BookLAB.API.Controllers
             var query = new GetLabRoomPoliciesQuery { LabRoomId = id };
             var result = await _mediator.Send(query);
             return Ok(result);
+        }
+
+        [HttpPut("{labRoomId:int}/policies/{policyKey}")]
+        public async Task<ActionResult<LabRoomPolicyUpdateDto>> UpdatePolicy(int labRoomId, string policyKey,[FromBody] LabRoomPolicyUpdatePayload payload)
+        {
+            if (Enum.TryParse<PolicyType>(policyKey, true, out var enumValue))
+            {
+                var command = new UpdateLabPolicyCommand
+                {
+                    LabRoomId = labRoomId,
+                    PolicyKey = enumValue,
+                    PolicyValue = payload.PolicyValue,
+                    IsActive = payload.IsActive
+                };
+
+                var result = await _mediator.Send(command);
+                return Ok(result);
+            }
+            else
+            {
+                return BadRequest();
+            }
+
+            
         }
 
         [HttpGet]
