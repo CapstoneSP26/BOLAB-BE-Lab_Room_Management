@@ -1,8 +1,10 @@
 ﻿using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Application.Common.Models;
+using BookLAB.Application.Features.Schedules.Commands.CreateSchedule;
 using BookLAB.Application.Features.Schedules.Commands.ImportSchedule;
 using BookLAB.Application.Features.Schedules.Commands.ValidateImport;
 using BookLAB.Application.Features.Schedules.Common;
+using BookLAB.Application.Features.Schedules.Queries.AddSchedule;
 using BookLAB.Application.Features.Schedules.Queries.GetSchedules;
 using BookLAB.Domain.Entities;
 using MediatR;
@@ -164,6 +166,24 @@ public class SchedulesController : ControllerBase
 
             // Return internal server error response
             return Problem("Something is wrong while getting unchecked booking requests");
+        }
+    }
+
+    [HttpPost()]
+    [Authorize(Policy = "AcademicOffice")]
+    public async Task<IActionResult> CreateSchedule([FromBody] CreateScheduleCommand command, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var result = await _mediator.Send(command, cancellationToken);
+
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Something is wrong while create schedule: " + ex.Message);
+
+            return Problem("Something is wrong while create schedule");
         }
     }
 }
