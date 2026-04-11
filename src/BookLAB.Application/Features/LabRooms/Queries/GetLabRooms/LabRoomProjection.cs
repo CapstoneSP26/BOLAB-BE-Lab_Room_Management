@@ -19,6 +19,7 @@ public static class LabRoomProjection
             Description = x.Description,
             BuildingId = x.BuildingId,
             Location = x.Location,
+            IsActive = x.IsActive,
 
             // 🔥 Control JOIN
             BuildingName = includeBuilding

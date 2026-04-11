@@ -1,5 +1,6 @@
 ﻿using BookLAB.Application.Common.Models;
 using BookLAB.Application.Features.LabRooms.Commands.CreateLabRoom;
+using BookLAB.Application.Features.LabRooms.Commands.DeleteLabRoom;
 using BookLAB.Application.Features.LabRooms.Commands.ImportLabRooms;
 using BookLAB.Application.Features.LabRooms.Commands.UpdateLabRoom;
 using BookLAB.Application.Features.LabRooms.Commands.ValidateImportLabRooms;
@@ -88,6 +89,26 @@ namespace BookLAB.API.Controllers
                 {
                     Id = id,
                     IsActive = isActive
+                };
+                var result = await _mediator.Send(command);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpDelete("{id}")]
+        [Authorize(Policy = "AcademicOffice")]
+        public async Task<IActionResult> DeleteLabRoom([FromRoute] int id)
+        {
+            try
+            {
+                DeleteLabRoomCommand command = new DeleteLabRoomCommand
+                {
+                    LabRoomId = id,
                 };
                 var result = await _mediator.Send(command);
 

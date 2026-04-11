@@ -18,6 +18,9 @@ namespace BookLAB.Application.Features.LabRooms.Queries.GetLabRooms
             // 3. Chỉ lấy các phòng chưa bị xóa và đang hoạt động
             //AddCriteria(x => !x.IsDeleted && x.IsActive);
 
+            if (query.IsActive != null)
+                AddCriteria(x => x.IsActive == query.IsActive);
+
             // 4. Load các bảng liên quan
 
             ApplyOrderBy(x => x.RoomName);
