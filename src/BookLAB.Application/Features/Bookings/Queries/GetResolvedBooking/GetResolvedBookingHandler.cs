@@ -56,6 +56,7 @@ namespace BookLAB.Application.Features.Bookings.Queries.GetResolvedBooking
                     .Where(b =>
                         b.StartTime >= startBoundary &&
                         b.StartTime < endBoundaryExclusive &&
+                        (b.BookingStatus == Domain.Enums.BookingStatus.Approved || b.BookingStatus == Domain.Enums.BookingStatus.Rejected) &&
                         (request.labRoomId == null || b.LabRoomId == request.labRoomId) && // thêm filter labRoomId
                         labRoomIds.Contains(b.LabRoomId) // filter by labRoomIds
                     );
