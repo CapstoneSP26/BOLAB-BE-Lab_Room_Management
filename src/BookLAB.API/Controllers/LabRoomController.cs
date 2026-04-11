@@ -1,5 +1,7 @@
 ﻿using BookLAB.Application.Common.Models;
+using BookLAB.Application.Features.LabRooms.Commands.CreateLabRoom;
 using BookLAB.Application.Features.LabRooms.Commands.ImportLabRooms;
+using BookLAB.Application.Features.LabRooms.Commands.UpdateLabRoom;
 using BookLAB.Application.Features.LabRooms.Commands.UpdatePolicy;
 using BookLAB.Application.Features.LabRooms.Commands.ValidateImportLabRooms;
 using BookLAB.Application.Features.LabRooms.Queries.GetLabRoomPolicies;
@@ -61,12 +63,65 @@ namespace BookLAB.API.Controllers
         }
 
         [HttpGet]
-        [ProducesResponseType(typeof(PagedList<LabRoomDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(PagedList<BookLAB.Application.Features.LabRooms.Queries.GetLabRooms.LabRoomDto>), StatusCodes.Status200OK)]
         [Authorize(Policy = "AcademicOffice_LabManager_Lecturer")]
         public async Task<IActionResult> GetLabRooms([FromQuery] GetLabRoomsQuery query)
         {
             var result = await _mediator.Send(query);
             return Ok(result);
+        }
+
+        [HttpPost]
+        [Authorize(Policy = "AcademicOffice")]
+        public async Task<IActionResult> CreateLabRoom([FromBody] CreateLabRoomCommand command)
+        {
+            try
+            {
+                var result = await _mediator.Send(command);
+
+                return Ok(result);
+            } catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPut("{id}")]
+        [Authorize(Policy = "AcademicOffice")]
+        public async Task<IActionResult> UpdateLabRoom([FromBody] UpdateLabRoomCommand command, [FromRoute] int id)
+        {
+            try
+            {
+                command.Id = id;
+                var result = await _mediator.Send(command);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPatch("{id}/status")]
+        [Authorize(Policy = "AcademicOffice")]
+        public async Task<IActionResult> UpdateLabRoomStatus([FromBody] bool isActive, [FromRoute] int id)
+        {
+            try
+            {
+                UpdateLabRoomCommand command = new UpdateLabRoomCommand
+                {
+                    Id = id,
+                    IsActive = isActive
+                };
+                var result = await _mediator.Send(command);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         //[HttpPost("validate-import")]

@@ -20,6 +20,7 @@ using MediatR;
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using BookLAB.Application.Features.Bookings.Commands.CancelBooking;
 
 namespace BookLAB.API.Controllers;
 
@@ -361,36 +362,11 @@ public class BookingsController : ControllerBase
             };
 
             var result = await _mediator.Send(command);
-            //List<BookingLabManager> list = new List<BookingLabManager>();
-
-            //foreach (var item in result)
-            //{
-            //    list.Add(new BookingLabManager
-            //    {
-            //        Id = item.Id,
-            //        LabRoomId = item.LabRoomId,
-            //        BuildingName = item.LabRoom.Building.BuildingName,
-            //        BookedByUserId = item.CreatedBy ?? Guid.Empty,
-            //        StartTime = item.StartTime,
-            //        EndTime = item.EndTime,
-            //        PurposeTypeName = item.PurposeType.PurposeName,
-            //        Reason = item.Reason,
-            //        BookingStatus = item.BookingStatus,
-            //        BookingType = item.BookingType,
-            //        StudentCount = item.StudentCount,
-            //        Recur = item.Recur,
-            //        CreatedAt = item.CreatedAt,
-            //        UpdatedAt = item.UpdatedAt,
-            //        CreatedBy = item.CreatedBy,
-            //        UpdatedBy = item.UpdatedBy,
-            //    });
-
-            //}
 
             return Ok(new
             {
-                data = result,
-                total = result.Count,
+                data = result.list,
+                total = result.total,
                 page = dto.page,
                 limit = dto.limit
             });
@@ -507,4 +483,23 @@ public class BookingsController : ControllerBase
         return Ok(await _mediator.Send(query));
     }
 
+    [HttpPost("cancel/{id:guid}")]
+    [Authorize(Policy = "Lecturer")]
+    public async Task<IActionResult> CancelBooking([FromRoute] Guid id, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var command = new CancelBookingCommand { BookingId = id };
+            var result = await _mediator.Send(command, cancellationToken);
+
+            if (result.Success)
+                return Ok(new { success = true, message = result.Message });
+            return Conflict(new { success = false, message = result.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error while canceling booking with Id {BookingId}", id);
+            return StatusCode(500, new { success = false, message = "Internal server error" });
+        }
+    }
 }

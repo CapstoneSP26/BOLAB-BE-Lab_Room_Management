@@ -138,6 +138,7 @@ public class SchedulesController : ControllerBase
             {
                 SearchTerm = query.SearchTerm,
                 Status = query.Status,
+                LecturerId = userId,
                 LabRoomId = query.LabRoomId,
                 FromDate = query.FromDate,
                 ToDate = query.ToDate,

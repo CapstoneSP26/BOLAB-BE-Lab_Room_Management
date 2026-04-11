@@ -1,11 +1,12 @@
-﻿using MediatR;
+﻿using BookLAB.Application.Common.Models;
+using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace BookLAB.Application.Features.Attendances.Commands.ScanAttendanceQRCode
 {
-    public class ScanAttendanceQrCodeCommand : IRequest<bool>
+    public class ScanAttendanceQrCodeCommand : IRequest<ResultMessage<bool>>
     {
         public Guid? AttendanceId { get; set; }
         public Guid LecturerId { get; set; }
