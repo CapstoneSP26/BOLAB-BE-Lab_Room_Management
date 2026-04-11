@@ -381,10 +381,11 @@ public class BookingsController : ControllerBase
 
     [HttpGet("history/labmanager")]
     [Authorize(Policy = "AcademicOffice_LabManager")]
-    public async Task<IActionResult> GetResolvedBooking(GetResolvedBookingQuery query)
+    public async Task<IActionResult> GetResolvedBooking([FromQuery] GetResolvedBookingQuery query)
     {
         try
         {
+            query.userId = Guid.Parse(User.FindFirst("Id").Value);
             var result = await _mediator.Send(query);
             return Ok(new
             {
