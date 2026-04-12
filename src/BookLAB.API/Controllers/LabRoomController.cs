@@ -9,15 +9,12 @@ using BookLAB.Application.Features.LabRooms.Queries.GetLabRoomById;
 using BookLAB.Application.Features.LabRooms.Queries.GetLabRoomPolicies;
 using BookLAB.Application.Features.LabRooms.Queries.GetLabRooms;
 using BookLAB.Domain.Enums;
-using ClosedXML.Excel;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Globalization;
 
 namespace BookLAB.API.Controllers
 {
-    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class LabRoomController : ControllerBase
@@ -34,7 +31,6 @@ namespace BookLAB.API.Controllers
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(BookLAB.Application.Features.LabRooms.Queries.GetLabRooms.LabRoomDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [Authorize(Policy = "AcademicOffice_LabManager_Lecturer")]
         public async Task<IActionResult> GetLabRoomById(int id, CancellationToken cancellationToken)
         {
             var query = new GetLabRoomByIdQuery { Id = id };

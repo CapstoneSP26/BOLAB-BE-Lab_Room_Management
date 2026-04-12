@@ -1,12 +1,7 @@
-﻿using AutoMapper;
-using BookLAB.Application.Common.Interfaces.Repositories;
-using BookLAB.Application.Common.Models;
+﻿using BookLAB.Application.Common.Models;
 using BookLAB.Application.Features.Bookings.Queries.ViewUncheckedBookingRequest;
 using BookLAB.Application.Features.Groups.DTOs;
 using BookLAB.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace BookLAB.Application.Common.Mappings
 {
@@ -42,7 +37,7 @@ namespace BookLAB.Application.Common.Mappings
                 .ForMember(dest => dest.Date, opt => opt.MapFrom(src => src.Booking.StartTime.ToString("dd-MM-yyyy")))
                 .ForMember(dest => dest.StudentCount, opt => opt.MapFrom(src => src.Booking.StudentCount))
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.BookingRequestStatus))
-                .ForMember(dest => dest.Purpose, opt => opt.MapFrom(src => src.ResponseContext));
+                .ForMember(dest => dest.Purpose, opt => opt.MapFrom(src => src.Booking.PurposeType.PurposeName));
         }
     }
 }

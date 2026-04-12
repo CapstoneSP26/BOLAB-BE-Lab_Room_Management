@@ -35,7 +35,15 @@ namespace BookLAB.Infrastructure
                 {
                     SchemaName = "hangfire"
                 }));
-            services.AddHangfireServer();
+
+            services.AddHangfireServer(options =>
+            {
+                // Với dự án BookLAB, chỉ nên để từ 5-10 workers
+                options.WorkerCount = 5;
+
+                // Đặt tên server để dễ quản lý trên Dashboard
+                options.ServerName = "BookLAB_Background_Server";
+            });
 
             // Ánh xạ cấu hình từ appsettings.json vào class EmailSettings
             services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));

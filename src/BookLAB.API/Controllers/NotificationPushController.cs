@@ -4,6 +4,7 @@ using BookLAB.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Npgsql.EntityFrameworkCore.PostgreSQL;
 
 namespace BookLAB.API.Controllers;
 
@@ -24,10 +25,11 @@ public class NotificationPushController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetLatestBookingNotification(Guid bookingId, CancellationToken cancellationToken)
     {
-        var metadataMatch = $"\"bookingId\":\"{bookingId}\"";
+        // PostgreSQL yêu cầu so sánh chuỗi (text)
+        var bookingIdStr = bookingId.ToString();
 
         var notification = await _unitOfWork.Repository<Notification>().Entities
-            .Where(x => x.Metadata != null && EF.Functions.Like(x.Metadata, $"%{metadataMatch}%"))
+            .Where(x => x.Metadata.GetProperty("bookingId").GetString() == bookingIdStr)
             .OrderByDescending(x => x.CreatedAt)
             .Select(x => new NotificationDto
             {

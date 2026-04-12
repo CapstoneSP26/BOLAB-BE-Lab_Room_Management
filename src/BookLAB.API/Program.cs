@@ -7,14 +7,12 @@ using BookLAB.Application.Common.Interfaces.Integration;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Infrastructure;
 using BookLAB.Infrastructure.Identity;
-using BookLAB.Infrastructure.Persistence;
 using BookLAB.Infrastructure.Repositories;
 using BookLAB.Infrastructure.Services;
 using Hangfire;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using QRCoder;
 using System.Text;
@@ -136,14 +134,7 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
 builder.Services.AddScoped<INotificationService, SignalRNotificationService>();
-
-builder.Services.AddDbContext<BookLABDbContext>(opt =>
-{
-    opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
-        b => b.MigrationsAssembly("BookLAB.API"));
-});
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
-
 builder.Services.AddScoped<IScheduleRepository, ScheduleRepository>();
 
 // Swagger/OpenAPI

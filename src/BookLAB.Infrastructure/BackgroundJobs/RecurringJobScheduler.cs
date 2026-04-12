@@ -19,14 +19,14 @@ namespace BookLAB.Infrastructure.BackgroundJobs
             _jobService.AddOrUpdateRecurring<AutoRejectBookingJob>(
                 "auto-reject-bookings",
                 job => job.Execute(),
-                Cron.MinuteInterval(5) // hoặc lấy từ config
+                Cron.Daily() // hoặc lấy từ config
             );
 
             // Quét mỗi 5 phút một lần để đảm bảo độ trễ thấp
             _jobService.AddOrUpdateRecurring<AutoUpdateScheduleStatusJob>(
                 "auto-update-schedule-status",
                 job => job.Execute(),
-                Cron.MinuteInterval(5) // Cron expression cho mỗi 5 phút
+                Cron.MinuteInterval(15) // Cron expression cho mỗi 5 phút
             );
         }
     }

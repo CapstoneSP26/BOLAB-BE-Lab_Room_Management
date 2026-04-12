@@ -7,9 +7,6 @@ using BookLAB.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace BookLAB.Application.Features.Bookings.Queries.ViewUncheckedBookingRequest
 {
@@ -99,7 +96,7 @@ namespace BookLAB.Application.Features.Bookings.Queries.ViewUncheckedBookingRequ
                     .Take(request.limit)
                     .ToListAsync();
 
-                var mappedResult = _mapper.Map<List<BookingRequest>, List<BookingRequestFe>>(result);
+                var mappedResult = _mapper.Map<List<BookingRequestFe>>(result);
 
                 return new ViewUncheckedBookingRequestReturn
                 {
