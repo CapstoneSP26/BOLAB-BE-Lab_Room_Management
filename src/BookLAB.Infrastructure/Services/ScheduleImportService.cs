@@ -21,6 +21,8 @@ namespace BookLAB.Infrastructure.Services
         public async Task<ImportValidationResult<ScheduleImportDto, Schedule>> ValidateAsync(
         List<ScheduleImportDto> schedules,
         int campusId,
+        DateTimeOffset startTime,
+        DateTimeOffset endTime,
         CancellationToken ct,
         bool isAllowCreateImportData = false)
         {
@@ -28,10 +30,10 @@ namespace BookLAB.Infrastructure.Services
             var response = InitResponse(schedules);
 
             // 2. Prefetch
-            var maps = await BuildMapsAsync(schedules, campusId, ct);
+            var maps = await BuildMapsAsync(schedules, campusId, startTime, endTime, ct);
 
             // 3. Row validation
-            ValidateRows(schedules, maps, response);
+            ValidateRows(schedules, maps, startTime, endTime, response);
 
             // 4. Duplicate
             CheckDuplicate(schedules, maps, response);
@@ -55,6 +57,8 @@ namespace BookLAB.Infrastructure.Services
         public async Task<ImportValidationResult<FlexibleScheduleImportDto, Schedule>> ValidateFlexibleAsync(
         List<FlexibleScheduleImportDto> schedules,
         int campusId,
+        DateTimeOffset startTime,
+        DateTimeOffset endTime,
         CancellationToken ct,
         bool isAllowCreateImportData = false)
         {
@@ -62,10 +66,10 @@ namespace BookLAB.Infrastructure.Services
             var response = InitFlexibleResponse(schedules);
 
             // 2. Prefetch
-            var maps = await BuildFlexibleMapsAsync(schedules, campusId, ct);
+            var maps = await BuildFlexibleMapsAsync(schedules, campusId, startTime, endTime, ct);
 
             // 3. Row validation
-            ValidateFlexibleRows(schedules, maps, response);
+            ValidateFlexibleRows(schedules, maps, startTime, endTime, response);
 
             // 4. Duplicate
             CheckFlexibleDuplicate(schedules, maps, response);
@@ -230,6 +234,8 @@ namespace BookLAB.Infrastructure.Services
         private async Task<ImportMaps> BuildMapsAsync(
             List<ScheduleImportDto> schedules,
             int campusId,
+            DateTimeOffset startTime,
+            DateTimeOffset endTime,
             CancellationToken ct)
         {
             var slotTypeCodes = schedules.Select(s => s.SlotTypeCode).Distinct().ToList();
@@ -258,7 +264,7 @@ namespace BookLAB.Infrastructure.Services
             var existingSchedules = await _unitOfWork.Repository<Schedule>().Entities
                 .Include(s => s.LabRoom)
                 .Include(s => s.User)
-                .Where(s => s.LabRoom.Building.CampusId == campusId)
+                .Where(s => s.LabRoom.Building.CampusId == campusId && startTime < s.EndTime && s.StartTime < endTime)
                 .ToListAsync(ct);
 
             return new ImportMaps
@@ -274,6 +280,8 @@ namespace BookLAB.Infrastructure.Services
         private async Task<ImportMaps> BuildFlexibleMapsAsync(
             List<FlexibleScheduleImportDto> schedules,
             int campusId,
+            DateTimeOffset startTime,
+            DateTimeOffset endTime,
             CancellationToken ct)
         {
             var roomCodes = schedules.Select(s => s.RoomNo.Trim().TrimEnd('.')).Distinct().ToList();
@@ -296,7 +304,7 @@ namespace BookLAB.Infrastructure.Services
             var existingSchedules = await _unitOfWork.Repository<Schedule>().Entities
                 .Include(s => s.LabRoom)
                 .Include(s => s.User)
-                .Where(s => s.LabRoom.Building.CampusId == campusId)
+                .Where(s => s.LabRoom.Building.CampusId == campusId && startTime < s.EndTime && s.StartTime < endTime)
                 .ToListAsync(ct);
 
             return new ImportMaps
@@ -310,13 +318,15 @@ namespace BookLAB.Infrastructure.Services
         private void ValidateRows(
             List<ScheduleImportDto> schedules,
             ImportMaps maps,
+            DateTimeOffset startTime,
+            DateTimeOffset endTime,
             ImportValidationResult<ScheduleImportDto, Schedule> response)
         {
             foreach (var item in schedules)
             {
                 if (item.IsUpdated) continue;
 
-                var errors = CheckSingleRow(item, maps);
+                var errors = CheckSingleRow(item, maps,startTime, endTime);
 
                 response.Rows[item.Index - 1].Errors.AddRange(errors);
             }
@@ -324,25 +334,30 @@ namespace BookLAB.Infrastructure.Services
         private void ValidateFlexibleRows(
             List<FlexibleScheduleImportDto> schedules,
             ImportMaps maps,
+            DateTimeOffset startTime,
+            DateTimeOffset endTime,
             ImportValidationResult<FlexibleScheduleImportDto, Schedule> response)
         {
             foreach (var item in schedules)
             {
                 if (item.IsUpdated) continue;
 
-                var errors = CheckFlexibleSingleRow(item, maps);
+                var errors = CheckFlexibleSingleRow(item, maps, startTime, endTime);
 
                 response.Rows[item.Index - 1].Errors.AddRange(errors);
             }
         }
         private List<RowError> CheckSingleRow(
             ScheduleImportDto item,
-            ImportMaps maps)
+            ImportMaps maps,
+            DateTimeOffset startTime,
+            DateTimeOffset endTime)
         {
             var errors = new List<RowError>();
             var normalizedRoomCode = item.RoomNo.Trim();
 
             // --- A. Check SlotTypeCode & SlotOrder ---
+
             if (!maps.SlotTypeMap.TryGetValue(item.SlotTypeCode, out var slotType))
             {
                 errors.Add(new RowError
@@ -415,19 +430,31 @@ namespace BookLAB.Infrastructure.Services
                 });
                 item.IsValid = false;
             }
+            else if(sessionDate < startTime || sessionDate > endTime)
+            {
+                errors.Add(new RowError
+                {
+                    FieldName = "Date",
+                    Message = "Ngày học không nằm trong kì yêu cầu",
+                    Severity = ErrorSeverity.Error
+                });
+                item.IsValid = false;
+            }
 
             return errors;
         }
 
         private List<RowError> CheckFlexibleSingleRow(
             FlexibleScheduleImportDto item,
-            ImportMaps maps)
+            ImportMaps maps,
+            DateTimeOffset startTime,
+            DateTimeOffset endTime)
         {
             var errors = new List<RowError>();
             var normalizedRoomCode = item.RoomNo.Trim();
 
             // --- A. Check SlotTypeCode & SlotOrder ---
-            var isValidStartTime = TimeOnly.TryParseExact(item.StartTime.Trim(), "HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out TimeOnly startTime);
+            var isValidStartTime = TimeOnly.TryParseExact(item.StartTime.Trim(), "HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out TimeOnly startTimeOnly);
             if (!isValidStartTime)
             {
                 errors.Add(new RowError
@@ -439,7 +466,7 @@ namespace BookLAB.Infrastructure.Services
                 item.IsValid = false;
             }
 
-            var isValidEndTime = TimeOnly.TryParseExact(item.EndTime.Trim(), "HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out TimeOnly endTime);
+            var isValidEndTime = TimeOnly.TryParseExact(item.EndTime.Trim(), "HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out TimeOnly endTimeOnly);
             if (!isValidEndTime)
             {
                 errors.Add(new RowError
@@ -450,7 +477,7 @@ namespace BookLAB.Infrastructure.Services
                 });
                 item.IsValid = false;
             }
-            if(isValidStartTime && isValidEndTime && endTime <= startTime)
+            if(isValidStartTime && isValidEndTime && endTimeOnly <= startTimeOnly)
             {
                 errors.Add(new RowError
                 {
@@ -504,6 +531,16 @@ namespace BookLAB.Infrastructure.Services
                 {
                     FieldName = "Date",
                     Message = "Ngày học không hợp lệ",
+                    Severity = ErrorSeverity.Error
+                });
+                item.IsValid = false;
+            }
+            else if (sessionDate < startTime || sessionDate > endTime)
+            {
+                errors.Add(new RowError
+                {
+                    FieldName = "Date",
+                    Message = "Ngày học không nằm trong kì yêu cầu",
                     Severity = ErrorSeverity.Error
                 });
                 item.IsValid = false;

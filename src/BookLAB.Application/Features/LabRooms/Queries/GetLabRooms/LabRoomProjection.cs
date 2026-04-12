@@ -18,6 +18,8 @@ public static class LabRoomProjection
             Capacity = x.Capacity,
             HasEquipment = x.HasEquipment,
             Description = x.Description,
+            BuildingId = x.BuildingId,
+            Location = x.Location,
 
             // 🔥 Control JOIN
             BuildingName = includeBuilding

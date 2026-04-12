@@ -8,6 +8,8 @@ namespace BookLAB.Application.Features.Schedules.Commands.ValidateImport
     public class ValidateImportQuery : IRequest<ImportValidationResult<ScheduleImportDto, Schedule>>
     {
         public List<ScheduleImportDto> Schedules { get; set; } = new();
+        public DateTimeOffset StartTime { get; set; }
+        public DateTimeOffset EndTime { get; set; }
         public int CampusId { get; set; }
     }
 }

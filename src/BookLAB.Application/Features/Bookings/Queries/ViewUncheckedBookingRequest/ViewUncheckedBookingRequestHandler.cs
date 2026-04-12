@@ -13,7 +13,7 @@ using System.Text;
 
 namespace BookLAB.Application.Features.Bookings.Queries.ViewUncheckedBookingRequest
 {
-    public class ViewUncheckedBookingRequestHandler : IRequestHandler<ViewUncheckedBookingRequestCommand, List<BookingRequestFe>>
+    public class ViewUncheckedBookingRequestHandler : IRequestHandler<ViewUncheckedBookingRequestCommand, ViewUncheckedBookingRequestReturn>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -42,7 +42,7 @@ namespace BookLAB.Application.Features.Bookings.Queries.ViewUncheckedBookingRequ
         /// A list of BookingRequestDto objects representing the unchecked booking requests.
         /// Returns an empty list if an exception occurs.
         /// </returns>
-        public async Task<List<BookingRequestFe>> Handle(ViewUncheckedBookingRequestCommand request, CancellationToken cancellationToken)
+        public async Task<ViewUncheckedBookingRequestReturn> Handle(ViewUncheckedBookingRequestCommand request, CancellationToken cancellationToken)
         {
             try
             {
@@ -101,13 +101,21 @@ namespace BookLAB.Application.Features.Bookings.Queries.ViewUncheckedBookingRequ
 
                 var mappedResult = _mapper.Map<List<BookingRequest>, List<BookingRequestFe>>(result);
 
-                return mappedResult;
+                return new ViewUncheckedBookingRequestReturn
+                {
+                    total = await query.CountAsync(cancellationToken),
+                    list = mappedResult,
+                };
             }
             catch (Exception ex)
             {
                 // In case of any exception, return an empty list.
                 _logger.LogError(ex, "Error occurred while handling ViewBookingHistoryHandler");
-                return new List<BookingRequestFe>();
+                return new ViewUncheckedBookingRequestReturn
+                {
+                    total = 0,
+                    list = new List<BookingRequestFe>()
+                };
             }
         }
 

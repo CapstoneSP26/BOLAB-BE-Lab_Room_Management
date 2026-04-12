@@ -24,7 +24,7 @@ namespace BookLAB.Application.Features.Schedules.Commands.ImportSchedule
 
         public async Task<ImportResult> Handle(ConfirmFlexibleImportCommand request, CancellationToken cancellationToken)
         {
-            var result = await _scheduleImportService.ValidateFlexibleAsync(request.Schedules, request.CampusId, cancellationToken, true);
+            var result = await _scheduleImportService.ValidateFlexibleAsync(request.Schedules, request.CampusId, request.StartTime, request.EndTime, cancellationToken, true);
             var countUpdated = result.Rows.Count(r => r.Data.IsUpdated);
             var countNew = result.Rows.Count(r => !r.Data.IsUpdated);
             var now = DateTimeOffset.UtcNow;

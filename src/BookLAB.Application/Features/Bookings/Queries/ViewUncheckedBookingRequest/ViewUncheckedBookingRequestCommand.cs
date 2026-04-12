@@ -8,7 +8,7 @@ using System.Text;
 
 namespace BookLAB.Application.Features.Bookings.Queries.ViewUncheckedBookingRequest
 {
-    public class ViewUncheckedBookingRequestCommand : IRequest<List<BookingRequestFe>>
+    public class ViewUncheckedBookingRequestCommand : IRequest<ViewUncheckedBookingRequestReturn>
     {
         public Guid userId { get; set; }
         public int page { get; set; }
