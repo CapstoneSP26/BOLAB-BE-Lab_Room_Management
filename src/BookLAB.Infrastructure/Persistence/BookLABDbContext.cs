@@ -30,6 +30,7 @@ namespace BookLAB.Infrastructure.Persistence
         public DbSet<Group> Groups => Set<Group>();
         public DbSet<PurposeType> PurposeTypes => Set<PurposeType>();
         public DbSet<Schedule> Schedules => Set<Schedule>();
+        public DbSet<Subject> Subjects => Set<Subject>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

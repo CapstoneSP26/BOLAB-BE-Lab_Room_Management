@@ -3,6 +3,7 @@ using System;
 using BookLAB.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BookLAB.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(BookLABDbContext))]
-    partial class BookLABDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260411165724_AddCampusIdToGroup")]
+    partial class AddCampusIdToGroup
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -627,9 +630,9 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                     b.HasIndex("UserId")
                         .HasDatabaseName("IX_GroupMember_UserId");
 
-                    b.HasIndex("GroupId", "UserId", "SubjectCode")
+                    b.HasIndex("GroupId", "UserId")
                         .IsUnique()
-                        .HasDatabaseName("UQ_Group_User_Member_Subject");
+                        .HasDatabaseName("UQ_Group_User_Member");
 
                     b.ToTable("GroupMembers", (string)null);
 
