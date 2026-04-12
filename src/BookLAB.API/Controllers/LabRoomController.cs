@@ -32,7 +32,7 @@ namespace BookLAB.API.Controllers
         }
 
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(LabRoomDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(BookLAB.Application.Features.LabRooms.Queries.GetLabRooms.LabRoomDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [Authorize(Policy = "AcademicOffice_LabManager_Lecturer")]
         public async Task<IActionResult> GetLabRoomById(int id, CancellationToken cancellationToken)
