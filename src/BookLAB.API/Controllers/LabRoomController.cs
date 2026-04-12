@@ -1,7 +1,8 @@
-﻿using BookLAB.Application.Common.Models;
+using BookLAB.Application.Common.Models;
 using BookLAB.Application.Features.LabRooms.Commands.ImportLabRooms;
 using BookLAB.Application.Features.LabRooms.Commands.ValidateImportLabRooms;
 using BookLAB.Application.Features.LabRooms.Common;
+using BookLAB.Application.Features.LabRooms.Queries.GetLabRoomById;
 using BookLAB.Application.Features.LabRooms.Queries.GetLabRoomPolicies;
 using BookLAB.Application.Features.LabRooms.Queries.GetLabRooms;
 using ClosedXML.Excel;
@@ -24,6 +25,21 @@ namespace BookLAB.API.Controllers
         {
             _mediator = mediator;
             _logger = logger;
+        }
+
+        [HttpGet("{id}")]
+        [ProducesResponseType(typeof(LabRoomDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [Authorize(Policy = "AcademicOffice_LabManager_Lecturer")]
+        public async Task<IActionResult> GetLabRoomById(int id, CancellationToken cancellationToken)
+        {
+            var query = new GetLabRoomByIdQuery { Id = id };
+            var result = await _mediator.Send(query, cancellationToken);
+
+            if (result == null)
+                return NotFound(new { message = $"Lab room with id '{id}' not found" });
+
+            return Ok(result);
         }
 
         [HttpGet("{id}/policies")]
