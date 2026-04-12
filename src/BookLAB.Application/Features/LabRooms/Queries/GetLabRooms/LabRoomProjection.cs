@@ -1,4 +1,4 @@
-﻿using BookLAB.Domain.Entities;
+using BookLAB.Domain.Entities;
 
 namespace BookLAB.Application.Features.LabRooms.Queries.GetLabRooms;
 
@@ -12,6 +12,7 @@ public static class LabRoomProjection
         return query.Select(x => new LabRoomDto
         {
             Id = x.Id,
+            BuildingId = x.BuildingId,
             RoomNo = x.RoomNo,
             RoomName = x.RoomName,
             Capacity = x.Capacity,
@@ -21,7 +22,7 @@ public static class LabRoomProjection
             // 🔥 Control JOIN
             BuildingName = includeBuilding
                 ? x.Building.BuildingName
-                : null,
+                : string.Empty,
 
             Images = includeImages
                 ? x.LabImages.Select(i => new LabImageDto

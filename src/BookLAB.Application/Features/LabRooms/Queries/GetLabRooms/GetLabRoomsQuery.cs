@@ -1,4 +1,4 @@
-﻿using BookLAB.Application.Common.Models;
+using BookLAB.Application.Common.Models;
 using MediatR;
 
 namespace BookLAB.Application.Features.LabRooms.Queries.GetLabRooms
@@ -6,6 +6,7 @@ namespace BookLAB.Application.Features.LabRooms.Queries.GetLabRooms
     public class GetLabRoomsQuery : IRequest<PagedList<LabRoomDto>>
     {
         public int? BuildingId { get; set; }
+        public bool? IsActive { get; set; }
         public string? RoomNo { get; set; }
         public string? SearchTerm { get; set; }
         public bool IncludeImages { get; set; } = false;

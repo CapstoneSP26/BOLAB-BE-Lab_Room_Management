@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using BookLAB.Application.Common.Extensions;
 using BookLAB.Application.Common.Interfaces.Repositories;
@@ -35,14 +35,16 @@ public class GetLabRoomsQueryHandler : IRequestHandler<GetLabRoomsQuery, PagedLi
         if (request.PageSize <= 0)
         {
             var allItems = await projectedQuery.ToListAsync(ct);
-            // Trả về PagedList với TotalCount = số lượng thực tế, PageSize = TotalCount
-            return new PagedList<LabRoomDto>(allItems, allItems.Count, 1, allItems.Count);
+            var normalizedPageSize = allItems.Count > 0 ? allItems.Count : 1;
+
+            return new PagedList<LabRoomDto>(allItems, allItems.Count, 1, normalizedPageSize);
         }
 
         return await PagedList<LabRoomDto>.CreateAsync(
             projectedQuery,
             request.PageNumber,
             request.PageSize,
-            ct);
+            ct,
+            countItems: true);
     }
 }
