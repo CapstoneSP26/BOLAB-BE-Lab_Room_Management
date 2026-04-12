@@ -1,4 +1,4 @@
-﻿using BookLAB.Application.Common.Specifications;
+using BookLAB.Application.Common.Specifications;
 using BookLAB.Domain.Entities;
 
 namespace BookLAB.Application.Features.LabRooms.Queries.GetLabRooms
@@ -7,10 +7,11 @@ namespace BookLAB.Application.Features.LabRooms.Queries.GetLabRooms
     {
         public LabRoomFilterSpecification(GetLabRoomsQuery query)
         {
-            // 1. Lọc theo tòa nhà
-
             if (query.BuildingId.HasValue)
                 AddCriteria(x => x.BuildingId == query.BuildingId.Value);
+
+            if (query.IsActive.HasValue)
+                AddCriteria(x => x.IsActive == query.IsActive.Value);
 
             if (!string.IsNullOrWhiteSpace(query.RoomNo))
                 AddCriteria(x => x.RoomNo == query.RoomNo);

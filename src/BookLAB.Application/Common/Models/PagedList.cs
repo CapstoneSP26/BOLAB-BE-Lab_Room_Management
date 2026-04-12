@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace BookLAB.Application.Common.Models
 {
@@ -14,10 +14,10 @@ namespace BookLAB.Application.Common.Models
 
         public PagedList(List<T> items, int count, int pageNumber, int pageSize)
         {
-            PageNumber = pageNumber;
-            TotalPages = (int)Math.Ceiling(count / (double)pageSize);
+            PageNumber = Math.Max(1, pageNumber);
+            PageSize = Math.Max(1, pageSize);
+            TotalPages = Math.Max(1, (int)Math.Ceiling(count / (double)PageSize));
             TotalCount = count;
-            PageSize = pageSize;
             Items = items;
         }
 

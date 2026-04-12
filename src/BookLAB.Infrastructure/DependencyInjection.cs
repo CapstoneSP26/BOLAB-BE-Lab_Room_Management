@@ -1,6 +1,8 @@
 ﻿using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Interfaces.Services;
+using BookLAB.Application.Common.Jobs.Bookings;
+using BookLAB.Infrastructure.BackgroundJobs;
 using BookLAB.Infrastructure.Identity;
 using BookLAB.Infrastructure.Persistence;
 using BookLAB.Infrastructure.Repositories;
@@ -62,7 +64,13 @@ namespace BookLAB.Infrastructure
             services.AddScoped<IBookingRepository, BookingRepository>();
 
             // ===== BACKGROUND JOBS =====
+            services.AddScoped<AutoRejectBookingJob>();
+
+            services.AddScoped<RecurringJobScheduler>();
+
             services.AddScoped<IBackgroundJobService, HangfireJobService>();
+
+            services.AddHostedService<JobHostedService>();
 
             return services;
         }
