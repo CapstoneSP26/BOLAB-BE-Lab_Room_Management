@@ -1,8 +1,8 @@
-﻿
-using BookLAB.Application.Common.Interfaces.Identity;
+﻿using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Interfaces.Services;
 using BookLAB.Application.Common.Models;
+using BookLAB.Application.Features.Schedules.Events;
 using BookLAB.Domain.Entities;
 using BookLAB.Domain.Enums;
 using MediatR;
@@ -14,12 +14,17 @@ namespace BookLAB.Application.Features.Schedules.Commands.ImportSchedule
         private readonly IUnitOfWork _unitOfWork;
         private readonly IScheduleImportService _scheduleImportService;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IBackgroundJobService _jobService;
+        private readonly IMediator _mediator;
 
-        public ConfirmImportHandler(IUnitOfWork unitOfWork, IScheduleImportService scheduleImportService, ICurrentUserService currentUserService)
+
+        public ConfirmImportHandler(IUnitOfWork unitOfWork, IScheduleImportService scheduleImportService, ICurrentUserService currentUserService, IBackgroundJobService jobService, IMediator mediator)
         {
             _unitOfWork = unitOfWork;
             _scheduleImportService = scheduleImportService;
             _currentUserService = currentUserService;
+            _jobService = jobService;
+            _mediator = mediator;
         }
 
         public async Task<ImportResult> Handle(ConfirmImportCommand request, CancellationToken cancellationToken)
@@ -64,6 +69,12 @@ namespace BookLAB.Application.Features.Schedules.Commands.ImportSchedule
                 }
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
                 await _unitOfWork.CommitTransactionAsync();
+
+                foreach (var schedule in newSchedules)
+                {
+                    var scheduleIds = newSchedules.Select(s => s.Id).ToList();
+                    await _mediator.Publish(new SchedulesImportedEvent(scheduleIds), cancellationToken);
+                }
 
                 return new ImportResult
                 {
