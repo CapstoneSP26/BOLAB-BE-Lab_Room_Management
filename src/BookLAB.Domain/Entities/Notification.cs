@@ -1,6 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Text.Json;
 
 namespace BookLAB.Domain.Entities
 {
@@ -14,7 +12,7 @@ namespace BookLAB.Domain.Entities
         public bool IsRead { get; set; } = false;
         public DateTimeOffset CreatedAt { get; set; }
         public DateTimeOffset? ReadAt { get; set; }
-        public string Metadata { get; set; }
+        public JsonElement Metadata { get; set; }
         public bool IsGlobal { get; set; } = false;
         public User? User { get; set; }
     }

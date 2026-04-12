@@ -1,23 +1,17 @@
-using BookLAB.API.Hubs;
 using BookLAB.API.Middlewares;
-using BookLAB.API.Services;
 using BookLAB.Application;
-using BookLAB.Application.Common.Interfaces.Identity;
-using BookLAB.Application.Common.Interfaces.Integration;
-using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Infrastructure;
-using BookLAB.Infrastructure.Identity;
+using BookLAB.Infrastructure.Hubs;
 using BookLAB.Infrastructure.Persistence;
-using BookLAB.Infrastructure.Repositories;
 using BookLAB.Infrastructure.Services;
 using Hangfire;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using QRCoder;
 using System.Text;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,6 +36,7 @@ builder.Services.AddAuthentication(options =>
         options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme; // Override lại ChallengeScheme để đăng nhập bằng Cookie (cơ mà trong AuthController.GoogleLogin trả về Result.Challenge với authentication scheme là Google nên sẽ trỏ về bên Google yêu cầu xác nhận bên đó trước, không dùng Cookie này nữa)
     }).AddJwtBearer(x =>
     {
+        x.RequireHttpsMetadata = false;
         x.SaveToken = true;
         x.TokenValidationParameters = new TokenValidationParameters
         {
@@ -112,14 +107,7 @@ builder.Services.AddCors(opt =>
         options.AllowAnyHeader()
                .AllowAnyMethod()
                .AllowCredentials()
-               .WithOrigins(
-                   "https://localhost:5173",
-                   "http://localhost:5173",
-                   "http://localhost:5176",
-                   "https://localhost:5174",
-                   "http://localhost:5175",
-                   "http://localhost:3000"
-               );
+               .WithOrigins(builder.Configuration["FrontendUrl"]);
     });
 });
 
@@ -135,33 +123,29 @@ builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
-builder.Services.AddScoped<INotificationService, SignalRNotificationService>();
 
-builder.Services.AddDbContext<BookLABDbContext>(opt =>
-{
-    opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
-        b => b.MigrationsAssembly("BookLAB.API"));
-});
-builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
-
-builder.Services.AddScoped<IScheduleRepository, ScheduleRepository>();
 
 // Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
 
-builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddSwaggerGen();
-builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<QRCodeGenerator>();
 builder.Services.AddScoped<QrManagements>();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<BookLABDbContext>();
+    db.Database.Migrate();
+}
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 // Middleware pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseHangfireDashboard();
 }
 app.UseCors("CorsPolicy");
 app.UseHttpsRedirection();
@@ -171,6 +155,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapHub<NotificationsHub>("/hubs/notifications");
-app.UseHangfireDashboard();
+app.MapGet("/", () => "API Running");
 
-app.Run();
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+app.Run($"http://0.0.0.0:{port}");

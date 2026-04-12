@@ -1,4 +1,5 @@
 ﻿using BookLAB.Application.Common.Interfaces.Identity;
+using BookLAB.Application.Common.Interfaces.Integration;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Interfaces.Services;
 using BookLAB.Application.Common.Jobs.Bookings;
@@ -35,7 +36,15 @@ namespace BookLAB.Infrastructure
                 {
                     SchemaName = "hangfire"
                 }));
-            services.AddHangfireServer();
+
+            services.AddHangfireServer(options =>
+            {
+                // Với dự án BookLAB, chỉ nên để từ 5-10 workers
+                options.WorkerCount = Environment.ProcessorCount;
+
+                // Đặt tên server để dễ quản lý trên Dashboard
+                options.ServerName = "BookLAB_Background_Server";
+            });
 
             // Ánh xạ cấu hình từ appsettings.json vào class EmailSettings
             services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
@@ -56,12 +65,15 @@ namespace BookLAB.Infrastructure
             services.AddScoped<QRCodeGenerator>();
             services.AddScoped<IQrManagements, QrManagements>();
             services.AddTransient<IEmailService, EmailService>();
+            services.AddScoped<INotificationService, SignalRNotificationService>();
+
 
             // ===== REPOSITORIES =====
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IUserRoleRepository, UserRoleRepository>();
             services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
             services.AddScoped<IBookingRepository, BookingRepository>();
+            services.AddScoped<IScheduleRepository, ScheduleRepository>();
 
             // ===== BACKGROUND JOBS =====
             services.AddScoped<AutoRejectBookingJob>();

@@ -7,6 +7,7 @@ using BookLAB.Domain.Entities;
 using BookLAB.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace BookLAB.Application.Features.Bookings.Commands.CreateBooking
 {
@@ -103,7 +104,8 @@ namespace BookLAB.Application.Features.Bookings.Commands.CreateBooking
                     CreatedBy = currentUserId
                 };
                 await _unitOfWork.Repository<BookingRequest>().AddAsync(bookingRequest);
-
+                var metadataObject = new { bookingId = booking.Id};
+                var metadataJsonString = JsonSerializer.Serialize(metadataObject);
                 await _unitOfWork.Repository<Notification>().AddAsync(new Notification
                 {
                     UserId = currentUserId,
@@ -112,7 +114,7 @@ namespace BookLAB.Application.Features.Bookings.Commands.CreateBooking
                     Type = "BookingCreated",
                     IsRead = false,
                     CreatedAt = DateTimeOffset.UtcNow,
-                    Metadata = $"{{\"bookingId\":\"{booking.Id}\"}}",
+                    Metadata = JsonDocument.Parse(metadataJsonString).RootElement.Clone(),
                     IsGlobal = false
                 });
 
