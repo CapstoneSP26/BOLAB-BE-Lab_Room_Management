@@ -7,6 +7,7 @@ using BookLAB.Domain.Entities;
 using BookLAB.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace BookLAB.Application.Features.Bookings.Commands.ApproveBooking
 {
@@ -107,6 +108,8 @@ namespace BookLAB.Application.Features.Bookings.Commands.ApproveBooking
                 _unitOfWork.Repository<Booking>().Update(booking);
 
                 Notification? createdNotification = null;
+                var metadataObject = new { bookingId = booking.Id, labName = "Lab 01" };
+                var metadataJsonString = JsonSerializer.Serialize(metadataObject);
                 if (booking.CreatedBy.HasValue)
                 {
                     createdNotification = new Notification
@@ -117,7 +120,7 @@ namespace BookLAB.Application.Features.Bookings.Commands.ApproveBooking
                         Type = "BookingApproved",
                         IsRead = false,
                         CreatedAt = DateTimeOffset.UtcNow,
-                        Metadata = $"{{\"bookingId\":\"{booking.Id}\"}}",
+                        Metadata = JsonDocument.Parse(metadataJsonString).RootElement.Clone(),
                         IsGlobal = false
                     };
 

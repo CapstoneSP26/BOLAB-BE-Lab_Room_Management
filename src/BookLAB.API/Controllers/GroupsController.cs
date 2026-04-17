@@ -1,4 +1,7 @@
+using BookLAB.Application.Common.Interfaces.Identity;
+using BookLAB.Application.Common.Models;
 using BookLAB.Application.Features.Groups.Commands.AddGroupMember;
+using BookLAB.Application.Features.Groups.Commands.ConfirmImportGroup;
 using BookLAB.Application.Features.Groups.Commands.CreateGroup;
 using BookLAB.Application.Features.Groups.Commands.DeleteGroup;
 using BookLAB.Application.Features.Groups.Commands.RemoveGroupMember;
@@ -8,10 +11,11 @@ using BookLAB.Application.Features.Groups.DTOs;
 using BookLAB.Application.Features.Groups.Queries.GetGroupById;
 using BookLAB.Application.Features.Groups.Queries.GetGroupMembers;
 using BookLAB.Application.Features.Groups.Queries.GetGroups;
-//using BookLAB.Application.Common.Security;
+using BookLAB.Application.Features.Groups.Queries.ValidateGroupImport;
+using BookLAB.Domain.Entities;
 using MediatR;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace BookLAB.API.Controllers
 {
@@ -22,13 +26,15 @@ namespace BookLAB.API.Controllers
     {
         private readonly IMediator _mediator;
         private readonly ILogger<GroupsController> _logger;
-
+        private readonly ICurrentUserService _currentUserService;
         public GroupsController(
             IMediator mediator,
-            ILogger<GroupsController> logger)
+            ILogger<GroupsController> logger,
+            ICurrentUserService currentUserService)
         {
             _mediator = mediator;
             _logger = logger;
+            _currentUserService = currentUserService;
         }
 
         #region Group Management Endpoints
@@ -274,5 +280,28 @@ namespace BookLAB.API.Controllers
         }
 
         #endregion
+
+        [HttpPost("import/validate")]
+        public async Task<ActionResult<ImportValidationResult<GroupImportDto, GroupMember>>> ValidateImport(
+            [FromBody] ValidateGroupImportQuery query)
+        {
+            var campusId = _currentUserService.CampusId;
+            query.CampusId = campusId;
+            var result = await _mediator.Send(query);
+            return Ok(result);
+        }
+
+        [HttpPost("import/commit")]
+        public async Task<ActionResult<ImportValidationResult<GroupImportDto, GroupMember>>> ConfirmImport(
+            [FromBody] ConfirmGroupImportCommand command)
+        {
+            var campusId = _currentUserService.CampusId;
+            command.CampusId = campusId;
+            var result = await _mediator.Send(command);
+            return Ok(result);
+        }
+
+
+
     }
 }

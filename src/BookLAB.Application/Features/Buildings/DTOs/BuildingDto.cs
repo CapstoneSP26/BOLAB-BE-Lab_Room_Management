@@ -1,4 +1,4 @@
-﻿namespace BookLAB.Application.Features.Buildings.DTOs
+namespace BookLAB.Application.Features.Buildings.DTOs
 {
     public record BuildingDto
     {
@@ -8,6 +8,7 @@
         public string BuildingName { get; init; } = null!;
         public string Description { get; init; } = null!;
         public string BuildingImageUrl { get; init; } = null!;
+        public int RoomCount { get; init; }
         public string? CampusName { get; init; } // Phẳng hóa dữ liệu từ Campus
     }
 }

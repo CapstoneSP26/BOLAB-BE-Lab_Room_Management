@@ -1,22 +1,21 @@
-﻿using BookLAB.Application.Common.Models;
+using BookLAB.Application.Common.Models;
 using BookLAB.Application.Features.LabRooms.Commands.CreateLabRoom;
 using BookLAB.Application.Features.LabRooms.Commands.DeleteLabRoom;
 using BookLAB.Application.Features.LabRooms.Commands.ImportLabRooms;
 using BookLAB.Application.Features.LabRooms.Commands.UpdateLabRoom;
 using BookLAB.Application.Features.LabRooms.Commands.UpdatePolicy;
 using BookLAB.Application.Features.LabRooms.Commands.ValidateImportLabRooms;
+using BookLAB.Application.Features.LabRooms.Common;
+using BookLAB.Application.Features.LabRooms.Queries.GetLabRoomById;
 using BookLAB.Application.Features.LabRooms.Queries.GetLabRoomPolicies;
 using BookLAB.Application.Features.LabRooms.Queries.GetLabRooms;
 using BookLAB.Domain.Enums;
-using ClosedXML.Excel;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Globalization;
 
 namespace BookLAB.API.Controllers
 {
-    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class LabRoomController : ControllerBase
@@ -28,6 +27,20 @@ namespace BookLAB.API.Controllers
         {
             _mediator = mediator;
             _logger = logger;
+        }
+
+        [HttpGet("{id}")]
+        [ProducesResponseType(typeof(BookLAB.Application.Features.LabRooms.Queries.GetLabRooms.LabRoomDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetLabRoomById(int id, CancellationToken cancellationToken)
+        {
+            var query = new GetLabRoomByIdQuery { Id = id };
+            var result = await _mediator.Send(query, cancellationToken);
+
+            if (result == null)
+                return NotFound(new { message = $"Lab room with id '{id}' not found" });
+
+            return Ok(result);
         }
 
         [HttpGet("{id}/policies")]

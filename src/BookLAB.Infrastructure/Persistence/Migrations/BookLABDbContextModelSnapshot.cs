@@ -80,7 +80,7 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = new Guid("15151515-1515-1515-1515-151515151515"),
-                            AttendanceStatus = "NotYet",
+                            AttendanceStatus = "Absent",
                             CheckInMethod = "FaceId",
                             CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 16, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = new Guid("11111111-1111-1111-1111-111111111111"),
@@ -90,7 +90,7 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = new Guid("16161616-1616-1616-1616-161616161616"),
-                            AttendanceStatus = "NotYet",
+                            AttendanceStatus = "Absent",
                             CheckInMethod = "QR",
                             CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 17, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = new Guid("22222222-2222-2222-2222-222222222222"),
@@ -100,7 +100,7 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = new Guid("17171717-1717-1717-1717-171717171717"),
-                            AttendanceStatus = "NotYet",
+                            AttendanceStatus = "Absent",
                             CheckInMethod = "Manual",
                             CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 18, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = new Guid("33333333-3333-3333-3333-333333333333"),
@@ -530,6 +530,9 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<int?>("CampusId")
+                        .HasColumnType("integer");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -556,6 +559,8 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CampusId");
 
                     b.HasIndex("GroupName");
 
@@ -622,9 +627,9 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                     b.HasIndex("UserId")
                         .HasDatabaseName("IX_GroupMember_UserId");
 
-                    b.HasIndex("GroupId", "UserId")
+                    b.HasIndex("GroupId", "UserId", "SubjectCode")
                         .IsUnique()
-                        .HasDatabaseName("UQ_Group_User_Member");
+                        .HasDatabaseName("UQ_Group_User_Member_Subject");
 
                     b.ToTable("GroupMembers", (string)null);
 
@@ -1412,7 +1417,7 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                             LabRoomId = 1,
                             LecturerId = new Guid("11111111-1111-1111-1111-111111111111"),
                             ScheduleStatus = "Active",
-                            ScheduleType = "Booking",
+                            ScheduleType = "Academic",
                             SlotTypeId = 1,
                             StartTime = new DateTimeOffset(new DateTime(2025, 2, 1, 8, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             StudentCount = 10
@@ -1430,7 +1435,7 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                             LabRoomId = 2,
                             LecturerId = new Guid("22222222-2222-2222-2222-222222222222"),
                             ScheduleStatus = "Active",
-                            ScheduleType = "Booking",
+                            ScheduleType = "Academic",
                             SlotTypeId = 2,
                             StartTime = new DateTimeOffset(new DateTime(2025, 2, 2, 13, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             StudentCount = 20
@@ -1571,6 +1576,34 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                             Code = "S45",
                             Name = "45-min slot"
                         });
+                });
+
+            modelBuilder.Entity("BookLAB.Domain.Entities.Subject", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("SubjectCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("SubjectName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SubjectCode")
+                        .IsUnique();
+
+                    b.ToTable("Subjects", (string)null);
                 });
 
             modelBuilder.Entity("BookLAB.Domain.Entities.User", b =>
@@ -1832,11 +1865,18 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("BookLAB.Domain.Entities.Group", b =>
                 {
+                    b.HasOne("BookLAB.Domain.Entities.Campus", "Campus")
+                        .WithMany()
+                        .HasForeignKey("CampusId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("BookLAB.Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("OwnerId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Campus");
 
                     b.Navigation("User");
                 });

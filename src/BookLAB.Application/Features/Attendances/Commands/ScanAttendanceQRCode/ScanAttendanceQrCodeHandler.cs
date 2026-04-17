@@ -85,13 +85,13 @@ namespace BookLAB.Application.Features.Attendances.Commands.ScanAttendanceQRCode
                     UpdatedBy = request.LecturerId,            // Track who updated it
                 };
 
-            var existedAttendanceId = (await _unitOfWork.Repository<Attendance>().Entities.FirstOrDefaultAsync(x => x.UserId == request.studentId && x.ScheduleId == request.scheduleId, cancellationToken)).Id;
+            var existedAttendance = await _unitOfWork.Repository<Attendance>().Entities.FirstOrDefaultAsync(x => x.UserId == request.studentId && x.ScheduleId == request.scheduleId, cancellationToken);
 
             try
             {
-                if (existedAttendanceId != null)
+                if (existedAttendance != null)
                 {
-                    attendance.Id = existedAttendanceId;
+                    attendance.Id = existedAttendance.Id;
                     await _unitOfWork.BeginTransactionAsync();
 
                     // Add the new attendance record to the repository

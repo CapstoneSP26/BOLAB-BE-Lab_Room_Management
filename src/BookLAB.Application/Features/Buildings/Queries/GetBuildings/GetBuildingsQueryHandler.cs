@@ -1,4 +1,4 @@
-﻿using BookLAB.Application.Common.Extensions;
+using BookLAB.Application.Common.Extensions;
 using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Models;
@@ -31,7 +31,8 @@ namespace BookLAB.Application.Features.Buildings.Queries.GetBuildings
             .AsNoTracking();
 
             // 2. Dùng Manual Projection để control SQL Select
-            var projectedQuery = query.SelectBuilding();
+            var labRoomQuery = _unitOfWork.Repository<LabRoom>().Entities.AsNoTracking();
+            var projectedQuery = query.SelectBuilding(labRoomQuery);
 
             // Xử lý "Get All" nếu PageSize là con số đặc biệt
             if (request.PageSize <= 0)
