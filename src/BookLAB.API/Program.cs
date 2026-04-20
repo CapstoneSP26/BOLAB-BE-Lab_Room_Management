@@ -157,5 +157,5 @@ app.MapControllers();
 app.MapHub<NotificationsHub>("/hubs/notifications");
 app.MapGet("/", () => "API Running");
 
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-app.Run($"http://0.0.0.0:{port}");
+//var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+app.Run();
