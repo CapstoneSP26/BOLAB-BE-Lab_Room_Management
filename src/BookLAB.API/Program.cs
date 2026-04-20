@@ -34,6 +34,7 @@ builder.Services.AddAuthentication(options =>
         options.ClientId = builder.Configuration["Authentication:Google:ClientId"]!;
         options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"]!;
         options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme; // Override lại ChallengeScheme để đăng nhập bằng Cookie (cơ mà trong AuthController.GoogleLogin trả về Result.Challenge với authentication scheme là Google nên sẽ trỏ về bên Google yêu cầu xác nhận bên đó trước, không dùng Cookie này nữa)
+        options.CallbackPath = "/signin-google";
     }).AddJwtBearer(x =>
     {
         x.RequireHttpsMetadata = false;
@@ -157,5 +158,5 @@ app.MapControllers();
 app.MapHub<NotificationsHub>("/hubs/notifications");
 app.MapGet("/", () => "API Running");
 
-//var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-app.Run();
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+app.Run($"http://0.0.0.0:{port}");
