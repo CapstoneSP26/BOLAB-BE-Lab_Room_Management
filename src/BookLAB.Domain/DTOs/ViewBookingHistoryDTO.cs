@@ -16,5 +16,6 @@ namespace BookLAB.Domain.DTOs
         public DateTimeOffset endDate { get; set; } = DateTimeOffset.Parse("9999-01-01T00:00:00Z");
         public int? buildingId { get; set; }
         public int? labRoomId { get; set; }
+        public int? slotTypeId { get; set; }
     }
 }

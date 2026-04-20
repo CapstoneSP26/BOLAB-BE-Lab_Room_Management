@@ -359,7 +359,8 @@ public class BookingsController : ControllerBase
                 startDate = dto.startDate,
                 endDate = dto.endDate,
                 labRoomId = dto.labRoomId,
-                buildingId = dto.buildingId
+                buildingId = dto.buildingId,
+                slotTypeId = dto.slotTypeId
             };
 
             var result = await _mediator.Send(command);

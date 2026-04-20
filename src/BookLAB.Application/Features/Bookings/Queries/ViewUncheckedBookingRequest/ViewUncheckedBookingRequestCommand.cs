@@ -18,5 +18,6 @@ namespace BookLAB.Application.Features.Bookings.Queries.ViewUncheckedBookingRequ
         public DateTimeOffset endDate { get; set; }
         public int? buildingId { get; set; }
         public int? labRoomId { get; set; }
+        public int? slotTypeId { get; set; }
     }
 }
