@@ -81,6 +81,9 @@ namespace BookLAB.Application.Features.Bookings.Queries.ViewUncheckedBookingRequ
                         b.Booking.StartTime < endBoundaryExclusive
                     );
 
+                if (request.keyword != null)
+                    query = query.Where(b => b.Booking.LabRoom.RoomName.ToLower().Contains(request.keyword.ToLower()) || b.Booking.LabRoom.RoomNo.ToLower().Contains(request.keyword.ToLower()));
+
                 if (request.buildingId != null)
                     query = query.Where(b => b.Booking.LabRoom.BuildingId == request.buildingId);
 

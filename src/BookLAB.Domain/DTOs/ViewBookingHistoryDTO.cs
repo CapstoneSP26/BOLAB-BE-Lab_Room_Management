@@ -17,5 +17,6 @@ namespace BookLAB.Domain.DTOs
         public int? buildingId { get; set; }
         public int? labRoomId { get; set; }
         public int? slotTypeId { get; set; }
+        public string? keyword { get; set; }
     }
 }
