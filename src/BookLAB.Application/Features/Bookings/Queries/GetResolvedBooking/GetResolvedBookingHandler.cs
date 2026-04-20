@@ -70,6 +70,8 @@ namespace BookLAB.Application.Features.Bookings.Queries.GetResolvedBooking
                 if (request.labRoomId != null)
                     query = query.Where(x => x.LabRoomId == request.labRoomId);
 
+                if (request.keyword != null)
+                    query = query.Where(x => x.LabRoom.RoomName.ToLower().Contains(request.keyword.ToLower()) || x.LabRoom.RoomNo.ToLower().Contains(request.keyword.ToLower()));
 
                 if (!request.status.Equals("all", StringComparison.OrdinalIgnoreCase))
                 {

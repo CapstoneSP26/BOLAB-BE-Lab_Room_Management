@@ -18,5 +18,6 @@ namespace BookLAB.Application.Features.Bookings.Queries.GetResolvedBooking
         public int? buildingId { get; set; }
         public int? labRoomId { get; set; }
         public BookingStatus? requestStatus { get; set; }
+        public string? keyword { get; set; }
     }
 }
