@@ -1,4 +1,5 @@
 ﻿using BookLAB.Domain.DTOs;
+using BookLAB.Domain.Enums;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -16,5 +17,6 @@ namespace BookLAB.Application.Features.Bookings.Queries.GetResolvedBooking
         public DateTimeOffset endDate { get; set; } = DateTimeOffset.Parse("9999-01-01T00:00:00Z");
         public int? buildingId { get; set; }
         public int? labRoomId { get; set; }
+        public BookingStatus? requestStatus { get; set; }
     }
 }

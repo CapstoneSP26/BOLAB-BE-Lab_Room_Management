@@ -56,10 +56,20 @@ namespace BookLAB.Application.Features.Bookings.Queries.GetResolvedBooking
                     .Where(b =>
                         b.StartTime >= startBoundary &&
                         b.StartTime < endBoundaryExclusive &&
-                        (b.BookingStatus == Domain.Enums.BookingStatus.Approved || b.BookingStatus == Domain.Enums.BookingStatus.Rejected) &&
-                        (request.labRoomId == null || b.LabRoomId == request.labRoomId) && // thêm filter labRoomId
                         labRoomIds.Contains(b.LabRoomId) // filter by labRoomIds
                     );
+
+                if (request.requestStatus != null)
+                    query = query.Where(x => x.BookingStatus == request.requestStatus);
+                else
+                    query = query.Where(x => x.BookingStatus == Domain.Enums.BookingStatus.Approved || x.BookingStatus == Domain.Enums.BookingStatus.Rejected);
+
+                if (request.buildingId != null)
+                    query = query.Where(x => x.LabRoom.BuildingId == request.buildingId);
+
+                if (request.labRoomId != null)
+                    query = query.Where(x => x.LabRoomId == request.labRoomId);
+
 
                 if (!request.status.Equals("all", StringComparison.OrdinalIgnoreCase))
                 {
