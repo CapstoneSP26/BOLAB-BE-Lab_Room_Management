@@ -12,6 +12,8 @@ using Microsoft.IdentityModel.Tokens;
 using QRCoder;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.HttpOverrides;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -134,6 +136,10 @@ builder.Services.AddScoped<QRCodeGenerator>();
 builder.Services.AddScoped<QrManagements>();
 
 var app = builder.Build();
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedProto
+});
 
 using (var scope = app.Services.CreateScope())
 {
