@@ -1,11 +1,9 @@
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Models;
 using BookLAB.Application.Features.Auth.Queries.GetProfile;
-using BookLAB.Application.Features.LoginWithGoogle;
 using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -22,16 +20,19 @@ namespace BookLAB.API.Controllers
         private readonly LinkGenerator _linkGenerator;
         private readonly IUserRepository _userRepository;
         private readonly IUserRoleRepository _userRoleRepository;
+        private readonly IConfiguration _configuration;
 
         public AuthController(IMediator mediator,
                               LinkGenerator linkGenerator,
                               IUserRepository userRepository,
-                              IUserRoleRepository userRoleRepository)
+                              IUserRoleRepository userRoleRepository,
+                              IConfiguration configuration)
         {
             _mediator = mediator;
             _linkGenerator = linkGenerator;
             _userRepository = userRepository;
             _userRoleRepository = userRoleRepository;
+            _configuration = configuration;
         }
 
         // front-end sẽ vào đây đầu tiên
@@ -50,87 +51,97 @@ namespace BookLAB.API.Controllers
         }
 
         [HttpGet("login/google/callback", Name = "GoogleLoginCallback")]
-        public async Task<IActionResult> GoogleLoginCallback([FromQuery] string returnUrl)
+        public async Task<IActionResult> GoogleLoginCallback([FromQuery] string? returnUrl)
         {
             var result = await HttpContext.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
 
-            if (!result.Succeeded)
+            if (!result.Succeeded || result.Principal == null)
             {
-                return Unauthorized();
+                return Unauthorized("Google authentication failed");
             }
 
-            var account = await _userRepository.GetByEmailAsync(result.Principal?.FindFirst(ClaimTypes.Email)?.Value);
+            // ✅ Lấy email an toàn
+            var email = result.Principal.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(email))
+            {
+                return BadRequest("Email not found from Google");
+            }
 
+            // ✅ Tìm user
+            var account = await _userRepository.GetByEmailAsync(email);
             if (account == null)
             {
-                return NotFound();
+                return NotFound("User not found");
             }
 
-            var userId = account.Id;
-            var role = await _userRoleRepository.GetAsync(userId);
-
-            IConfiguration configuration = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", true, true)
-                .Build();
-
-            var claims = new List<Claim>
+            // ✅ Lấy role
+            var role = await _userRoleRepository.GetAsync(account.Id);
+            if (role == null)
             {
-                new Claim("Id", account.Id.ToString()),
-                new Claim("Role", role?.RoleId.ToString() ?? ""),
-                new Claim("CampusId", account.CampusId.ToString())
-            };
+                return BadRequest("User role not found");
+            }
 
-            var symetricKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(configuration["JWT:SecretKey"]));
-            var signCredential = new SigningCredentials(symetricKey, SecurityAlgorithms.HmacSha256);
+            // ✅ Lấy config từ ENV (KHÔNG dùng ConfigurationBuilder nữa)
+            var secret = _configuration["Jwt:SecretKey"];
+            var issuer = _configuration["Jwt:Issuer"];
+            var audience = _configuration["Jwt:Audience"];
+            var feUrl = _configuration["FrontendUrl"];
 
-            var preparedToken = new JwtSecurityToken(
-                issuer: configuration["JWT:Issuer"],
-                audience: configuration["JWT:Audience"],
+            if (string.IsNullOrEmpty(secret))
+            {
+                throw new Exception("JWT SecretKey is missing");
+            }
+
+            // ✅ Tạo claims
+            var claims = new List<Claim>
+    {
+        new Claim("Id", account.Id.ToString()),
+        new Claim("Role", role.RoleId.ToString()),
+        new Claim("CampusId", account.CampusId.ToString())
+    };
+
+            // ✅ Tạo JWT
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                issuer: issuer,
+                audience: audience,
                 claims: claims,
-                expires: DateTime.Now.AddMinutes(30),
-                signingCredentials: signCredential);
+                expires: DateTime.UtcNow.AddMinutes(30),
+                signingCredentials: creds
+            );
 
-            var generatedToken = new JwtSecurityTokenHandler().WriteToken(preparedToken);
+            var jwt = new JwtSecurityTokenHandler().WriteToken(token);
 
-            HttpContext.Response.Cookies.Append("accessToken", generatedToken,
-                new CookieOptions
-                {
-                    Expires = DateTimeOffset.UtcNow.AddMinutes(30),
-                    HttpOnly = true,
-                    IsEssential = true,
-                    Secure = true,
-                    SameSite = SameSiteMode.None
-                });
+            // ✅ Set cookie (cross-site)
+            HttpContext.Response.Cookies.Append("accessToken", jwt, new CookieOptions
+            {
+                Expires = DateTimeOffset.UtcNow.AddMinutes(30),
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                IsEssential = true,
+                Path = "/"
+            });
+
+            // ✅ Redirect theo role (KHÔNG hardcode localhost)
+            var finalUrl = feUrl ?? "https://localhost:5173";
 
             switch (role.RoleId)
             {
                 case 1:
-                    returnUrl = "https://localhost:5173/labmanager/dashboard";
-                    break;
                 case 2:
-                    returnUrl = "https://localhost:5173/labmanager/dashboard";
+                    finalUrl += "/labmanager/dashboard";
                     break;
                 case 3:
-                    returnUrl = "https://localhost:5173/";
-                    break;
                 case 4:
-                    returnUrl = "https://localhost:5173/";
-                    break;
                 default:
-                    returnUrl = "https://localhost:5173/";
+                    finalUrl += "/";
                     break;
             }
 
-            // Validate returnUrl to avoid invalid redirect targets.
-            //if (!Uri.TryCreate(returnUrl, UriKind.Absolute, out var parsedReturnUrl)
-            //    || (parsedReturnUrl.Scheme != Uri.UriSchemeHttp && parsedReturnUrl.Scheme != Uri.UriSchemeHttps))
-            //{
-            //    returnUrl = "https://localhost:5173/";
-            //}
-
-            return Redirect(returnUrl);
+            return Redirect(finalUrl);
         }
 
         [HttpGet("sign-out")]
