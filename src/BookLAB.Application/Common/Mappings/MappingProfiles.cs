@@ -37,7 +37,8 @@ namespace BookLAB.Application.Common.Mappings
                 .ForMember(dest => dest.Date, opt => opt.MapFrom(src => src.Booking.StartTime.ToString("dd-MM-yyyy")))
                 .ForMember(dest => dest.StudentCount, opt => opt.MapFrom(src => src.Booking.StudentCount))
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.BookingRequestStatus))
-                .ForMember(dest => dest.Purpose, opt => opt.MapFrom(src => src.Booking.PurposeType.PurposeName));
+                .ForMember(dest => dest.Purpose, opt => opt.MapFrom(src => src.Booking.PurposeType.PurposeName))
+                .ForMember(dest => dest.Requester, opt => opt.MapFrom(src => src.Requester));
 
             CreateMap<Schedule, ScheduleDto2>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
@@ -49,6 +50,11 @@ namespace BookLAB.Application.Common.Mappings
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.ScheduleStatus))
                 .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.ScheduleType))
                 .ReverseMap();
+
+            CreateMap<User, UserProfileDto>()
+                .ForMember(dest => dest.AvatarUrl, opt => opt.MapFrom(src => src.UserImageUrl))
+                .ForMember(dest => dest.UserCode, opt => opt.MapFrom(src => src.UserCode));
+                //.ForMember(dest => dest.Roles, opt => opt.MapFrom(src => src.UserRoles.Where(x => x.UserId == src.Id).Select(x => x.Role.RoleName).ToList()));
         }
     }
 }

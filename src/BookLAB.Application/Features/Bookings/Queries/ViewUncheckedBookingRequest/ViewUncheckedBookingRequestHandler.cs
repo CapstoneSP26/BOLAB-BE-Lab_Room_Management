@@ -74,6 +74,7 @@ namespace BookLAB.Application.Features.Bookings.Queries.ViewUncheckedBookingRequ
                     .Include(x => x.Booking.LabRoom)
                     .Include(x => x.Booking.LabRoom.Building)
                     .Include(x => x.Booking.PurposeType)
+                    .Include(x => x.Requester)
                     .Where(b =>
                         labOwners.Contains(b.Booking.LabRoomId) &&
                         b.Booking.StartTime >= startBoundary &&
