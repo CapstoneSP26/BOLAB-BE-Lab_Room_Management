@@ -13,6 +13,7 @@
         // Thông tin từ bảng liên quan
         public int BuildingId { get; set; }
         public string BuildingName { get; init; } = null!;
+        public bool IsActive { get; set; }
 
         public List<LabImageDto>? Images { get; init; }
     }

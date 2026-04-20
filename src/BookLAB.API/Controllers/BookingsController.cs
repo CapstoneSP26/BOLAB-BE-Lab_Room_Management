@@ -21,6 +21,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using BookLAB.Application.Features.Bookings.Commands.CancelBooking;
+using BookLAB.Application.Features.Bookings.Queries.GetResolvedBooking;
 
 namespace BookLAB.API.Controllers;
 
@@ -378,6 +379,27 @@ public class BookingsController : ControllerBase
 
     }
 
+    [HttpGet("history/labmanager")]
+    [Authorize(Policy = "AcademicOffice_LabManager")]
+    public async Task<IActionResult> GetResolvedBooking([FromQuery] GetResolvedBookingQuery query)
+    {
+        try
+        {
+            query.userId = Guid.Parse(User.FindFirst("Id").Value);
+            var result = await _mediator.Send(query);
+            return Ok(new
+            {
+                data = result.List,
+                total = result.total,
+                page = query.page,
+                limit = query.limit
+            });
+
+        } catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
 
     [HttpPost("check-conflict")]
     [Authorize(Policy = "AcademicOffice_LabManager_Lecturer")]
