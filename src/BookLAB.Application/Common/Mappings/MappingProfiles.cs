@@ -51,6 +51,8 @@ namespace BookLAB.Application.Common.Mappings
                 .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.ScheduleType))
                 .ReverseMap();
 
+            CreateMap<Schedule, ScheduleDto>();
+
             CreateMap<User, UserProfileDto>()
                 .ForMember(dest => dest.AvatarUrl, opt => opt.MapFrom(src => src.UserImageUrl))
                 .ForMember(dest => dest.UserCode, opt => opt.MapFrom(src => src.UserCode));
