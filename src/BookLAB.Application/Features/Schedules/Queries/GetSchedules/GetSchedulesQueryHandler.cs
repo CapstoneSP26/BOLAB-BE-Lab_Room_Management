@@ -29,6 +29,7 @@ public class GetSchedulesQueryHandler : IRequestHandler<GetSchedulesQuery, Paged
 
         // 2. Lấy IQueryable từ Repository
         var query = _unitOfWork.Repository<Schedule>().Entities
+            .Include(x => x.LabRoom)
             .ApplySpecification(spec)
             .AsNoTracking();
 

@@ -120,8 +120,10 @@ public class SchedulesController : ControllerBase
     [Authorize(Policy = "AcademicOffice_LabManager_Lecturer")]
     public async Task<IActionResult> GetSchedules([FromQuery] GetSchedulesQuery query)
     {
-        query.FromDate = query.FromDate.Value.ToUniversalTime();
-        query.ToDate = query.ToDate.Value.ToUniversalTime();
+        if (query.FromDate != null)
+            query.FromDate = query.FromDate.Value.ToUniversalTime();
+        if (query.ToDate != null)
+            query.ToDate = query.ToDate.Value.ToUniversalTime();
 
         // MediatR sẽ chuyển hướng query này đến GetSchedulesQueryHandler
         var result = await _mediator.Send(query);

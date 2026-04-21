@@ -9,6 +9,7 @@ namespace BookLAB.Application.Features.Schedules.Queries.GetSchedules
         // Filter properties
         public string? SearchTerm { get; set; }
         public ScheduleStatus? Status { get; set; }
+        public int? BuildingId { get; set; }
         public int? LabRoomId { get; set; }
         public Guid? LecturerId { get; set; }
         public string? SubjectCode { get; set; }
