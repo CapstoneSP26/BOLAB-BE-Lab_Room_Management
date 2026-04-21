@@ -6,7 +6,7 @@ using System.Text;
 
 namespace BookLAB.Application.Features.Schedules.Queries.GetSchedulesStudent
 {
-    public class GetSchedulesStudentQuery : IRequest<List<ScheduleDto>>
+    public class GetSchedulesStudentQuery : IRequest<List<ScheduleDto2>>
     {
         public DateTimeOffset FromDate { get; set; }
         public DateTimeOffset ToDate { get; set; }

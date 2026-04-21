@@ -11,7 +11,7 @@ using System.Text;
 
 namespace BookLAB.Application.Features.Schedules.Queries.GetSchedulesStudent
 {
-    public class GetSchedulesStudentHandler : IRequestHandler<GetSchedulesStudentQuery, List<ScheduleDto>>
+    public class GetSchedulesStudentHandler : IRequestHandler<GetSchedulesStudentQuery, List<ScheduleDto2>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUserService _currentUserService;
@@ -26,7 +26,7 @@ namespace BookLAB.Application.Features.Schedules.Queries.GetSchedulesStudent
             _mapper = mapper;
         }
 
-        public async Task<List<ScheduleDto>> Handle(GetSchedulesStudentQuery request, CancellationToken cancellationToken)
+        public async Task<List<ScheduleDto2>> Handle(GetSchedulesStudentQuery request, CancellationToken cancellationToken)
         {
             try
             {
@@ -34,14 +34,18 @@ namespace BookLAB.Application.Features.Schedules.Queries.GetSchedulesStudent
                 var now = DateTimeOffset.UtcNow;
 
                 var userGroup = await _unitOfWork.Repository<GroupMember>().Entities.Where(x => x.UserId == userId).Select(x => x.GroupId).ToListAsync();
-                var total = await _unitOfWork.Repository<Schedule>().Entities.Where(x => x.StartTime > now && userGroup.Contains(x.GroupId.Value)).ToListAsync();
+                var total = await _unitOfWork.Repository<Schedule>().Entities
+                    .Include(x => x.LabRoom)
+                    .Include(x => x.User)
+                    .Include(x => x.SlotType)
+                    .Where(x => x.StartTime > now && userGroup.Contains(x.GroupId.Value)).ToListAsync();
 
-                var mappedTotal = _mapper.Map<List<Schedule>, List<ScheduleDto>>(total);
+                var mappedTotal = _mapper.Map<List<Schedule>, List<ScheduleDto2>>(total);
 
                 return mappedTotal;
             } catch (Exception ex)
             {
-                return new List<ScheduleDto>();
+                return new List<ScheduleDto2>();
             }
         }
     }
