@@ -137,6 +137,15 @@ namespace BookLAB.API.Controllers
         public async Task<IActionResult> SignOut()
         {
             await HttpContext.SignOutAsync("Cookies");
+
+            HttpContext.Response.Cookies.Delete("accessToken", new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Path = "/"
+            });
+
             return Ok(new
             {
                 success = true,
