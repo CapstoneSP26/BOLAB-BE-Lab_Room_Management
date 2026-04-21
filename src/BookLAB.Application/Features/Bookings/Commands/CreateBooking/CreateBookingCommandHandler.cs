@@ -32,104 +32,123 @@ namespace BookLAB.Application.Features.Bookings.Commands.CreateBooking
 
         public async Task<Guid> Handle(CreateBookingCommand request, CancellationToken ct)
         {
-            // 0. Validate cơ bản trước khi đụng vào DB
+            // 1. Khai báo & Validate cơ bản
             if (request.StartTime >= request.EndTime)
-                throw new BusinessException("Start time must be before end time.");
+                throw new BusinessException("Thời gian bắt đầu phải trước thời gian kết thúc.");
+
+            // Giới hạn cứng tối đa 4 tuần theo yêu cầu của bạn
+            int totalWeeks = Math.Min(request.RecurringCount > 0 ? request.RecurringCount : 1, 4);
+            var currentUserId = _currentUserService.UserId ?? Guid.Empty;
 
             await _unitOfWork.BeginTransactionAsync();
             try
             {
-                // 1. check the existence of LabRoom
                 var room = await _unitOfWork.Repository<LabRoom>().Entities
-            .Include(r => r.RoomPolicies)
-            .FirstOrDefaultAsync(r => r.Id == request.LabRoomId, ct);
+                    .Include(r => r.RoomPolicies)
+                    .FirstOrDefaultAsync(r => r.Id == request.LabRoomId, ct);
 
                 if (room == null || !room.IsActive)
-                    throw new NotFoundException("LabRoom is not existed or inactive");
+                    throw new NotFoundException("Phòng không tồn tại hoặc không hoạt động.");
 
-                var currentUserId = _currentUserService.UserId ?? Guid.Empty;
-
-                // 2. USER CONFLICT CHECK: Check if the user is already booked elsewhere
-                var isUserBusySchedule = await _unitOfWork.Repository<Schedule>().Entities
-                    .AnyAsync(s => s.LecturerId == currentUserId &&
-                                   s.IsActive && !s.IsDeleted &&
-                                   s.StartTime < request.EndTime &&
-                                   s.EndTime > request.StartTime);
-                var isUserBusyBooking = await _unitOfWork.Repository<BookingRequest>().Entities
-                    .AnyAsync(b => b.RequestedByUserId == currentUserId &&
-                                   b.BookingRequestStatus == BookingRequestStatus.Pending &&
-                                   b.Booking.StartTime < request.EndTime &&
-                                   b.Booking.EndTime > request.StartTime);
-
-
-                if (isUserBusySchedule || isUserBusyBooking)
+                // 2. CHECK CONFLICT: Duyệt qua từng tuần để kiểm tra trùng lịch
+                for (int i = 0; i < totalWeeks; i++)
                 {
-                    throw new BusinessException("You already have another confirmed schedule during this time period.");
+                    var weekStart = request.StartTime.AddDays(i * 7).ToUniversalTime();
+                    var weekEnd = request.EndTime.AddDays(i * 7).ToUniversalTime();
+
+                    // Kiểm tra lịch cá nhân của User (Schedules)
+                    var hasScheduleConflict = await _unitOfWork.Repository<Schedule>().Entities
+                        .AnyAsync(s => s.LecturerId == currentUserId && s.IsActive && !s.IsDeleted &&
+                                       s.StartTime < weekEnd && s.EndTime > weekStart, ct);
+
+                    // Kiểm tra các yêu cầu đặt chỗ khác của chính User này (tránh đặt 2 phòng cùng lúc)
+                    var hasBookingConflict = await _unitOfWork.Repository<BookingRequest>().Entities
+                        .AnyAsync(b => b.RequestedByUserId == currentUserId &&
+                                       b.BookingRequestStatus == BookingRequestStatus.Pending &&
+                                       b.Booking.StartTime < weekEnd && b.Booking.EndTime > weekStart, ct);
+
+                    if (hasScheduleConflict || hasBookingConflict)
+                        throw new BusinessException($"Trùng lịch vào tuần {i + 1} ({weekStart:dd/MM/yyyy}). Vui lòng kiểm tra lại.");
                 }
 
-                // 4. POLICY VALIDATION
+                // 3. POLICY EVALUATION (Chỉ cần đánh giá cho tuần đầu tiên/request gốc)
                 var activePolicies = room.RoomPolicies.Where(p => p.IsActive).ToList();
-
                 await _policyEvaluator.EvaluateAsync(request, activePolicies);
 
-                // start transaction
+                Guid firstBookingId = Guid.Empty;
 
-                var booking = new Booking
+                // 4. VÒNG LẶP TẠO CẶP (1 BOOKING : 1 BOOKING REQUEST)
+                for (int i = 0; i < totalWeeks; i++)
                 {
-                    Id = Guid.NewGuid(),
-                    LabRoomId = request.LabRoomId,
-                    SlotTypeId = request.SlotTypeId > 0 ? request.SlotTypeId : null,
-                    StartTime = request.StartTime.ToUniversalTime(),
-                    EndTime = request.EndTime.ToUniversalTime(),
-                    Recur = request.RecurringCount,
-                    BookingStatus = BookingStatus.PendingApproval,
-                    BookingType = request.BookingType,
-                    PurposeTypeId = request.PurposeTypeId,
-                    Reason = request.Reason,
-                    CreatedAt = DateTimeOffset.UtcNow,
-                    CreatedBy = currentUserId
-                };
+                    var bookingId = Guid.NewGuid();
+                    if (i == 0) firstBookingId = bookingId;
 
+                    var booking = new Booking
+                    {
+                        Id = bookingId,
+                        LabRoomId = request.LabRoomId,
+                        SlotTypeId = request.SlotTypeId > 0 ? request.SlotTypeId : null,
+                        StartTime = request.StartTime.AddDays(i * 7).ToUniversalTime(),
+                        EndTime = request.EndTime.AddDays(i * 7).ToUniversalTime(),
+                        Recur = totalWeeks,
+                        BookingStatus = BookingStatus.PendingApproval,
+                        BookingType = request.BookingType,
+                        PurposeTypeId = request.PurposeTypeId,
+                        StudentCount = request.StudentCount,
+                        Reason = request.Reason,
+                        CreatedAt = DateTimeOffset.UtcNow,
+                        CreatedBy = currentUserId
+                    };
 
-                await _unitOfWork.Repository<Booking>().AddAsync(booking);
+                    var bookingRequest = new BookingRequest
+                    {
+                        Id = Guid.NewGuid(),
+                        BookingId = bookingId, // Quan hệ 1:1
+                        RequestedByUserId = currentUserId,
+                        BookingRequestStatus = BookingRequestStatus.Pending,
+                        CreatedAt = DateTimeOffset.UtcNow,
+                        CreatedBy = currentUserId
+                    };
 
-                // Create the BookingRequest (The formal request for approval)
-                var bookingRequest = new BookingRequest
+                    await _unitOfWork.Repository<Booking>().AddAsync(booking);
+                    await _unitOfWork.Repository<BookingRequest>().AddAsync(bookingRequest);
+                }
+
+                // 5. THÔNG BÁO DUY NHẤT (Chỉ gửi 1 Notification cho cả hành động này)
+                var metadata = JsonSerializer.Serialize(new
                 {
-                    Id = Guid.NewGuid(),
-                    BookingId = booking.Id,
-                    RequestedByUserId = currentUserId,
-                    BookingRequestStatus = BookingRequestStatus.Pending,
-                    CreatedAt = DateTimeOffset.UtcNow,
-                    CreatedBy = currentUserId
-                };
-                await _unitOfWork.Repository<BookingRequest>().AddAsync(bookingRequest);
-                var metadataObject = new { bookingId = booking.Id};
-                var metadataJsonString = JsonSerializer.Serialize(metadataObject);
+                    bookingId = firstBookingId,
+                    totalWeeks = totalWeeks,
+                    isRecurring = totalWeeks > 1
+                });
+
                 await _unitOfWork.Repository<Notification>().AddAsync(new Notification
                 {
                     UserId = currentUserId,
-                    Title = "Booking request submitted",
-                    Message = $"Your booking request for room {room.RoomName} has been submitted and is waiting for approval.",
+                    Title = totalWeeks > 1 ? "Đặt lịch định kỳ thành công" : "Đặt lịch thành công",
+                    Message = totalWeeks > 1
+                        ? $"Bạn đã gửi yêu cầu đặt phòng {room.RoomName} lặp lại trong {totalWeeks} tuần."
+                        : $"Yêu cầu đặt phòng {room.RoomName} của bạn đã được gửi.",
                     Type = "BookingCreated",
+                    Metadata = JsonDocument.Parse(metadata).RootElement.Clone(),
                     IsRead = false,
-                    CreatedAt = DateTimeOffset.UtcNow,
-                    Metadata = JsonDocument.Parse(metadataJsonString).RootElement.Clone(),
-                    IsGlobal = false
+                    IsGlobal = false,
+                    CreatedAt = DateTimeOffset.UtcNow
                 });
 
                 await _unitOfWork.SaveChangesAsync(ct);
                 await _unitOfWork.CommitTransactionAsync();
-                await _mediator.Publish(new BookingCreatedEvent(booking.Id), ct);
 
-                return booking.Id;
+                // 6. TRICK: Chỉ publish event cho bản ghi đầu tiên để tránh spam Email/Event
+                await _mediator.Publish(new BookingCreatedEvent(firstBookingId), ct);
+
+                return firstBookingId;
             }
             catch (Exception)
             {
                 await _unitOfWork.RollbackTransactionAsync();
                 throw;
             }
-
         }
 
     }

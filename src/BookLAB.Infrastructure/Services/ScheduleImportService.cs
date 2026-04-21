@@ -266,6 +266,9 @@ namespace BookLAB.Infrastructure.Services
                 .Include(s => s.User)
                 .Where(s => s.LabRoom.Building.CampusId == campusId && startTime < s.EndTime && s.StartTime < endTime)
                 .ToListAsync(ct);
+            var subjectCodeHashes = await _unitOfWork.Repository<Subject>().Entities
+                .Select(s => s.SubjectCode)
+                .ToHashSetAsync();
 
             return new ImportMaps
             {
@@ -273,7 +276,8 @@ namespace BookLAB.Infrastructure.Services
                 RoomMap = roomMap,
                 LecturerMap = lecturerMap,
                 GroupMap = groupMap,
-                ExistingSchedules = existingSchedules
+                ExistingSchedules = existingSchedules,
+                SubjectCodeHashes = subjectCodeHashes
             };
         }
 
@@ -306,13 +310,16 @@ namespace BookLAB.Infrastructure.Services
                 .Include(s => s.User)
                 .Where(s => s.LabRoom.Building.CampusId == campusId && startTime < s.EndTime && s.StartTime < endTime)
                 .ToListAsync(ct);
-
+            var subjectCodeHashes = await _unitOfWork.Repository<Subject>().Entities
+                .Select(s => s.SubjectCode)
+                .ToHashSetAsync();
             return new ImportMaps
             {
                 RoomMap = roomMap,
                 LecturerMap = lecturerMap,
                 GroupMap = groupMap,
-                ExistingSchedules = existingSchedules
+                ExistingSchedules = existingSchedules,
+                SubjectCodeHashes = subjectCodeHashes
             };
         }
         private void ValidateRows(
@@ -441,6 +448,18 @@ namespace BookLAB.Infrastructure.Services
                 item.IsValid = false;
             }
 
+            // --- F. Check SubjectCode ---
+            if (!maps.SubjectCodeHashes.Contains(item.SubjectCode))
+            {
+                errors.Add(new RowError
+                {
+                    FieldName = "SubjectCode",
+                    Message = "Mã môn học không tồn tại trên hệ thống",
+                    Severity = ErrorSeverity.Error
+                });
+                item.IsValid = false;
+            }
+
             return errors;
         }
 
@@ -545,6 +564,17 @@ namespace BookLAB.Infrastructure.Services
                 });
                 item.IsValid = false;
             }
+            // --- F. Check SubjectCode ---
+            if (!maps.SubjectCodeHashes.Contains(item.SubjectCode))
+            {
+                errors.Add(new RowError
+                {
+                    FieldName = "SubjectCode",
+                    Message = "Mã môn học không tồn tại trên hệ thống",
+                    Severity = ErrorSeverity.Error
+                });
+                item.IsValid = false;
+            }
 
             return errors;
         }
@@ -554,26 +584,46 @@ namespace BookLAB.Infrastructure.Services
             ImportMaps maps,
             ImportValidationResult<ScheduleImportDto, Schedule> response)
         {
-            var hashSet = maps.ExistingSchedules
+            var existingHashSet = maps.ExistingSchedules
                 .Select(s => s.ImportHash)
                 .ToHashSet();
+
+            // Dùng Dictionary: Key là Hash, Value là Index (số dòng) của lần đầu xuất hiện
+            var processedInFileTracker = new Dictionary<string, int>();
 
             foreach (var item in schedules)
             {
                 if (!item.IsValid) continue;
                 var hash = GenerateHash(item);
 
-                if (hashSet.Contains(hash))
+                // --- Kiểm tra trùng lặp NỘI BỘ trong file ---
+                if (processedInFileTracker.TryGetValue(hash, out int originalLineIndex))
                 {
-                    item.IsUpdated = true;
-
+                    item.IsValid = false;
                     response.Rows[item.Index - 1].Errors.Add(new RowError
                     {
                         FieldName = "RoomNo",
-                        Message = "Lịch đã tồn tại",
+                        // Thông báo cụ thể dòng bị trùng
+                        Message = $"Dòng này bị trùng lặp với dòng thứ {originalLineIndex} trong file Excel.",
+                        Severity = ErrorSeverity.Error
+                    });
+                    continue;
+                }
+
+                // --- Kiểm tra trùng lặp với Database ---
+                if (existingHashSet.Contains(hash))
+                {
+                    item.IsUpdated = true;
+                    response.Rows[item.Index - 1].Errors.Add(new RowError
+                    {
+                        FieldName = "RoomNo",
+                        Message = "Lịch đã tồn tại trên hệ thống (Sẽ được cập nhật)",
                         Severity = ErrorSeverity.Warning
                     });
                 }
+
+                // Lưu lại Hash và Index của dòng này để các dòng sau đối chiếu
+                processedInFileTracker.Add(hash, item.Index);
             }
         }
 
@@ -582,26 +632,42 @@ namespace BookLAB.Infrastructure.Services
     ImportMaps maps,
     ImportValidationResult<FlexibleScheduleImportDto, Schedule> response)
         {
-            var hashSet = maps.ExistingSchedules
+            var existingHashSet = maps.ExistingSchedules
                 .Select(s => s.ImportHash)
                 .ToHashSet();
+
+            // Lưu vết: <Hash, Số dòng trong Excel>
+            var processedInFileTracker = new Dictionary<string, int>();
 
             foreach (var item in schedules)
             {
                 if (!item.IsValid) continue;
                 var hash = GenerateFlexibleHash(item);
 
-                if (hashSet.Contains(hash))
+                if (processedInFileTracker.TryGetValue(hash, out int originalLineIndex))
                 {
-                    item.IsUpdated = true;
-
+                    item.IsValid = false;
                     response.Rows[item.Index - 1].Errors.Add(new RowError
                     {
                         FieldName = "RoomNo",
-                        Message = "Lịch đã tồn tại",
+                        Message = $"Dòng này có dữ liệu giống hệt dòng thứ {originalLineIndex} phía trên.",
+                        Severity = ErrorSeverity.Error
+                    });
+                    continue;
+                }
+
+                if (existingHashSet.Contains(hash))
+                {
+                    item.IsUpdated = true;
+                    response.Rows[item.Index - 1].Errors.Add(new RowError
+                    {
+                        FieldName = "RoomNo",
+                        Message = "Lịch linh hoạt này đã tồn tại (Sẽ được cập nhật)",
                         Severity = ErrorSeverity.Warning
                     });
                 }
+
+                processedInFileTracker.Add(hash, item.Index);
             }
         }
 
