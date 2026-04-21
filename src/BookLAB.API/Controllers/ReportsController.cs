@@ -21,7 +21,6 @@ namespace BookLAB.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class ReportsController : ControllerBase
     {
         private readonly IMediator _mediator;
