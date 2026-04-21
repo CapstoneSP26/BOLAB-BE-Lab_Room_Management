@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using QRCoder;
 using BookLAB.Application.Features.Attendances.Commands.ScanAttendanceQRCode;
+using BookLAB.Application.Features.Attendances.Queries.GetStudentStatistic;
 
 namespace BookLAB.Api.Controllers;
 
@@ -237,4 +238,18 @@ public class AttendancesController : ControllerBase
         }
     }
 
+    [HttpGet("statistic/student")]
+    [Authorize(Policy = "Student")]
+    public async Task<IActionResult> GetStudentStatistic()
+    {
+        try
+        {
+            GetStudentStatisticQuery query = new GetStudentStatisticQuery();
+            var result = await _mediator.Send(query);
+            return Ok(result);
+        } catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while get student statistic");
+        }
+    }
 }
