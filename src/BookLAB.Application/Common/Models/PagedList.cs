@@ -24,7 +24,7 @@ namespace BookLAB.Application.Common.Models
         // Helper method để tạo PagedList nhanh từ IQueryable
         public static async Task<PagedList<T>> CreateAsync(IQueryable<T> source, int pageNumber, int pageSize, CancellationToken ct, bool countItems = false)
         {
-            int count = 0;
+            int count = source.Count();
             if (countItems)
             {
                 count = await source.CountAsync(ct);

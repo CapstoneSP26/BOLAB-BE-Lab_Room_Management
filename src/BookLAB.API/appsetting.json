@@ -1,0 +1,45 @@
+{
+    "Logging": {
+      "LogLevel": {
+        "Default": "",
+        "Microsoft.AspNetCore": ""
+      }
+    },
+    "ConnectionStrings": {
+      "DefaultConnection": ""
+    },
+    "GoogleCalendar": {
+      "CalendarId": "",
+      "CredentialsPath": "",
+      "TimeZone": ""
+    },
+    "AllowedHosts": "*",
+    "Authentication": {
+      "Google": {
+        "ClientId": "",
+        "ClientSecret": ""
+      }
+    },
+    "GoogleKeys": {
+      "ClientId": "",
+      "ClientSecret": ""
+    },
+    "Jwt": {
+      "SecretKey": "",
+      "Issuer": "",
+      "Audience": ""
+    },
+    "ApiSettings": {
+      "BaseUrl": ""
+    },
+    "EmailSettings": {
+      "SmtpServer": "",
+      "SmtpPort": "",
+      "SenderName": "",
+      "SenderEmail": "",
+      "Username": "",
+      "Password": ""
+    },
+    "FrontendUrl": ""
+  }
+  

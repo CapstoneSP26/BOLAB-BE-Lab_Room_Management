@@ -38,6 +38,17 @@ namespace BookLAB.Application.Common.Mappings
                 .ForMember(dest => dest.StudentCount, opt => opt.MapFrom(src => src.Booking.StudentCount))
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.BookingRequestStatus))
                 .ForMember(dest => dest.Purpose, opt => opt.MapFrom(src => src.Booking.PurposeType.PurposeName));
+
+            CreateMap<Schedule, ScheduleDto2>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.LecturerName, opt => opt.MapFrom(src => src.User.FullName))
+                .ForMember(dest => dest.UserCode, opt => opt.MapFrom(src => src.User.UserCode))
+                .ForMember(dest => dest.LabRoomName, opt => opt.MapFrom(src => src.LabRoom.RoomName))
+                .ForMember(dest => dest.SlotName, opt => opt.MapFrom(src => src.SlotType != null ? src.SlotType.Name : "Flexible"))
+                .ForMember(dest => dest.GroupName, opt => opt.MapFrom(src => src.Group.GroupName))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.ScheduleStatus))
+                .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.ScheduleType))
+                .ReverseMap();
         }
     }
 }
