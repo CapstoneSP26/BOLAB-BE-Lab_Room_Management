@@ -40,6 +40,18 @@ public class GetMyProfileQueryHandler : IRequestHandler<GetMyProfileQuery, MyPro
             .Include(ur => ur.Role)
             .ToListAsync(cancellationToken);
 
+        var preferenceRepository = _unitOfWork.Repository<UserNotificationPreference>();
+        var preference = await preferenceRepository.Entities
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.UserId == currentUserId, cancellationToken);
+
+        if (preference is null)
+        {
+            preference = CreateDefaultPreference(currentUserId);
+            await preferenceRepository.AddAsync(preference);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+
         var result = new MyProfileDto
         {
             Id = user.Id,
@@ -51,11 +63,35 @@ public class GetMyProfileQueryHandler : IRequestHandler<GetMyProfileQuery, MyPro
             AvatarUrl = user.UserImageUrl,
             CampusId = user.CampusId,
             CreatedAt = user.CreatedAt.DateTime,
-            UpdatedAt = user.UpdatedAt?.DateTime
+            UpdatedAt = user.UpdatedAt?.DateTime,
+            NotificationPreferences = MapNotificationPreferences(preference)
         };
 
         _logger.LogInformation($"MyProfile retrieved - UserId: {user.Id}, UserImageUrl: '{result.UserImageUrl}'");
 
         return result;
     }
+
+    private static UserNotificationPreference CreateDefaultPreference(Guid userId) => new()
+    {
+        UserId = userId,
+        EmailNotifications = true,
+        PushNotifications = true,
+        BookingApproved = true,
+        BookingRejected = true,
+        BookingReminder = true,
+        CreatedAt = DateTimeOffset.UtcNow
+    };
+
+    private static NotificationPreferencesDto MapNotificationPreferences(UserNotificationPreference preference) => new()
+    {
+        UserId = preference.UserId,
+        EmailNotifications = preference.EmailNotifications,
+        PushNotifications = preference.PushNotifications,
+        BookingApproved = preference.BookingApproved,
+        BookingRejected = preference.BookingRejected,
+        BookingReminder = preference.BookingReminder,
+        CreatedAt = preference.CreatedAt,
+        UpdatedAt = preference.UpdatedAt
+    };
 }

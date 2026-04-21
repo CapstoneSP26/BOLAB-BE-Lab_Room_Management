@@ -1,4 +1,4 @@
-﻿using BookLAB.Application.Common.Extensions;
+using BookLAB.Application.Common.Extensions;
 using BookLAB.Application.Common.Helpers;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Interfaces.Services;
@@ -31,6 +31,11 @@ namespace BookLAB.Application.Common.Jobs.Emails
             var user = await _unitOfWork.Repository<User>().Entities
                 .FirstOrDefaultAsync(u => u.Id == booking.CreatedBy.Value);
             if (user == null) return;
+
+            var shouldSendEmail = await _unitOfWork.Repository<UserNotificationPreference>().Entities
+                .AsNoTracking()
+                .AnyAsync(x => x.UserId == user.Id && x.EmailNotifications && x.BookingApproved);
+            if (!shouldSendEmail) return;
 
             var template = await _unitOfWork.Repository<EmailTemplate>().Entities
                 .FirstOrDefaultAsync(t => t.Type == EmailType.BookingApproved);

@@ -1,4 +1,4 @@
-﻿using BookLAB.Application.Common.Extensions;
+using BookLAB.Application.Common.Extensions;
 using BookLAB.Application.Common.Helpers;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Interfaces.Services;
@@ -61,14 +61,36 @@ namespace BookLAB.Application.Common.Jobs.Emails
                 .ToListAsync();
             if (labManagerEmails.Any())
             {
-                // Gộp danh sách thành chuỗi: "admin1@edu.vn, admin2@edu.vn"
-                string recipients = string.Join(", ", labManagerEmails);
+                var allowedRecipients = new List<string>();
 
-                await _emailService.SendEmailAsync(
-                    recipients,
-                    "⚠️ [BookLAB] Có yêu cầu đặt phòng mới cần phê duyệt",
-                    body
-                );
+                foreach (var email in labManagerEmails)
+                {
+                    var owner = await _unitOfWork.Repository<User>().Entities
+                        .FirstOrDefaultAsync(u => u.Email == email);
+
+                    if (owner == null)
+                        continue;
+
+                    var preferenceEnabled = await _unitOfWork.Repository<UserNotificationPreference>().Entities
+                        .AsNoTracking()
+                        .AnyAsync(x => x.UserId == owner.Id && x.EmailNotifications);
+
+                    if (preferenceEnabled)
+                    {
+                        allowedRecipients.Add(email);
+                    }
+                }
+
+                if (allowedRecipients.Any())
+                {
+                    var recipients = string.Join(", ", allowedRecipients);
+
+                    await _emailService.SendEmailAsync(
+                        recipients,
+                        "⚠️ [BookLAB] Có yêu cầu đặt phòng mới cần phê duyệt",
+                        body
+                    );
+                }
             }
         }
     }

@@ -3,9 +3,11 @@ using BookLAB.Application.Features.Profile.Commands.ChangePassword;
 using BookLAB.Application.Features.Profile.Commands.MarkNotificationAsRead;
 using BookLAB.Application.Features.Profile.Commands.UpdateAvatar;
 using BookLAB.Application.Features.Profile.Commands.UpdateMyProfile;
+using BookLAB.Application.Features.Profile.Commands.UpdateNotificationPreferences;
 using BookLAB.Application.Features.Profile.DTOs;
 using BookLAB.Application.Features.Profile.Queries.GetMyNotifications;
 using BookLAB.Application.Features.Profile.Queries.GetMyProfile;
+using BookLAB.Application.Features.Profile.Queries.GetNotificationPreferences;
 using BookLAB.Application.Features.Profile.Queries.GetProfileStatistics;
 using BookLAB.Application.Features.Profile.Queries.GetRecentActivities;
 using MediatR;
@@ -92,6 +94,24 @@ public class ProfileController : ControllerBase
     {
         var result = await _mediator.Send(new GetProfileStatisticsQuery(), cancellationToken);
         return Ok(new ApiResponse<ProfileStatisticsDto> { Data = result });
+    }
+
+    [HttpGet("notification-preferences")]
+    [ProducesResponseType(typeof(ApiResponse<NotificationPreferencesDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetNotificationPreferences(CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(new GetNotificationPreferencesQuery(), cancellationToken);
+        return Ok(new ApiResponse<NotificationPreferencesDto> { Data = result });
+    }
+
+    [HttpPut("notification-preferences")]
+    [ProducesResponseType(typeof(ApiResponse<NotificationPreferencesDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> UpdateNotificationPreferences([FromBody] UpdateNotificationPreferencesCommand command, CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(command, cancellationToken);
+        return Ok(new ApiResponse<NotificationPreferencesDto> { Data = result, Message = "Notification preferences updated successfully" });
     }
 
     [HttpGet("recent-activities")]

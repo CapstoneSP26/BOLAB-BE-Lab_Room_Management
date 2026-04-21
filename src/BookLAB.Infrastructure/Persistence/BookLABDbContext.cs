@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using BookLAB.Domain.Entities;
 
 namespace BookLAB.Infrastructure.Persistence
@@ -31,6 +31,7 @@ namespace BookLAB.Infrastructure.Persistence
         public DbSet<PurposeType> PurposeTypes => Set<PurposeType>();
         public DbSet<Schedule> Schedules => Set<Schedule>();
         public DbSet<Subject> Subjects => Set<Subject>();
+        public DbSet<UserNotificationPreference> UserNotificationPreferences => Set<UserNotificationPreference>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
