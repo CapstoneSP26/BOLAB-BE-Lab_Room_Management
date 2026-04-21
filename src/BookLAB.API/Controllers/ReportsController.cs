@@ -218,7 +218,6 @@ namespace BookLAB.API.Controllers
         }
 
         [HttpGet("reasons")]
-        [Authorize(Policy = "AcademicOffice_LabManager_Lecturer")]
         public IActionResult GetReportReasons()
         {
             var reasons = new[]
