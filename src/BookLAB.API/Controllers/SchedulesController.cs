@@ -6,6 +6,7 @@ using BookLAB.Application.Features.Schedules.Commands.ValidateImport;
 using BookLAB.Application.Features.Schedules.Common;
 using BookLAB.Application.Features.Schedules.Queries.AddSchedule;
 using BookLAB.Application.Features.Schedules.Queries.GetSchedules;
+using BookLAB.Application.Features.Schedules.Queries.GetSchedulesStudent;
 using BookLAB.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -119,6 +120,9 @@ public class SchedulesController : ControllerBase
     [Authorize(Policy = "AcademicOffice_LabManager_Lecturer")]
     public async Task<IActionResult> GetSchedules([FromQuery] GetSchedulesQuery query)
     {
+        query.FromDate = query.FromDate.Value.ToUniversalTime();
+        query.ToDate = query.ToDate.Value.ToUniversalTime();
+
         // MediatR sẽ chuyển hướng query này đến GetSchedulesQueryHandler
         var result = await _mediator.Send(query);
 
@@ -157,6 +161,31 @@ public class SchedulesController : ControllerBase
             return Ok(new
             {
                 result = result
+            });
+        }
+        catch (Exception ex)
+        {
+            // Log the error with details for debugging
+            _logger.LogError(ex, "Something is wrong while getting unchecked booking requests: " + ex.Message);
+
+            // Return internal server error response
+            return Problem("Something is wrong while getting unchecked booking requests");
+        }
+    }
+
+    [HttpGet("schedule-student")]
+    [Authorize(Policy = "Student")]
+    public async Task<IActionResult> GetSchedulesStudent([FromQuery] GetSchedulesStudentQuery query, CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Send the command through MediatR pipeline
+            var result = await _mediator.Send(query, cancellationToken);
+
+            // Return success response with the retrieved data
+            return Ok(new
+            {
+                items = result
             });
         }
         catch (Exception ex)
