@@ -44,9 +44,9 @@ namespace BookLAB.Application.Features.Users.Queries.GetUsers
                     .Include(x => x.UserRoles)
                     .ThenInclude(x => x.Role)
                     .Where(x => x.CampusId == campusId &&
-                        (x.FullName.ToLower().Contains(request.q.ToLower()) ||
-                        x.Email.ToLower().Contains(request.q.ToLower()) ||
-                        x.UserCode.ToLower().Contains(request.q.ToLower())));
+                        (x.FullName.ToLower().Contains(request.keyword.ToLower()) ||
+                        x.Email.ToLower().Contains(request.keyword.ToLower()) ||
+                        x.UserCode.ToLower().Contains(request.keyword.ToLower())));
 
                 if (role != null)
                     usersQuery = usersQuery.Where(x => x.UserRoles.Any(x => x.RoleId == role));
