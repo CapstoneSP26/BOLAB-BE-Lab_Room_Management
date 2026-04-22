@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace BookLAB.Api.Controllers
 {
-    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class BuildingsController : ControllerBase
@@ -29,7 +28,6 @@ namespace BookLAB.Api.Controllers
         [ProducesResponseType(typeof(BuildingDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [Authorize(Policy = "AcademicOffice_LabManager_Lecturer")]
         public async Task<IActionResult> GetBuildingByName(string buildingName, CancellationToken cancellationToken)
         {
             var query = new GetBuildingByNameQuery { BuildingName = buildingName };
@@ -42,7 +40,6 @@ namespace BookLAB.Api.Controllers
         }
 
         [HttpGet]
-        [Authorize(Policy = "AcademicOffice_LabManager_Lecturer")]
         public async Task<ActionResult<PagedList<BuildingDto>>> GetBuildings([FromQuery] GetBuildingsQuery query)
         {
             return Ok(await _mediator.Send(query));

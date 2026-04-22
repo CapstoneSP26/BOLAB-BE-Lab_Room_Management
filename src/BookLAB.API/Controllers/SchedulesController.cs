@@ -1,11 +1,14 @@
 ﻿using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Application.Common.Models;
 using BookLAB.Application.Features.Schedules.Commands.CreateSchedule;
+using BookLAB.Application.Features.Schedules.Commands.DeleteSchedule;
 using BookLAB.Application.Features.Schedules.Commands.ImportSchedule;
+using BookLAB.Application.Features.Schedules.Commands.UpdateSchedule;
 using BookLAB.Application.Features.Schedules.Commands.ValidateImport;
 using BookLAB.Application.Features.Schedules.Common;
 using BookLAB.Application.Features.Schedules.Queries.AddSchedule;
 using BookLAB.Application.Features.Schedules.Queries.GetSchedules;
+using BookLAB.Application.Features.Schedules.Queries.GetSchedulesStudent;
 using BookLAB.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -119,6 +122,11 @@ public class SchedulesController : ControllerBase
     [Authorize(Policy = "AcademicOffice_LabManager_Lecturer")]
     public async Task<IActionResult> GetSchedules([FromQuery] GetSchedulesQuery query)
     {
+        if (query.FromDate != null)
+            query.FromDate = query.FromDate.Value.ToUniversalTime();
+        if (query.ToDate != null)
+            query.ToDate = query.ToDate.Value.ToUniversalTime();
+
         // MediatR sẽ chuyển hướng query này đến GetSchedulesQueryHandler
         var result = await _mediator.Send(query);
 
@@ -169,6 +177,31 @@ public class SchedulesController : ControllerBase
         }
     }
 
+    [HttpGet("schedule-student")]
+    [Authorize(Policy = "Student")]
+    public async Task<IActionResult> GetSchedulesStudent([FromQuery] GetSchedulesStudentQuery query, CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Send the command through MediatR pipeline
+            var result = await _mediator.Send(query, cancellationToken);
+
+            // Return success response with the retrieved data
+            return Ok(new
+            {
+                items = result
+            });
+        }
+        catch (Exception ex)
+        {
+            // Log the error with details for debugging
+            _logger.LogError(ex, "Something is wrong while getting unchecked booking requests: " + ex.Message);
+
+            // Return internal server error response
+            return Problem("Something is wrong while getting unchecked booking requests");
+        }
+    }
+
     [HttpPost()]
     [Authorize(Policy = "AcademicOffice")]
     public async Task<IActionResult> CreateSchedule([FromBody] CreateScheduleCommand command, CancellationToken cancellationToken)
@@ -184,6 +217,48 @@ public class SchedulesController : ControllerBase
             _logger.LogError(ex, "Something is wrong while create schedule: " + ex.Message);
 
             return Problem("Something is wrong while create schedule");
+        }
+    }
+
+    [HttpPut("{id}")]
+    [Authorize(Policy = "AcademicOffice")]
+    public async Task<IActionResult> UpdateSchedule([FromRoute] Guid id, [FromBody] UpdateScheduleCommand command, CancellationToken cancellationToken)
+    {
+        try
+        {
+            command.Id = id;
+            var result = await _mediator.Send(command, cancellationToken);
+
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Something is wrong while update schedule: " + ex.Message);
+
+            return Problem("Something is wrong while update schedule");
+        }
+    }
+
+    [HttpDelete("{id}")]
+    [Authorize(Policy = "AcademicOffice")]
+    public async Task<IActionResult> DeleteSchedule([FromRoute] Guid id, CancellationToken cancellationToken)
+    {
+        try
+        {
+            DeleteScheduleCommand command = new DeleteScheduleCommand()
+            {
+                Id = id
+            };
+
+            var result = await _mediator.Send(command, cancellationToken);
+
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Something is wrong while update schedule: " + ex.Message);
+
+            return Problem("Something is wrong while update schedule");
         }
     }
 }

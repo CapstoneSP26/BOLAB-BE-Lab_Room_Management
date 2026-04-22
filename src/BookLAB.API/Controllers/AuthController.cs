@@ -1,6 +1,8 @@
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Models;
 using BookLAB.Application.Features.Auth.Queries.GetProfile;
+using BookLAB.Application.Features.LoginWithGoogle;
+using BookLAB.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
@@ -21,18 +23,21 @@ namespace BookLAB.API.Controllers
         private readonly IUserRepository _userRepository;
         private readonly IUserRoleRepository _userRoleRepository;
         private readonly IConfiguration _configuration;
+        private readonly IUnitOfWork _unitOfWork;
 
         public AuthController(IMediator mediator,
                               LinkGenerator linkGenerator,
                               IUserRepository userRepository,
                               IUserRoleRepository userRoleRepository,
-                              IConfiguration configuration)
+                              IConfiguration configuration,
+                              IUnitOfWork unitOfWork)
         {
             _mediator = mediator;
             _linkGenerator = linkGenerator;
             _userRepository = userRepository;
             _userRoleRepository = userRoleRepository;
             _configuration = configuration;
+            _unitOfWork = unitOfWork;
         }
 
         // front-end sẽ vào đây đầu tiên

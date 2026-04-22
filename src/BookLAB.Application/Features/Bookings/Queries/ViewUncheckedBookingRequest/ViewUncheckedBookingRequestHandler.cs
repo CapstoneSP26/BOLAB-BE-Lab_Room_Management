@@ -74,13 +74,24 @@ namespace BookLAB.Application.Features.Bookings.Queries.ViewUncheckedBookingRequ
                     .Include(x => x.Booking.LabRoom)
                     .Include(x => x.Booking.LabRoom.Building)
                     .Include(x => x.Booking.PurposeType)
+                    .Include(x => x.Requester)
                     .Where(b =>
                         labOwners.Contains(b.Booking.LabRoomId) &&
                         b.Booking.StartTime >= startBoundary &&
-                        b.Booking.StartTime < endBoundaryExclusive &&
-                        (request.labRoomId == null || b.Booking.LabRoomId == request.labRoomId) && // thêm filter labRoomId
-                        (request.buildingId == null || b.Booking.LabRoom.BuildingId == request.buildingId)
+                        b.Booking.StartTime < endBoundaryExclusive
                     );
+
+                if (request.keyword != null)
+                    query = query.Where(b => b.Booking.LabRoom.RoomName.ToLower().Contains(request.keyword.ToLower()) || b.Booking.LabRoom.RoomNo.ToLower().Contains(request.keyword.ToLower()));
+
+                if (request.buildingId != null)
+                    query = query.Where(b => b.Booking.LabRoom.BuildingId == request.buildingId);
+
+                if (request.labRoomId != null)
+                    query = query.Where(b => b.Booking.LabRoomId == request.labRoomId);
+
+                if (request.slotTypeId != null)
+                    query = query.Where(b => b.Booking.SlotTypeId == request.slotTypeId);
 
                 request.status = request.status.ToLower().Equals(BookingStatus.PendingApproval.ToString().ToLower()) ? "Pending" : request.status;
 
