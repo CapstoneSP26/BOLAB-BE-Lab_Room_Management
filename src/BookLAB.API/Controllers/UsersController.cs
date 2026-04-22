@@ -48,10 +48,24 @@ namespace BookLAB.API.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "AcademicOffice_Lecturer")]
         public async Task<IActionResult> GetUsers([FromQuery] GetUsersQuery query)
         {
             var result = await _mediator.Send(query);
             return Ok(result);
         }
+
+        //[HttpPatch("{id}/status")]
+        //[Authorize(Policy = "AcademicOffice")]
+        //public async Task<IActionResult> UpdateStatusUsers([FromBody] bool IsActive, [FromRoute] Guid id)
+        //{
+        //    UpdateUserCommand command = new UpdateUserCommand
+        //    {
+        //        Id = id,
+        //        IsActive = IsActive
+        //    };
+        //    var result = await _mediator.Send(command);
+        //    return Ok(result);
+        //}
     }
 }
