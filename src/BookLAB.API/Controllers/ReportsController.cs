@@ -21,7 +21,6 @@ namespace BookLAB.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class ReportsController : ControllerBase
     {
         private readonly IMediator _mediator;
@@ -218,7 +217,6 @@ namespace BookLAB.API.Controllers
         }
 
         [HttpGet("reasons")]
-        [Authorize(Policy = "AcademicOffice_LabManager_Lecturer")]
         public IActionResult GetReportReasons()
         {
             var reasons = new[]

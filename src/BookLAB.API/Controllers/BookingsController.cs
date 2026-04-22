@@ -280,7 +280,8 @@ public class BookingsController : ControllerBase
                     status = result[i].BookingStatus.ToString(),
                     purpose = result[i].PurposeType.PurposeName,
                     reason = result[i].Reason,
-                    userName = username
+                    userName = username,
+                    createdAt = result[i].CreatedAt
                 };
             }
 

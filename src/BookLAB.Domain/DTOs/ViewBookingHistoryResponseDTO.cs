@@ -19,5 +19,6 @@ namespace BookLAB.Domain.DTOs
         public string purpose { get; set; }
         public string reason { get; set; }
         public string userName { get; set; }
+        public DateTimeOffset createdAt { get; set; }
     }
 }
