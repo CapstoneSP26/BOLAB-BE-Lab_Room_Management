@@ -2,6 +2,7 @@ using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Models;
 using BookLAB.Application.Features.Auth.Queries.GetProfile;
 using BookLAB.Application.Features.LoginWithGoogle;
+using BookLAB.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
@@ -22,16 +23,19 @@ namespace BookLAB.API.Controllers
         private readonly LinkGenerator _linkGenerator;
         private readonly IUserRepository _userRepository;
         private readonly IUserRoleRepository _userRoleRepository;
+        private readonly IUnitOfWork _unitOfWork;
 
         public AuthController(IMediator mediator,
                               LinkGenerator linkGenerator,
                               IUserRepository userRepository,
-                              IUserRoleRepository userRoleRepository)
+                              IUserRoleRepository userRoleRepository,
+                              IUnitOfWork unitOfWork)
         {
             _mediator = mediator;
             _linkGenerator = linkGenerator;
             _userRepository = userRepository;
             _userRoleRepository = userRoleRepository;
+            _unitOfWork = unitOfWork;
         }
 
         // front-end sẽ vào đây đầu tiên
@@ -50,7 +54,7 @@ namespace BookLAB.API.Controllers
         }
 
         [HttpGet("login/google/callback", Name = "GoogleLoginCallback")]
-        public async Task<IActionResult> GoogleLoginCallback([FromQuery] string returnUrl)
+        public async Task<IActionResult> GoogleLoginCallback([FromQuery] string returnUrl, CancellationToken cancellationToken)
         {
             var result = await HttpContext.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
 
@@ -121,6 +125,25 @@ namespace BookLAB.API.Controllers
                 default:
                     returnUrl = "https://localhost:5173/";
                     break;
+            }
+
+            var pictureUrl = result.Principal?.FindFirst("picture")?.Value;
+            Console.WriteLine($"Url: {pictureUrl}");
+
+            if (pictureUrl != null && account.UserImageUrl != pictureUrl)
+            {
+                account.UserImageUrl = pictureUrl;
+                try
+                {
+                    await _unitOfWork.BeginTransactionAsync();
+                    await _unitOfWork.Repository<User>().UpdateAsync(account);
+                    await _unitOfWork.SaveChangesAsync(cancellationToken);
+                    await _unitOfWork.CommitTransactionAsync();
+                } catch (Exception ex)
+                {
+                    Console.WriteLine("Update user failed: " + ex.ToString());
+                }
+                
             }
 
             // Validate returnUrl to avoid invalid redirect targets.

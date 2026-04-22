@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace BookLAB.Api.Controllers
 {
-    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class BuildingsController : ControllerBase

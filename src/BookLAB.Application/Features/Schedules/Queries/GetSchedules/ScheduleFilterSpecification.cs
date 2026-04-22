@@ -10,6 +10,9 @@ namespace BookLAB.Application.Features.Schedules.Queries.GetSchedules
             if(query.LabRoomId.HasValue)
                 AddCriteria(s => s.LabRoomId == query.LabRoomId.Value);
 
+            if (query.BuildingId.HasValue)
+                AddCriteria(s => s.LabRoom.BuildingId == query.BuildingId.Value);
+
             if (query.FromDate.HasValue)
                 AddCriteria(s => s.StartTime >= query.FromDate.Value);
 

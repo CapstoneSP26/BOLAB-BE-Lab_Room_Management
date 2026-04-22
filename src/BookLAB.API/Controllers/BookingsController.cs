@@ -280,7 +280,8 @@ public class BookingsController : ControllerBase
                     status = result[i].BookingStatus.ToString(),
                     purpose = result[i].PurposeType.PurposeName,
                     reason = result[i].Reason,
-                    userName = username
+                    userName = username,
+                    createdAt = result[i].CreatedAt
                 };
             }
 
@@ -359,7 +360,9 @@ public class BookingsController : ControllerBase
                 startDate = dto.startDate,
                 endDate = dto.endDate,
                 labRoomId = dto.labRoomId,
-                buildingId = dto.buildingId
+                buildingId = dto.buildingId,
+                slotTypeId = dto.slotTypeId,
+                keyword = dto.keyword
             };
 
             var result = await _mediator.Send(command);

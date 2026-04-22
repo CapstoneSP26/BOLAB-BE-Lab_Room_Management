@@ -1,0 +1,57 @@
+﻿using AutoMapper;
+using BookLAB.Application.Common.Interfaces.Identity;
+using BookLAB.Application.Common.Interfaces.Repositories;
+using BookLAB.Application.Common.Models;
+using BookLAB.Domain.Entities;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace BookLAB.Application.Features.Users.Queries.GetUsers
+{
+    public class GetUsersHandler : IRequestHandler<GetUsersQuery, List<UserProfileDto>>
+    {
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly ICurrentUserService _currentUserService;
+        private readonly IMapper _mapper;
+
+        public GetUsersHandler(IUnitOfWork unitOfWork,
+            ICurrentUserService currentUserService,
+            IMapper mapper)
+        {
+            _unitOfWork = unitOfWork;
+            _currentUserService = currentUserService;
+            _mapper = mapper;
+        }
+
+        public async Task<List<UserProfileDto>> Handle(GetUsersQuery request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var campusId = _currentUserService.CampusId;
+                var role = request.role.ToLower().Equals("lecturer") ? 3 : 1;
+
+                var userRoles = await _unitOfWork.Repository<User>().Entities
+                    .ToListAsync();
+
+                var users = await _unitOfWork.Repository<User>().Entities
+                    .Where(x => x.CampusId == campusId &&
+                        x.UserRoles.Any(x => x.RoleId == role) &&
+                        (x.FullName.ToLower().Contains(request.q.ToLower()) ||
+                        x.Email.ToLower().Contains(request.q.ToLower()) ||
+                        x.UserCode.ToLower().Contains(request.q.ToLower())))
+                    .ToListAsync();
+
+
+
+                var mappedUsers = _mapper.Map<List<User>, List<UserProfileDto>>(users);
+                return mappedUsers;
+            } catch (Exception ex)
+            {
+                return new List<UserProfileDto>();
+            }
+        }
+    }
+}
