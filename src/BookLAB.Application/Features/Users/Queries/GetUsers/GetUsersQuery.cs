@@ -8,10 +8,10 @@ namespace BookLAB.Application.Features.Users.Queries.GetUsers
 {
     public class GetUsersQuery : IRequest<List<UserProfileDto>>
     {
-        public string? q { get; set; }
-        public string? keyword { get; set; }
-        public string? searchTerm { get; set; }
-        public string? UserCode { get; set; }
+        public string? q { get; set; } = "";
+        public string? keyword { get; set; } = "";
+        public string? searchTerm { get; set; } = "";
+        public string? UserCode { get; set; } = "";
         public string? role { get; set; }
     }
 }

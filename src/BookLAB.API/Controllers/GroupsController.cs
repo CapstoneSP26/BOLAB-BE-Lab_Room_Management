@@ -78,7 +78,10 @@ namespace BookLAB.API.Controllers
             try
             {
                 var groups = await _mediator.Send(new GetGroupsQuery(), cancellationToken);
-                return Ok(groups);
+                return Ok(new
+                {
+                    items = groups
+                });
             }
             catch (Exception ex)
             {

@@ -5,6 +5,7 @@ using BookLAB.Application.Common.Models;
 using BookLAB.Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -31,20 +32,26 @@ namespace BookLAB.Application.Features.Users.Queries.GetUsers
             try
             {
                 var campusId = _currentUserService.CampusId;
-                var role = request.role.ToLower().Equals("lecturer") ? 3 : 1;
+                int? role = null;
+
+                if (request.role != null)
+                    role = request.role.ToLower().Equals("lecturer") ? 3 : 1;
 
                 var userRoles = await _unitOfWork.Repository<User>().Entities
                     .ToListAsync();
 
-                var users = await _unitOfWork.Repository<User>().Entities
+                var usersQuery = _unitOfWork.Repository<User>().Entities
+                    .Include(x => x.UserRoles)
+                    .ThenInclude(x => x.Role)
                     .Where(x => x.CampusId == campusId &&
-                        x.UserRoles.Any(x => x.RoleId == role) &&
                         (x.FullName.ToLower().Contains(request.q.ToLower()) ||
                         x.Email.ToLower().Contains(request.q.ToLower()) ||
-                        x.UserCode.ToLower().Contains(request.q.ToLower())))
-                    .ToListAsync();
+                        x.UserCode.ToLower().Contains(request.q.ToLower())));
 
+                if (role != null)
+                    usersQuery = usersQuery.Where(x => x.UserRoles.Any(x => x.RoleId == role));
 
+                var users = await usersQuery.ToListAsync();
 
                 var mappedUsers = _mapper.Map<List<User>, List<UserProfileDto>>(users);
                 return mappedUsers;
