@@ -33,6 +33,10 @@ public class GetSchedulesQueryHandler : IRequestHandler<GetSchedulesQuery, Paged
             .ApplySpecification(spec)
             .AsNoTracking();
 
+        if (request.SearchItems != null)
+            query = query.Where(x => x.LabRoom.RoomName.ToLower().Contains(request.SearchItems.ToLower()) ||
+                x.LabRoom.RoomNo.ToLower().Contains(request.SearchItems.ToLower()));
+
         var projectedQuery = query.SelectSchedule();
 
         if (request.PageSize <= 0)

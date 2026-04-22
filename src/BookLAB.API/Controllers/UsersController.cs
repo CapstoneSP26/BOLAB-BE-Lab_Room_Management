@@ -3,6 +3,7 @@ using BookLAB.Application.Common.Models;
 using BookLAB.Application.Features.Users.Commands.ImportUsers;
 using BookLAB.Application.Features.Users.Commands.ValidateImportUsers;
 using BookLAB.Application.Features.Users.Common;
+using BookLAB.Application.Features.Users.Queries.GetUsers;
 using BookLAB.Domain.Entities;
 using ClosedXML.Excel;
 using MediatR;
@@ -12,7 +13,7 @@ using System.Globalization;
 
 namespace BookLAB.API.Controllers
 {
-    [Authorize]
+    [Authorize(Policy = "AcademicOffice")]
     [ApiController]
     [Route("api/[controller]")]
     public class UsersController : ControllerBase
@@ -43,6 +44,13 @@ namespace BookLAB.API.Controllers
         {
             command.CampusId = _currentUserService.CampusId;
             var result = await _mediator.Send(command);
+            return Ok(result);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetUsers([FromQuery] GetUsersQuery query)
+        {
+            var result = await _mediator.Send(query);
             return Ok(result);
         }
     }

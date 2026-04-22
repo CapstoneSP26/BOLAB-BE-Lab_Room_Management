@@ -1,7 +1,9 @@
 ﻿using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Application.Common.Models;
 using BookLAB.Application.Features.Schedules.Commands.CreateSchedule;
+using BookLAB.Application.Features.Schedules.Commands.DeleteSchedule;
 using BookLAB.Application.Features.Schedules.Commands.ImportSchedule;
+using BookLAB.Application.Features.Schedules.Commands.UpdateSchedule;
 using BookLAB.Application.Features.Schedules.Commands.ValidateImport;
 using BookLAB.Application.Features.Schedules.Common;
 using BookLAB.Application.Features.Schedules.Queries.AddSchedule;
@@ -215,6 +217,48 @@ public class SchedulesController : ControllerBase
             _logger.LogError(ex, "Something is wrong while create schedule: " + ex.Message);
 
             return Problem("Something is wrong while create schedule");
+        }
+    }
+
+    [HttpPut("{id}")]
+    [Authorize(Policy = "AcademicOffice")]
+    public async Task<IActionResult> UpdateSchedule([FromRoute] Guid id, [FromBody] UpdateScheduleCommand command, CancellationToken cancellationToken)
+    {
+        try
+        {
+            command.Id = id;
+            var result = await _mediator.Send(command, cancellationToken);
+
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Something is wrong while update schedule: " + ex.Message);
+
+            return Problem("Something is wrong while update schedule");
+        }
+    }
+
+    [HttpDelete("{id}")]
+    [Authorize(Policy = "AcademicOffice")]
+    public async Task<IActionResult> DeleteSchedule([FromRoute] Guid id, CancellationToken cancellationToken)
+    {
+        try
+        {
+            DeleteScheduleCommand command = new DeleteScheduleCommand()
+            {
+                Id = id
+            };
+
+            var result = await _mediator.Send(command, cancellationToken);
+
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Something is wrong while update schedule: " + ex.Message);
+
+            return Problem("Something is wrong while update schedule");
         }
     }
 }
