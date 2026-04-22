@@ -12,6 +12,6 @@ namespace BookLAB.Application.Features.Users.Queries.GetUsers
         public string? keyword { get; set; } = "";
         public string? searchTerm { get; set; } = "";
         public string? UserCode { get; set; } = "";
-        public string? role { get; set; }
+        public int? role { get; set; }
     }
 }

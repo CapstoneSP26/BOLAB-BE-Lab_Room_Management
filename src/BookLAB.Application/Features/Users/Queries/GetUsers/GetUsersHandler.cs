@@ -35,7 +35,7 @@ namespace BookLAB.Application.Features.Users.Queries.GetUsers
                 int? role = null;
 
                 if (request.role != null)
-                    role = request.role.ToLower().Equals("lecturer") ? 3 : 1;
+                    role = request.role;
 
                 var userRoles = await _unitOfWork.Repository<User>().Entities
                     .ToListAsync();
