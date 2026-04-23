@@ -1,6 +1,9 @@
 using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Application.Common.Models;
+using BookLAB.Application.Features.Users.Commands.CreateUser;
+using BookLAB.Application.Features.Users.Commands.DeleteUser;
 using BookLAB.Application.Features.Users.Commands.ImportUsers;
+using BookLAB.Application.Features.Users.Commands.UpdateUser;
 using BookLAB.Application.Features.Users.Commands.ValidateImportUsers;
 using BookLAB.Application.Features.Users.Common;
 using BookLAB.Application.Features.Users.Queries.GetUsers;
@@ -13,7 +16,6 @@ using System.Globalization;
 
 namespace BookLAB.API.Controllers
 {
-    [Authorize(Policy = "AcademicOffice")]
     [ApiController]
     [Route("api/[controller]")]
     public class UsersController : ControllerBase
@@ -28,6 +30,7 @@ namespace BookLAB.API.Controllers
         }
 
         [HttpPost("import/validate")]
+        [Authorize(Policy = "AcademicOffice")]
         [ProducesResponseType(typeof(ImportValidationResult<UserImportDto, User>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> ValidateImport([FromBody] ValidateUserImportQuery query)
@@ -38,6 +41,7 @@ namespace BookLAB.API.Controllers
         }
 
         [HttpPost("import/commit")]
+        [Authorize(Policy = "AcademicOffice")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> ConfirmImport([FromBody] ConfirmUserImportCommand command)
@@ -48,10 +52,50 @@ namespace BookLAB.API.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "AcademicOffice_Lecturer")]
         public async Task<IActionResult> GetUsers([FromQuery] GetUsersQuery query)
         {
             var result = await _mediator.Send(query);
             return Ok(result);
         }
+
+        [HttpPatch("{id}/status")]
+        [Authorize(Policy = "AcademicOffice")]
+        public async Task<IActionResult> UpdateStatusUsers([FromBody] UpdateUserCommand command, [FromRoute] Guid id)
+        {
+            command.Id = id;
+            var result = await _mediator.Send(command);
+            return Ok(result);
+        }
+
+        [HttpPut("{id}")]
+        [Authorize(Policy = "AcademicOffice")]
+        public async Task<IActionResult> UpdateUsers([FromBody] UpdateUserCommand command, [FromRoute] Guid id)
+        {
+            command.Id = id;
+            var result = await _mediator.Send(command);
+            return Ok(result);
+        }
+
+        [HttpPost()]
+        [Authorize(Policy = "AcademicOffice")]
+        public async Task<IActionResult> CreateUsers([FromBody] CreateUserCommand command)
+        {
+            var result = await _mediator.Send(command);
+            return Ok(result);
+        }
+
+        [HttpDelete("{id}")]
+        [Authorize(Policy = "AcademicOffice")]
+        public async Task<IActionResult> DeleteUsers([FromRoute] Guid id)
+        {
+            DeleteUserCommand command = new DeleteUserCommand
+            {
+                Id = id
+            };
+            var result = await _mediator.Send(command);
+            return Ok(result);
+        }
+
     }
 }
