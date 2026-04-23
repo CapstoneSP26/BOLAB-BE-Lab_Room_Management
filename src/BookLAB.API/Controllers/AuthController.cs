@@ -67,7 +67,11 @@ namespace BookLAB.API.Controllers
 
             if (account == null)
             {
-                return NotFound();
+                return NotFound(new ResultMessage<bool>
+                {
+                    Success = false,
+                    Message = "User not found"
+                });
             }
 
             var userId = account.Id;
