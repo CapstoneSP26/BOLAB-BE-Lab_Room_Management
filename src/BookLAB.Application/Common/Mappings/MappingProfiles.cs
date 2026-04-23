@@ -56,6 +56,7 @@ namespace BookLAB.Application.Common.Mappings
             CreateMap<User, UserProfileDto>()
                 .ForMember(dest => dest.AvatarUrl, opt => opt.MapFrom(src => src.UserImageUrl))
                 .ForMember(dest => dest.UserCode, opt => opt.MapFrom(src => src.UserCode))
+                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
                 .ForMember(dest => dest.Roles, opt => opt.MapFrom(src => src.UserRoles.Where(x => x.UserId == src.Id).Select(x => x.Role.RoleName).ToList()))
                 .ForMember(dest => dest.RoleIds, opt => opt.MapFrom(src => src.UserRoles.Where(x => x.UserId == src.Id).Select(x => x.RoleId).ToList()));
         }

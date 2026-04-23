@@ -128,11 +128,19 @@ namespace BookLAB.API.Controllers
             }
 
             var pictureUrl = result.Principal?.FindFirst("picture")?.Value;
+            var providerId = result.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             Console.WriteLine($"Url: {pictureUrl}");
 
             if (pictureUrl != null && account.UserImageUrl != pictureUrl)
             {
                 account.UserImageUrl = pictureUrl;
+
+                if (providerId != null && account.ProviderId != providerId)
+                {
+                    account.ProviderId = providerId;
+                    account.Provider = "Google";
+                }
+
                 try
                 {
                     await _unitOfWork.BeginTransactionAsync();
@@ -145,6 +153,8 @@ namespace BookLAB.API.Controllers
                 }
                 
             }
+
+            
 
             // Validate returnUrl to avoid invalid redirect targets.
             //if (!Uri.TryCreate(returnUrl, UriKind.Absolute, out var parsedReturnUrl)

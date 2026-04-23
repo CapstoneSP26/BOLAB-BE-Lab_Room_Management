@@ -10,5 +10,6 @@
         public int CampusId { get; set; }
         public string? AvatarUrl { get; set; }
         public string? UserCode { get; set; }
+        public bool? IsActive { get; set; }
     }
 }

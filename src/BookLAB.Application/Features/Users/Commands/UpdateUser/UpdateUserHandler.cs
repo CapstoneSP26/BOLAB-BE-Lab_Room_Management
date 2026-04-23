@@ -45,17 +45,20 @@ namespace BookLAB.Application.Features.Users.Commands.UpdateUser
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
                 await _unitOfWork.CommitTransactionAsync();
 
-                //if (request.Role != null && request.Role.Count > 0)
-                //{
-                //    var existingUserRoles = await _unitOfWork.Repository<UserRole>().Entities.Where(x => x.UserId == request.Id).ToListAsync();
-                //    _unitOfWork.Repository<UserRole>().DeleteRange(existingUserRoles);
-                //    var newUserRoles = request.Role.Select(roleId => new UserRole
-                //    {
-                //        UserId = request.Id,
-                //        RoleId = roleId
-                //    }).ToList();
-                //    await _unitOfWork.Repository<UserRole>().AddRangeAsync(newUserRoles);
-                //}
+                if (request.Roles != null && request.Roles.Count > 0)
+                {
+                    var existingUserRoles = await _unitOfWork.Repository<UserRole>().Entities.Where(x => x.UserId == request.Id).ToListAsync();
+                    _unitOfWork.Repository<UserRole>().DeleteRange(existingUserRoles);
+                    var newUserRoles = request.Roles.Select(roleId => new UserRole
+                    {
+                        UserId = request.Id.Value,
+                        RoleId = roleId
+                    }).ToList();
+                    await _unitOfWork.BeginTransactionAsync();
+                    await _unitOfWork.Repository<UserRole>().AddRangeAsync(newUserRoles);
+                    await _unitOfWork.SaveChangesAsync(cancellationToken);
+                    await _unitOfWork.CommitTransactionAsync();
+                }
 
                 return new ResultMessage<UserProfileDto>
                 {

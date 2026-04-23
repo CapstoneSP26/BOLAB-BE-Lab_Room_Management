@@ -1,5 +1,7 @@
 using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Application.Common.Models;
+using BookLAB.Application.Features.Users.Commands.CreateUser;
+using BookLAB.Application.Features.Users.Commands.DeleteUser;
 using BookLAB.Application.Features.Users.Commands.ImportUsers;
 using BookLAB.Application.Features.Users.Commands.UpdateUser;
 using BookLAB.Application.Features.Users.Commands.ValidateImportUsers;
@@ -59,18 +61,14 @@ namespace BookLAB.API.Controllers
 
         [HttpPatch("{id}/status")]
         [Authorize(Policy = "AcademicOffice")]
-        public async Task<IActionResult> UpdateStatusUsers([FromBody] bool IsActive, [FromRoute] Guid id)
+        public async Task<IActionResult> UpdateStatusUsers([FromBody] UpdateUserCommand command, [FromRoute] Guid id)
         {
-            UpdateUserCommand command = new UpdateUserCommand
-            {
-                Id = id,
-                IsActive = IsActive
-            };
+            command.Id = id;
             var result = await _mediator.Send(command);
             return Ok(result);
         }
 
-        [HttpPut("id")]
+        [HttpPut("{id}")]
         [Authorize(Policy = "AcademicOffice")]
         public async Task<IActionResult> UpdateUsers([FromBody] UpdateUserCommand command, [FromRoute] Guid id)
         {
@@ -78,5 +76,26 @@ namespace BookLAB.API.Controllers
             var result = await _mediator.Send(command);
             return Ok(result);
         }
+
+        [HttpPost()]
+        [Authorize(Policy = "AcademicOffice")]
+        public async Task<IActionResult> CreateUsers([FromBody] CreateUserCommand command)
+        {
+            var result = await _mediator.Send(command);
+            return Ok(result);
+        }
+
+        [HttpDelete("{id}")]
+        [Authorize(Policy = "AcademicOffice")]
+        public async Task<IActionResult> DeleteUsers([FromRoute] Guid id)
+        {
+            DeleteUserCommand command = new DeleteUserCommand
+            {
+                Id = id
+            };
+            var result = await _mediator.Send(command);
+            return Ok(result);
+        }
+
     }
 }
