@@ -160,7 +160,11 @@ public class BookingsController : ControllerBase
 
         if (result)
         {
-            return Ok(new { Message = "Booking request processed successfully." });
+            return Ok(new ResultMessage<bool>
+            {
+                Success = true,
+                Message = "Booking request processed successfully." 
+            });
         }
 
         return BadRequest("Unable to process the booking approval. It might already be processed or cancelled.");

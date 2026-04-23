@@ -32,7 +32,7 @@ public class GetLabRoomsQueryHandler : IRequestHandler<GetLabRoomsQuery, PagedLi
         queryable = queryable.Where(x => x.RoomName.ToLower().Contains(request.SearchTerm.ToLower()) || x.RoomNo.ToLower().Contains(request.SearchTerm.ToLower()));
 
         // Thực hiện Projection sang DTO để giảm tải dữ liệu từ DB
-        var projectedQuery = queryable.SelectLabRoom(request.IncludeImages, request.IncludeBuilding);
+        var projectedQuery = queryable.SelectLabRoom(request.IncludeImages, request.IncludeBuilding, request.IncludeLabOwner);
 
         if (request.PageSize <= 0)
         {
