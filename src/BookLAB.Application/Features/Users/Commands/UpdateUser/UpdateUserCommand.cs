@@ -9,10 +9,10 @@ namespace BookLAB.Application.Features.Users.Commands.UpdateUser
     public class UpdateUserCommand : IRequest<ResultMessage<UserProfileDto>>
     {
         public Guid Id { get; set; }
-        public Guid Email { get; set; }
-        public Guid FullName { get; set; }
-        public Guid IsActive { get; set; }
-        public Guid Role { get; set; }
-        public Guid UserCode { get; set; }
+        public string? Email { get; set; }
+        public string? FullName { get; set; }
+        public bool? IsActive { get; set; }
+        public List<int>? Role { get; set; }
+        public string? UserCode { get; set; }
     }
 }
