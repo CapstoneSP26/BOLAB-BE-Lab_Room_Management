@@ -24,18 +24,21 @@ namespace BookLAB.API.Controllers
         private readonly IUserRepository _userRepository;
         private readonly IUserRoleRepository _userRoleRepository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IConfiguration _configuration;
 
         public AuthController(IMediator mediator,
                               LinkGenerator linkGenerator,
                               IUserRepository userRepository,
                               IUserRoleRepository userRoleRepository,
-                              IUnitOfWork unitOfWork)
+                              IUnitOfWork unitOfWork,
+                              IConfiguration configuration)
         {
             _mediator = mediator;
             _linkGenerator = linkGenerator;
             _userRepository = userRepository;
             _userRoleRepository = userRoleRepository;
             _unitOfWork = unitOfWork;
+            _configuration = configuration;
         }
 
         // front-end sẽ vào đây đầu tiên
@@ -67,7 +70,7 @@ namespace BookLAB.API.Controllers
 
             if (account == null)
             {
-                return Redirect("https://localhost:5173/login?error=User_not_found");
+                return Redirect($"{_configuration["FrontendUrl"]}/login?error=User_not_found");
             }
 
             var userId = account.Id;
