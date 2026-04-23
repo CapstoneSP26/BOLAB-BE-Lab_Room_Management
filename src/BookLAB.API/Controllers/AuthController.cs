@@ -67,11 +67,7 @@ namespace BookLAB.API.Controllers
 
             if (account == null)
             {
-                return NotFound(new ResultMessage<bool>
-                {
-                    Success = false,
-                    Message = "User not found"
-                });
+                return Redirect("https://localhost:5173/login?error=User_not_found");
             }
 
             var userId = account.Id;
