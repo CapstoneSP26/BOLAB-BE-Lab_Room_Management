@@ -144,6 +144,18 @@ namespace BookLAB.Application.Features.Bookings.Commands.ApproveBooking
                     }, cancellationToken);
                 }
 
+                if (booking.CreatedBy is Guid bookingOwnerId)
+                {
+                    await _notificationService.NotifyBookingChangedAsync(bookingOwnerId, new
+                    {
+                        action = "approved",
+                        bookingId = booking.Id,
+                        labRoomId = booking.LabRoomId,
+                        status = booking.BookingStatus.ToString(),
+                        occurredAt = DateTimeOffset.UtcNow
+                    }, cancellationToken);
+                }
+
                 // throw event to notify other parts of the system that a booking has been approved
                 await _mediator.Publish(new BookingApprovedEvent(booking.Id, currentUserId), cancellationToken);
 
