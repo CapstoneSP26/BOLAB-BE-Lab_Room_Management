@@ -24,18 +24,21 @@ namespace BookLAB.API.Controllers
         private readonly IUserRepository _userRepository;
         private readonly IUserRoleRepository _userRoleRepository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IConfiguration _configuration;
 
         public AuthController(IMediator mediator,
                               LinkGenerator linkGenerator,
                               IUserRepository userRepository,
                               IUserRoleRepository userRoleRepository,
-                              IUnitOfWork unitOfWork)
+                              IUnitOfWork unitOfWork,
+                              IConfiguration configuration)
         {
             _mediator = mediator;
             _linkGenerator = linkGenerator;
             _userRepository = userRepository;
             _userRoleRepository = userRoleRepository;
             _unitOfWork = unitOfWork;
+            _configuration = configuration;
         }
 
         // front-end sẽ vào đây đầu tiên
@@ -67,7 +70,7 @@ namespace BookLAB.API.Controllers
 
             if (account == null)
             {
-                return NotFound();
+                return Redirect($"{_configuration["FrontendUrl"]}/login?error=User_not_found");
             }
 
             var userId = account.Id;
@@ -128,11 +131,19 @@ namespace BookLAB.API.Controllers
             }
 
             var pictureUrl = result.Principal?.FindFirst("picture")?.Value;
+            var providerId = result.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             Console.WriteLine($"Url: {pictureUrl}");
 
             if (pictureUrl != null && account.UserImageUrl != pictureUrl)
             {
                 account.UserImageUrl = pictureUrl;
+
+                if (providerId != null && account.ProviderId != providerId)
+                {
+                    account.ProviderId = providerId;
+                    account.Provider = "Google";
+                }
+
                 try
                 {
                     await _unitOfWork.BeginTransactionAsync();
@@ -145,6 +156,8 @@ namespace BookLAB.API.Controllers
                 }
                 
             }
+
+            
 
             // Validate returnUrl to avoid invalid redirect targets.
             //if (!Uri.TryCreate(returnUrl, UriKind.Absolute, out var parsedReturnUrl)

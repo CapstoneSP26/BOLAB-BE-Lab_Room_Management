@@ -11,6 +11,7 @@ namespace BookLAB.Application.Features.LabRooms.Queries.GetLabRooms
         public string SearchTerm { get; set; } = "";
         public bool IncludeImages { get; set; } = false;
         public bool IncludeBuilding { get; set; } = true;
+        public bool IncludeLabOwner { get; set; } = true;
         public int PageNumber { get; set; } = 1;
         public int PageSize { get; set; } = 0;
         //public bool? IsActive { get; set; } = null;

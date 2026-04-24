@@ -1,5 +1,6 @@
 using BookLAB.Application.Common.Exceptions;
 using BookLAB.Application.Common.Interfaces.Identity;
+using BookLAB.Application.Common.Interfaces.Integration;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Policies;
 using BookLAB.Application.Features.Bookings.Events;
@@ -17,17 +18,20 @@ namespace BookLAB.Application.Features.Bookings.Commands.CreateBooking
         private readonly IPolicyEvaluator _policyEvaluator;
         private readonly ICurrentUserService _currentUserService;
         private readonly IMediator _mediator;
+        private readonly INotificationService _notificationService;
 
         public CreateBookingCommandHandler(
         IUnitOfWork unitOfWork,
         IPolicyEvaluator policyEvaluator,
         ICurrentUserService currentUserService,
-        IMediator mediator)
+        IMediator mediator,
+        INotificationService notificationService)
         {
             _unitOfWork = unitOfWork;
             _policyEvaluator = policyEvaluator;
             _currentUserService = currentUserService;
             _mediator = mediator;
+            _notificationService = notificationService;
         }
 
         public async Task<Guid> Handle(CreateBookingCommand request, CancellationToken ct)
@@ -138,6 +142,17 @@ namespace BookLAB.Application.Features.Bookings.Commands.CreateBooking
 
                 await _unitOfWork.SaveChangesAsync(ct);
                 await _unitOfWork.CommitTransactionAsync();
+
+                if (currentUserId != Guid.Empty)
+                {
+                    await _notificationService.NotifyBookingChangedAsync(currentUserId, new
+                    {
+                        action = "created",
+                        bookingId = firstBookingId,
+                        roomId = request.LabRoomId,
+                        occurredAt = DateTimeOffset.UtcNow
+                    }, ct);
+                }
 
                 // 6. TRICK: Chỉ publish event cho bản ghi đầu tiên để tránh spam Email/Event
                 await _mediator.Publish(new BookingCreatedEvent(firstBookingId), ct);
