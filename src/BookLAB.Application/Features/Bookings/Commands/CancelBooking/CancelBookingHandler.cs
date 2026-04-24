@@ -1,4 +1,5 @@
-﻿using BookLAB.Application.Common.Interfaces.Identity;
+using BookLAB.Application.Common.Interfaces.Identity;
+using BookLAB.Application.Common.Interfaces.Integration;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Models;
 using BookLAB.Domain.Entities;
@@ -14,11 +15,14 @@ namespace BookLAB.Application.Features.Bookings.Commands.CancelBooking
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUserService _currentUserService;
+        private readonly INotificationService _notificationService;
         public CancelBookingHandler(IUnitOfWork unitOfWork,
-            ICurrentUserService currentUserService)
+            ICurrentUserService currentUserService,
+            INotificationService notificationService)
         {
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
+            _notificationService = notificationService;
         }
 
         public async Task<ResultMessage<bool>> Handle(CancelBookingCommand request, CancellationToken cancellationToken)
@@ -46,6 +50,17 @@ namespace BookLAB.Application.Features.Bookings.Commands.CancelBooking
                 _unitOfWork.Repository<Booking>().Delete(booking);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
                 await _unitOfWork.CommitTransactionAsync();
+
+                if (userId is Guid ownerId)
+                {
+                    await _notificationService.NotifyBookingChangedAsync(ownerId, new
+                    {
+                        action = "cancelled",
+                        bookingId = request.BookingId,
+                        occurredAt = DateTimeOffset.UtcNow
+                    }, cancellationToken);
+                }
+
                 return new ResultMessage<bool>
                 {
                     Success = true,

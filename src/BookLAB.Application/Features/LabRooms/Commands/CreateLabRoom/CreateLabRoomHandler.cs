@@ -47,6 +47,14 @@ namespace BookLAB.Application.Features.LabRooms.Commands.CreateLabRoom
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
                 await _unitOfWork.CommitTransactionAsync();
 
+                if (request.LabOwnerId != null)
+                {
+                    await _unitOfWork.BeginTransactionAsync();
+                    await _unitOfWork.Repository<LabOwner>().AddAsync(new LabOwner { LabRoomId = latestId, UserId = request.LabOwnerId.Value });
+                    await _unitOfWork.SaveChangesAsync(cancellationToken);
+                    await _unitOfWork.CommitTransactionAsync();
+                }
+
                 return new ResultMessage<LabRoomDto>
                 {
                     Success = true,

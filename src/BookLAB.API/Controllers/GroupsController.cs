@@ -78,7 +78,10 @@ namespace BookLAB.API.Controllers
             try
             {
                 var groups = await _mediator.Send(new GetGroupsQuery(), cancellationToken);
-                return Ok(groups);
+                return Ok(new
+                {
+                    items = groups
+                });
             }
             catch (Exception ex)
             {
@@ -215,7 +218,10 @@ namespace BookLAB.API.Controllers
             try
             {
                 var members = await _mediator.Send(new GetGroupMembersQuery { GroupId = groupId }, cancellationToken);
-                return Ok(members);
+                return Ok(new
+                {
+                    items = members
+                });
             }
             catch (Exception ex)
             {

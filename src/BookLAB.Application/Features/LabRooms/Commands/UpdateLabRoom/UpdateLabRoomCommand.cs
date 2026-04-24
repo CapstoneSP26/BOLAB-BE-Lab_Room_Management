@@ -24,5 +24,7 @@ namespace BookLAB.Application.Features.LabRooms.Commands.UpdateLabRoom
         public Guid? UpdatedBy { get; set; }
         public bool IsActive { get; set; } = true;
         public bool IsDeleted { get; set; }
+
+        public Guid? LabOwnerId { get; set; }
     }
 }

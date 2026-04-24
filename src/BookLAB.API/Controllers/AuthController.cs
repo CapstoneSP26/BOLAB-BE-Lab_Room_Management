@@ -38,6 +38,7 @@ namespace BookLAB.API.Controllers
             _userRoleRepository = userRoleRepository;
             _configuration = configuration;
             _unitOfWork = unitOfWork;
+            _configuration = configuration;
         }
 
         // front-end sẽ vào đây đầu tiên
@@ -56,7 +57,7 @@ namespace BookLAB.API.Controllers
         }
 
         [HttpGet("login/google/callback", Name = "GoogleLoginCallback")]
-        public async Task<IActionResult> GoogleLoginCallback([FromQuery] string? returnUrl)
+        public async Task<IActionResult> GoogleLoginCallback([FromQuery] string? returnUrl, CancellationToken cancellationToken)
         {
             var result = await HttpContext.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
 
@@ -76,7 +77,7 @@ namespace BookLAB.API.Controllers
             var account = await _userRepository.GetByEmailAsync(email);
             if (account == null)
             {
-                return NotFound("User not found");
+                return Redirect($"{_configuration["FrontendUrl"]}/login?error=User_not_found");
             }
 
             // ✅ Lấy role
@@ -144,6 +145,33 @@ namespace BookLAB.API.Controllers
                 default:
                     finalUrl += "/";
                     break;
+            }
+
+            var pictureUrl = result.Principal?.FindFirst("picture")?.Value;
+            var providerId = result.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            Console.WriteLine($"Url: {pictureUrl}");
+
+            if (pictureUrl != null && account.UserImageUrl != pictureUrl)
+            {
+                account.UserImageUrl = pictureUrl;
+
+                if (providerId != null && account.ProviderId != providerId)
+                {
+                    account.ProviderId = providerId;
+                    account.Provider = "Google";
+                }
+
+                try
+                {
+                    await _unitOfWork.BeginTransactionAsync();
+                    await _unitOfWork.Repository<User>().UpdateAsync(account);
+                    await _unitOfWork.SaveChangesAsync(cancellationToken);
+                    await _unitOfWork.CommitTransactionAsync();
+                } catch (Exception ex)
+                {
+                    Console.WriteLine("Update user failed: " + ex.ToString());
+                }
+                
             }
 
             return Redirect(finalUrl);

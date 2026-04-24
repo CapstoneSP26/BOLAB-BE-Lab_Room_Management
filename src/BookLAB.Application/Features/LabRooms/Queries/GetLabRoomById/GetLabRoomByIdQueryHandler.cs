@@ -20,7 +20,7 @@ public class GetLabRoomByIdQueryHandler : IRequestHandler<GetLabRoomByIdQuery, L
         return await _unitOfWork.Repository<LabRoom>().Entities
             .AsNoTracking()
             .Where(x => x.Id == request.Id)
-            .SelectLabRoom(request.IncludeImages, request.IncludeBuilding)
+            .SelectLabRoom(request.IncludeImages, request.IncludeBuilding, request.IncludeLabOwner)
             .FirstOrDefaultAsync(ct);
     }
 }
