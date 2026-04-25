@@ -137,11 +137,11 @@ builder.Services.AddScoped<QrManagements>();
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<BookLABDbContext>();
-    db.Database.Migrate();
-}
+//using (var scope = app.Services.CreateScope())
+//{
+//    var db = scope.ServiceProvider.GetRequiredService<BookLABDbContext>();
+//    db.Database.Migrate();
+//}
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 // Middleware pipeline
 if (app.Environment.IsDevelopment())

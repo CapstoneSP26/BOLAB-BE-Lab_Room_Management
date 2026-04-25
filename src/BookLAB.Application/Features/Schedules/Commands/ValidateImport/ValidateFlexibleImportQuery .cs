@@ -11,5 +11,7 @@ namespace BookLAB.Application.Features.Schedules.Commands.ValidateImport
         public DateTimeOffset StartTime { get; set; }
         public DateTimeOffset EndTime { get; set; }
         public int CampusId { get; set; }
+        public Guid? ImportBatchId { get; set; }
+
     }
 }
