@@ -94,6 +94,12 @@ public class ScheduleConfiguration : IEntityTypeConfiguration<Schedule>
             .HasForeignKey(r => r.ScheduleId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        // Schedule - ImportBatch (N-1)
+        builder.HasOne(s => s.ImportBatch)
+            .WithMany()
+            .HasForeignKey(s => s.ImportBatchId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         // 6. Cấu hình Hiệu năng và Ràng buộc (Performance & Index)
 
         // Tìm nhanh lịch trình của một Giảng viên cụ thể

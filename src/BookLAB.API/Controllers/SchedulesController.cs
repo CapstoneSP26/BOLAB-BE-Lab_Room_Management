@@ -1,12 +1,14 @@
 ﻿using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Application.Common.Models;
 using BookLAB.Application.Features.Schedules.Commands.CreateSchedule;
+using BookLAB.Application.Features.Schedules.Commands.DeleteImportBatch;
 using BookLAB.Application.Features.Schedules.Commands.DeleteSchedule;
 using BookLAB.Application.Features.Schedules.Commands.ImportSchedule;
 using BookLAB.Application.Features.Schedules.Commands.UpdateSchedule;
 using BookLAB.Application.Features.Schedules.Commands.ValidateImport;
 using BookLAB.Application.Features.Schedules.Common;
 using BookLAB.Application.Features.Schedules.Queries.AddSchedule;
+using BookLAB.Application.Features.Schedules.Queries.GetImportBatches;
 using BookLAB.Application.Features.Schedules.Queries.GetSchedules;
 using BookLAB.Application.Features.Schedules.Queries.GetSchedulesStudent;
 using BookLAB.Domain.Entities;
@@ -260,5 +262,23 @@ public class SchedulesController : ControllerBase
 
             return Problem("Something is wrong while update schedule");
         }
+    }
+
+
+    [HttpGet("import-batch")]
+    public async Task<IActionResult> GetImportBatches([FromQuery] GetImportBatchesQuery query)
+    {
+        var result = await _mediator.Send(query);
+        return Ok(result);
+    }
+
+    [HttpDelete("import-batch/{id}")]
+    public async Task<IActionResult> DeleteImportBatch(Guid id)
+    {
+        var command = new DeleteImportBatchCommand { Id = id };
+        var result = await _mediator.Send(command);
+
+        if (result) return NoContent(); // Trả về 204 nếu xóa thành công
+        return BadRequest("Không thể xóa đợt Import này.");
     }
 }

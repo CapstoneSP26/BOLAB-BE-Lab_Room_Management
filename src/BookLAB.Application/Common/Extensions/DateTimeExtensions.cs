@@ -130,5 +130,30 @@ namespace BookLAB.Application.Common.Extensions
                 out _
             );
         }
+
+        /// <summary>
+        /// Chuyển DateTimeOffset sang học kỳ (SP23, SU23, FA23)
+        /// </summary>
+        public static string ConvertTimeToSemester(this DateTimeOffset time)
+        {
+            var vietnamZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+            var vnTime = TimeZoneInfo.ConvertTime(time, vietnamZone);
+
+            int month = vnTime.Month;
+            int year = vnTime.Year;
+
+            if (time.Month >= 1 && time.Month <= 5)
+            {
+                return $"SP{time.Year % 100:D2}";
+            }
+            else if (time.Month >= 6 && time.Month <= 8)
+            {
+                return $"SU{time.Year % 100:D2}";
+            }
+            else
+            {
+                return $"FA{time.Year % 100:D2}";
+            }
+        }
     }
 }
