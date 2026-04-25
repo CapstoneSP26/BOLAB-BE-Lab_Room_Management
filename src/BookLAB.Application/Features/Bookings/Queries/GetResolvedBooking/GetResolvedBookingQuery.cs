@@ -9,7 +9,7 @@ namespace BookLAB.Application.Features.Bookings.Queries.GetResolvedBooking
 {
     public class GetResolvedBookingQuery : IRequest<GetResolvedBookingReturn>
     {
-        public Guid userId { get; set; }
+        public Guid? userId { get; set; }
         public int page { get; set; } = 1;
         public int limit { get; set; } = 10;
         public string status { get; set; } = "all";

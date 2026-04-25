@@ -69,9 +69,10 @@ namespace BookLAB.API.Controllers
             var account = await _userRepository.GetByEmailAsync(result.Principal?.FindFirst(ClaimTypes.Email)?.Value);
 
             if (account == null)
-            {
                 return Redirect($"{_configuration["FrontendUrl"]}/login?error=User_not_found");
-            }
+
+            if (account.IsActive != true || account.IsDeleted != false)
+                return Redirect($"{_configuration["FrontendUrl"]}/login?error=Account_locked");
 
             var userId = account.Id;
             var role = await _userRoleRepository.GetAsync(userId);
