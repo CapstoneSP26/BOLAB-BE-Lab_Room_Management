@@ -1,4 +1,5 @@
 ﻿using BookLAB.Api.Controllers;
+using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Models;
 using BookLAB.Application.Features.Bookings.Queries.ViewBookingHistory;
@@ -26,12 +27,16 @@ namespace BookLAB.API.Controllers
         private readonly IMediator _mediator;
         private readonly ILogger<ReportsController> _logger;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ICurrentUserService _currentUserService;
 
-        public ReportsController(IMediator mediator, ILogger<ReportsController> logger, IUnitOfWork unitOfWork)
+        public ReportsController(IMediator mediator, ILogger<ReportsController> logger, 
+            IUnitOfWork unitOfWork,
+            ICurrentUserService currentUserService)
         {
             _mediator = mediator;
             _logger = logger;
             _unitOfWork = unitOfWork;
+            _currentUserService = currentUserService;
         }
         
         [HttpGet("get-incident-reports")]
@@ -386,6 +391,8 @@ namespace BookLAB.API.Controllers
         [Authorize(Policy = "AcademicOffice_LabManager")]
         public async Task<IActionResult> GetReportDetailAsync([FromRoute] Guid id, CancellationToken cancellationToken)
         {
+            var userId = _currentUserService.UserId;
+            
             var report = await _unitOfWork.Repository<Report>().Entities
                 .Include(r => r.Schedule)
                 .ThenInclude(s => s.LabRoom)
@@ -397,6 +404,9 @@ namespace BookLAB.API.Controllers
             {
                 return NotFound(new { success = false, message = "Report not found" });
             }
+
+            if (!(await _unitOfWork.Repository<LabOwner>().Entities.AnyAsync(x => x.UserId == userId && x.LabRoomId == report.Schedule.LabRoomId)))
+                return NotFound(new { success = false, message = "Report not found" });
 
             // Load images if available
             var images = await _unitOfWork.Repository<ReportImage>().Entities
