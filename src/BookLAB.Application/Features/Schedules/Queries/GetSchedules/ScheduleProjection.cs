@@ -17,6 +17,7 @@ namespace BookLAB.Application.Features.Schedules.Queries.GetSchedules
                 StartTime = x.StartTime,
                 EndTime = x.EndTime,
                 GroupName = x.Group.GroupName,
+                RoomNo = x.LabRoom.RoomNo,
                 StudentCount = x.StudentCount,         
                 Status = x.ScheduleStatus,
                 Type = x.ScheduleType,

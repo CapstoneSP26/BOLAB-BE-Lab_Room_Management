@@ -53,6 +53,9 @@ namespace BookLAB.Application.Common.Mappings
 
             CreateMap<Schedule, ScheduleDto>();
 
+            CreateMap<Schedule, BookLAB.Application.Features.Schedules.Queries.GetSchedules.ScheduleDto>()
+                .ForMember(dest => dest.RoomNo, opt => opt.MapFrom(src => src.LabRoom.RoomNo));
+
             CreateMap<User, UserProfileDto>()
                 .ForMember(dest => (string)dest.AvatarUrl, opt => opt.MapFrom(src => src.UserImageUrl))
                 .ForMember(dest => (string)dest.UserCode, opt => opt.MapFrom(src => src.UserCode))
