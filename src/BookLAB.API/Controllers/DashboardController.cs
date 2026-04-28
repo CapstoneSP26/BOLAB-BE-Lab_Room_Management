@@ -1,4 +1,5 @@
 using BookLAB.Application.Features.Dashboard.Queries.GetDashboardStats;
+using BookLAB.Application.Features.Dashboard.Queries.GetDashboardOverview;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -44,6 +45,23 @@ namespace BookLAB.API.Controllers
                 year = result.year,
                 statistics = result.statistics
             });
+        }
+
+        [HttpGet("overview")]
+        [Authorize(Policy = "AcademicOffice_LabManager")]
+        public async Task<IActionResult> GetOverview(CancellationToken cancellationToken)
+        {
+            var userIdClaim = User.FindFirst("Id")?.Value;
+            var role = User.FindFirst("Role")?.Value ?? string.Empty;
+            var userId = Guid.TryParse(userIdClaim, out var parsedUserId) ? parsedUserId : (Guid?)null;
+
+            var result = await _mediator.Send(new GetDashboardOverviewQuery
+            {
+                UserId = userId,
+                Role = role
+            }, cancellationToken);
+
+            return Ok(result);
         }
     }
 }
