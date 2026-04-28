@@ -110,6 +110,15 @@ namespace BookLAB.Application.Features.Bookings.Commands.RejectBooking
                         occurredAt = DateTimeOffset.UtcNow
                     }, cancellationToken);
                 }
+                var payload = new
+                {
+                    labRoomId = booking.LabRoomId,
+                    startTime = booking.StartTime,
+                    endTime = booking.EndTime,
+                };
+
+                // Gọi method bạn vừa viết
+                await _notificationService.NotifyScheduleStatusChangedAsync(payload, cancellationToken);
 
                 await _mediator.Publish(new BookingRejectedEvent(booking.Id), cancellationToken);
 

@@ -159,6 +159,17 @@ namespace BookLAB.Application.Features.Bookings.Commands.ApproveBooking
                 // throw event to notify other parts of the system that a booking has been approved
                 await _mediator.Publish(new BookingApprovedEvent(booking.Id, currentUserId), cancellationToken);
 
+                // 3. Gọi SignalR Notify cho cả hệ thống
+                var payload = new
+                {
+                    labRoomId = booking.LabRoomId,
+                    startTime = booking.StartTime,
+                    endTime = booking.EndTime,
+                };
+
+                // Gọi method bạn vừa viết
+                await _notificationService.NotifyScheduleStatusChangedAsync(payload, cancellationToken);
+
                 return true;
             }
             catch

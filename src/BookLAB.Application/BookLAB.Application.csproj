@@ -1,6 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <Compile Remove="Features\Equipments\**" />
+    <Compile Remove="Features\Feedbacks\**" />
+    <EmbeddedResource Remove="Features\Equipments\**" />
+    <EmbeddedResource Remove="Features\Feedbacks\**" />
+    <None Remove="Features\Equipments\**" />
+    <None Remove="Features\Feedbacks\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\BookLAB.Domain\BookLAB.Domain.csproj" />
   </ItemGroup>
 
@@ -17,9 +26,6 @@
   <ItemGroup>
     <Folder Include="Common\Mappings\" />
     <Folder Include="Features\Auth\Commands\" />
-    <Folder Include="Features\Equipments\Commands\" />
-    <Folder Include="Features\Equipments\Queries\" />
-    <Folder Include="Features\Feedbacks\Commands\" />
   </ItemGroup>
 
   <PropertyGroup>

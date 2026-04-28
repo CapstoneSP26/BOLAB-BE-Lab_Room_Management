@@ -10,5 +10,6 @@
         public string Source { get; set; }
         public object RefId { get; set; }
         public int Index { get; set; }
+        public Guid? ImportBatchId { get; set; }
     }
 }

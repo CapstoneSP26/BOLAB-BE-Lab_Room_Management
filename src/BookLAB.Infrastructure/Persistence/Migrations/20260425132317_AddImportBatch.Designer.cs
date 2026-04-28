@@ -4,6 +4,7 @@ using System.Text.Json;
 using BookLAB.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BookLAB.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(BookLABDbContext))]
-    partial class BookLABDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260425132317_AddImportBatch")]
+    partial class AddImportBatch
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1776,47 +1779,6 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         });
                 });
 
-            modelBuilder.Entity("BookLAB.Domain.Entities.UserNotificationPreference", b =>
-                {
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.Property<bool>("BookingApproved")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(true);
-
-                    b.Property<bool>("BookingRejected")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(true);
-
-                    b.Property<bool>("BookingReminder")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(true);
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("EmailNotifications")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(true);
-
-                    b.Property<bool>("PushNotifications")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(true);
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("UserId");
-
-                    b.ToTable("UserNotificationPreferences", (string)null);
-                });
-
             modelBuilder.Entity("BookLAB.Domain.Entities.UserRole", b =>
                 {
                     b.Property<Guid>("UserId")
@@ -2169,17 +2131,6 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                     b.Navigation("Campus");
                 });
 
-            modelBuilder.Entity("BookLAB.Domain.Entities.UserNotificationPreference", b =>
-                {
-                    b.HasOne("BookLAB.Domain.Entities.User", "User")
-                        .WithOne("NotificationPreference")
-                        .HasForeignKey("BookLAB.Domain.Entities.UserNotificationPreference", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("BookLAB.Domain.Entities.UserRole", b =>
                 {
                     b.HasOne("BookLAB.Domain.Entities.Role", "Role")
@@ -2240,8 +2191,6 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("BookLAB.Domain.Entities.User", b =>
                 {
-                    b.Navigation("NotificationPreference");
-
                     b.Navigation("Notifications");
 
                     b.Navigation("UserRoles");

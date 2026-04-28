@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using BookLAB.Domain.Entities;
+﻿using BookLAB.Domain.Entities;
 
 namespace BookLAB.Application.Features.LabRooms.Queries.GetLabRooms;
 
