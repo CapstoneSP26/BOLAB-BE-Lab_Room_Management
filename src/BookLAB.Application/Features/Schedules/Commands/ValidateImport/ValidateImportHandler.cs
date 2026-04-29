@@ -16,7 +16,8 @@ namespace BookLAB.Application.Features.Schedules.Commands.ValidateImport
         }
         public async Task<ImportValidationResult<ScheduleImportDto, Schedule>> Handle(ValidateImportQuery request, CancellationToken cancellationToken)
         {
-            var result = await _scheduleImportService.ValidateAsync(request.Schedules, request.CampusId, request.StartTime, request.EndTime, cancellationToken);
+            var response = await _scheduleImportService.ValidateAsync(request.Schedules, request.CampusId, request.StartTime, request.EndTime, request.ImportBatchId, cancellationToken);
+            var result = response.result;
             return result;
         }
     }

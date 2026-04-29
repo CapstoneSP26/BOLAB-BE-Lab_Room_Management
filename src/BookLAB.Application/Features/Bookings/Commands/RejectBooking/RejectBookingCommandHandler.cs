@@ -99,6 +99,27 @@ namespace BookLAB.Application.Features.Bookings.Commands.RejectBooking
                     }, cancellationToken);
                 }
 
+                if (booking.CreatedBy is Guid bookingOwnerId)
+                {
+                    await _notificationService.NotifyBookingChangedAsync(bookingOwnerId, new
+                    {
+                        action = "rejected",
+                        bookingId = booking.Id,
+                        reason = request.Reason,
+                        status = booking.BookingStatus.ToString(),
+                        occurredAt = DateTimeOffset.UtcNow
+                    }, cancellationToken);
+                }
+                var payload = new
+                {
+                    labRoomId = booking.LabRoomId,
+                    startTime = booking.StartTime,
+                    endTime = booking.EndTime,
+                };
+
+                // Gọi method bạn vừa viết
+                await _notificationService.NotifyScheduleStatusChangedAsync(payload, cancellationToken);
+
                 await _mediator.Publish(new BookingRejectedEvent(booking.Id), cancellationToken);
 
                 return true;

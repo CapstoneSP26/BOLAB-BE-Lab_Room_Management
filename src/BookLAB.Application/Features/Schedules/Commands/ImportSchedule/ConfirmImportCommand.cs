@@ -10,5 +10,8 @@ namespace BookLAB.Application.Features.Schedules.Commands.ImportSchedule
         public DateTimeOffset StartTime { get; set; }
         public DateTimeOffset EndTime { get; set; }
         public int CampusId { get; set; }
+        public Guid? ImportBatchId { get; set; }
+        public string? BatchName { get; set; }
+
     }
 }

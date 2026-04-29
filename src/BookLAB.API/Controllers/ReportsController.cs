@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
+using BookLAB.Application.Common.Interfaces.Integration;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -27,16 +28,19 @@ namespace BookLAB.API.Controllers
         private readonly IMediator _mediator;
         private readonly ILogger<ReportsController> _logger;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IDashboardRealtimeService _dashboardRealtimeService;
         private readonly ICurrentUserService _currentUserService;
 
         public ReportsController(IMediator mediator, ILogger<ReportsController> logger, 
             IUnitOfWork unitOfWork,
-            ICurrentUserService currentUserService)
+            ICurrentUserService currentUserService,
+            IDashboardRealtimeService dashboardRealtimeService)
         {
             _mediator = mediator;
             _logger = logger;
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
+            _dashboardRealtimeService = dashboardRealtimeService;
         }
         
         [HttpGet("get-incident-reports")]
@@ -204,6 +208,8 @@ namespace BookLAB.API.Controllers
 
                 await _unitOfWork.Repository<Report>().AddAsync(report);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                await _dashboardRealtimeService.PublishOverviewUpdatedForLabRoomAsync(roomId, "incident.created", cancellationToken);
 
                 // Image upload handling can be added later. FE accepts empty images list.
 
@@ -459,6 +465,8 @@ namespace BookLAB.API.Controllers
                 _unitOfWork.Repository<Report>().Update(report);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
+                await _dashboardRealtimeService.PublishOverviewUpdatedForReportAsync(report.Id, "incident.resolved", cancellationToken);
+
                 return Ok(new { data = MapToResponse(report, report.Schedule) });
             } catch (Exception ex)
             {
@@ -482,6 +490,11 @@ namespace BookLAB.API.Controllers
                 };
 
                 var result = await _mediator.Send(command);
+
+                if (result)
+                {
+                    await _dashboardRealtimeService.PublishOverviewUpdatedForReportAsync(reportId, "incident.resolved", HttpContext.RequestAborted);
+                }
 
                 return Ok(new
                 {
