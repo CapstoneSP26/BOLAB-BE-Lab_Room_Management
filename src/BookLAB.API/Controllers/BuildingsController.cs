@@ -68,10 +68,10 @@ namespace BookLAB.Api.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<ActionResult<bool>> DeleteBuildings([FromRoute] int id, [FromForm] DeleteBuildingsCommand command)
+        public async Task<ActionResult<bool>> DeleteBuildings([FromRoute] int id)
         {
-            if (command.Id != id)
-                return BadRequest(new { message = "ID in the route does not match ID in the command" });
+            var command = new DeleteBuildingsCommand();
+            command.Id = id;
 
             var result = await _mediator.Send(command); 
 

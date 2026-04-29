@@ -142,6 +142,7 @@ var app = builder.Build();
 //    var db = scope.ServiceProvider.GetRequiredService<BookLABDbContext>();
 //    db.Database.Migrate();
 //}
+app.UseStaticFiles();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 // Middleware pipeline
 if (app.Environment.IsDevelopment())

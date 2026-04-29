@@ -26,19 +26,27 @@ namespace BookLAB.Application.Features.Buildings.Commands.CreateBuildings
         public async Task<PagedList<BuildingDto>> Handle(CreateBuildingsCommand request, CancellationToken cancellationToken)
         {
             var imageUrl = "";
+            var wrootImageUrl = "";
             var buildingId = await _unitOfWork.Repository<Building>().Entities.MaxAsync(b => b.Id) + 1;
             var campusId = _currentUserService.CampusId;
 
             try
             {
                 if (request.Images != null && request.Images.Length > 0)
-                    imageUrl = Path.Combine("Uploads/Buildings", request.Images.FileName);
-
-                using (var stream = new FileStream(imageUrl, FileMode.Create))
                 {
-                    await request.Images.CopyToAsync(stream);
-                }
+                    wrootImageUrl = Path.Combine("wwwroot", "Uploads", "Buildings", request.Images.FileName);
+                    imageUrl = Path.Combine("Uploads", "Buildings", request.Images.FileName);
 
+                    var folderPath = Path.Combine("wwwroot", "Uploads", "Buildings");
+                    if (!Directory.Exists(folderPath))
+                        Directory.CreateDirectory(folderPath);
+
+                    using (var stream = new FileStream(wrootImageUrl, FileMode.Create))
+                    {
+                        await request.Images.CopyToAsync(stream);
+                    }
+                }
+                
                 var building = new Building
                 {
                     Id = buildingId,
