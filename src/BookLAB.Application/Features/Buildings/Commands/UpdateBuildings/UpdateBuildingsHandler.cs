@@ -26,23 +26,29 @@ namespace BookLAB.Application.Features.Buildings.Commands.UpdateBuildings
         {
             var building = await _unitOfWork.Repository<Building>().GetByIdAsync(request.Id);
             var imageUrl = building.BuildingImageUrl;
+            var wrootImageUrl = "wwwroot\\" + building.BuildingImageUrl;
 
             if (building == null)
                 return null;
 
             try
             {
-                if (request.Images != null && request.Images.Length > 0)
+                if (request.Images != null && request.ImagesUrl != building.BuildingImageUrl)
                 {
-                    if (System.IO.File.Exists(building.BuildingImageUrl))
-                        System.IO.File.Delete(building.BuildingImageUrl);
+                    if (System.IO.File.Exists("wwwroot\\" + building.BuildingImageUrl))
+                        System.IO.File.Delete("wwwroot\\" + building.BuildingImageUrl);
 
-                    imageUrl = Path.Combine("Uploads/Buildings", request.Images.FileName);
-                }
-                
-                using (var stream = new FileStream(imageUrl, FileMode.Create))
-                {
-                    await request.Images.CopyToAsync(stream);
+                    wrootImageUrl = Path.Combine("wwwroot", "Uploads", "Buildings", request.Images.FileName);
+                    imageUrl = Path.Combine("Uploads", "Buildings", request.Images.FileName);
+
+                    var folderPath = Path.Combine("wwwroot", "Uploads", "Buildings");
+                    if (!Directory.Exists(folderPath))
+                        Directory.CreateDirectory(folderPath);
+
+                    using (var stream = new FileStream(wrootImageUrl, FileMode.Create))
+                    {
+                        await request.Images.CopyToAsync(stream);
+                    }
                 }
 
                 building.BuildingName = request.BuildingName;

@@ -29,7 +29,7 @@ namespace BookLAB.Application.Features.Buildings.Commands.DeleteBuildings
                 if (building == null)
                     return false;
 
-                if (System.IO.File.Exists(building.BuildingImageUrl))
+                if (System.IO.File.Exists("wwwroot\\" +building.BuildingImageUrl))
                 {
                     System.IO.File.Delete(building.BuildingImageUrl);
                 }
