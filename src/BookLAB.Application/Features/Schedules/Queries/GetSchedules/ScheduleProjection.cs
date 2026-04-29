@@ -1,4 +1,4 @@
-﻿using BookLAB.Domain.Entities;
+using BookLAB.Domain.Entities;
 
 namespace BookLAB.Application.Features.Schedules.Queries.GetSchedules
 {
@@ -13,6 +13,7 @@ namespace BookLAB.Application.Features.Schedules.Queries.GetSchedules
                 LecturerName = x.User.FullName,
                 UserCode = x.User.UserCode,
                 LabRoomName = x.LabRoom.RoomName,
+                BuildingName = x.LabRoom.Building.BuildingName,
                 SlotName = x.SlotType.Name,
                 StartTime = x.StartTime,
                 EndTime = x.EndTime,

@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using BookLAB.Application.Common.Extensions; // Chứa ApplySpecification extension
 using BookLAB.Application.Common.Interfaces.Repositories;
@@ -30,6 +30,7 @@ public class GetSchedulesQueryHandler : IRequestHandler<GetSchedulesQuery, Paged
         // 2. Lấy IQueryable từ Repository
         var query = _unitOfWork.Repository<Schedule>().Entities
             .Include(x => x.LabRoom)
+                .ThenInclude(x => x.Building)
             .ApplySpecification(spec)
             .AsNoTracking();
 

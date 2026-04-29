@@ -1,4 +1,4 @@
-﻿using BookLAB.Domain.Enums;
+using BookLAB.Domain.Enums;
 
 namespace BookLAB.Application.Features.Schedules.Queries.GetSchedules
 {
@@ -9,6 +9,7 @@ namespace BookLAB.Application.Features.Schedules.Queries.GetSchedules
         public string LecturerName { get; init; } = string.Empty; // From User.FullName
         public string UserCode {  get; init; } = string.Empty;
         public string LabRoomName { get; init; } = string.Empty; // From LabRoom.Name
+        public string BuildingName { get; init; } = string.Empty; // From LabRoom.Building.BuildingName
         public string SlotName { get; init; } = string.Empty;    // From SlotType.Name
         public string? GroupName { get; init; }                 // From Group.Name
         public DateTimeOffset StartTime { get; init; }
