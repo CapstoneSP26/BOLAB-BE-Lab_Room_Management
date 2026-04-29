@@ -5,6 +5,9 @@ using BookLAB.Application.Features.Buildings.Queries.GetBuildings;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using BookLAB.Application.Features.Buildings.Commands.CreateBuildings;
+using BookLAB.Application.Features.Buildings.Commands.UpdateBuildings;
+using BookLAB.Application.Features.Buildings.Commands.DeleteBuildings;
 
 namespace BookLAB.Api.Controllers
 {
@@ -43,6 +46,36 @@ namespace BookLAB.Api.Controllers
         public async Task<ActionResult<PagedList<BuildingDto>>> GetBuildings([FromQuery] GetBuildingsQuery query)
         {
             return Ok(await _mediator.Send(query));
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<PagedList<BuildingDto>>> CreateBuildings([FromForm] CreateBuildingsCommand command)
+        {
+            var result = await _mediator.Send(command);
+
+            return Ok();
+        }
+
+        [HttpPut("{id}")]
+        public async Task<ActionResult<PagedList<BuildingDto>>> UpdateBuildings([FromForm] UpdateBuildingsCommand command, [FromRoute] int id)
+        {
+            if (command.Id != id)
+                return BadRequest(new { message = "ID in the route does not match ID in the command" });
+
+            var result = await _mediator.Send(command);
+
+            return Ok();
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<ActionResult<bool>> DeleteBuildings([FromRoute] int id, [FromForm] DeleteBuildingsCommand command)
+        {
+            if (command.Id != id)
+                return BadRequest(new { message = "ID in the route does not match ID in the command" });
+
+            var result = await _mediator.Send(command); 
+
+            return Ok();
         }
     }
 }
