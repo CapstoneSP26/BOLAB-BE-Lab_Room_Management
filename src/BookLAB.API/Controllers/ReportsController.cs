@@ -175,6 +175,14 @@ namespace BookLAB.API.Controllers
                     return BadRequest(new { success = false, message = "roomId must be a number" });
                 }
 
+                foreach (var image in request.Images)
+                {
+                    if (Enum.TryParse(typeof(FileType), image.ContentType, out var fileType)){
+                        return BadRequest("Not supported file type");
+                    }
+                }
+                
+
                 var schedule = await _unitOfWork.Repository<Schedule>().Entities
                     .Include(s => s.LabRoom)
                     .ThenInclude(r => r.Building)
@@ -208,6 +216,41 @@ namespace BookLAB.API.Controllers
 
                 await _unitOfWork.Repository<Report>().AddAsync(report);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                if (request.Images != null && request.Images.Count > 0)
+                {
+                    foreach(var image in request.Images)
+                    {
+                        
+                        if (image != null && image.Length > 0)
+                        {
+                            var imageUrl = Path.Combine("Uploads", "Reports", image.FileName);
+                            var wrootImageUrl = Path.Combine("wwwroot", "Uploads", "Reports", image.FileName);
+                            var folderUrl = Path.Combine("wwwroot", "Uploads", "Reports");
+
+                            if (!Directory.Exists(folderUrl))
+                                Directory.CreateDirectory(folderUrl);
+
+                            if (System.IO.File.Exists(wrootImageUrl))
+                                System.IO.File.Delete(wrootImageUrl);
+
+                            using (var stream = new FileStream(wrootImageUrl, FileMode.Create))
+                            {
+                                await image.CopyToAsync(stream);
+                            }
+
+                            await _unitOfWork.Repository<ReportImage>().AddAsync(new ReportImage
+                            {
+                                Id = Guid.NewGuid(),
+                                ReportId = report.Id,
+                                FileType = (FileType)Enum.Parse(typeof(FileType), image.ContentType.Split("/").LastOrDefault()),
+                                Size = (int)image.Length,
+                                ImageUrl = imageUrl
+                            });
+                        }
+                    }
+                    await _unitOfWork.SaveChangesAsync(cancellationToken);
+                }
 
                 await _dashboardRealtimeService.PublishOverviewUpdatedForLabRoomAsync(roomId, "incident.created", cancellationToken);
 
