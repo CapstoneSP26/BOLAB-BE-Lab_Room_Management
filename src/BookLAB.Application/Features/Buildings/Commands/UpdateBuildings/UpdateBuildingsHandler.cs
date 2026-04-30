@@ -33,10 +33,11 @@ namespace BookLAB.Application.Features.Buildings.Commands.UpdateBuildings
 
             try
             {
-                if (request.Images != null && request.ImagesUrl != building.BuildingImageUrl)
+                if (request.ImagesUrl != null && (request.ImagesUrl.EndsWith("Buildings") || request.ImagesUrl.EndsWith("Buildings\\")) && request.ImagesUrl != building.BuildingImageUrl)
                 {
                     if (System.IO.File.Exists("wwwroot\\" + building.BuildingImageUrl))
                         System.IO.File.Delete("wwwroot\\" + building.BuildingImageUrl);
+
 
                     wrootImageUrl = Path.Combine("wwwroot", "Uploads", "Buildings", request.Images.FileName);
                     imageUrl = Path.Combine("Uploads", "Buildings", request.Images.FileName);
