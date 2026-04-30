@@ -11,7 +11,13 @@ namespace BookLAB.Application.Common.Policies.Handlers
 
         public Task<PolicyValidationResult> ValidateAsync(CreateBookingCommand request, string value)
         {
-            if (double.TryParse(value, out var minHours))
+            string defaultValue = "5"; // default curfew time
+            if (!string.IsNullOrEmpty(value))
+            {
+                defaultValue = value.Trim();
+            }
+
+            if (double.TryParse(defaultValue, out var minHours))
             {
                 var minAllowedStart = DateTime.UtcNow.AddHours(minHours);
                 if (request.StartTime < minAllowedStart)

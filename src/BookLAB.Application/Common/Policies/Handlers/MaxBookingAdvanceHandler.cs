@@ -10,7 +10,13 @@ namespace BookLAB.Application.Common.Policies.Handlers
 
         public Task<PolicyValidationResult> ValidateAsync(CreateBookingCommand request, string value)
         {
-            if (double.TryParse(value, out var maxDays))
+            string defaultValue = "14"; // default curfew time
+            if (!string.IsNullOrEmpty(value))
+            {
+                defaultValue = value.Trim();
+            }
+
+            if (double.TryParse(defaultValue, out var maxDays))
             {
                 var maxAllowedDate = DateTime.UtcNow.AddDays(maxDays);
                 if (request.StartTime > maxAllowedDate)

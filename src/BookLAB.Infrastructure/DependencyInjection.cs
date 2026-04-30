@@ -67,6 +67,7 @@ namespace BookLAB.Infrastructure
             services.AddTransient<IEmailService, EmailService>();
             services.AddScoped<INotificationService, SignalRNotificationService>();
             services.AddSingleton<IDashboardRealtimeService, DashboardRealtimeService>();
+            services.AddScoped<IAIBookingService, AdvancedAIBookingService>();
 
 
             // ===== REPOSITORIES =====
