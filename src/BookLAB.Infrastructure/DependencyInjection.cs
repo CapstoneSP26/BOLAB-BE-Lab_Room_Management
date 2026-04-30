@@ -66,6 +66,7 @@ namespace BookLAB.Infrastructure
             services.AddScoped<IQrManagements, QrManagements>();
             services.AddTransient<IEmailService, EmailService>();
             services.AddScoped<INotificationService, SignalRNotificationService>();
+            services.AddScoped<IAIBookingService, AdvancedAIBookingService>();
 
 
             // ===== REPOSITORIES =====

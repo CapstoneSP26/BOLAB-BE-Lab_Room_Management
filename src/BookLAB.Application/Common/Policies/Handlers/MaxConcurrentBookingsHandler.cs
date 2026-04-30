@@ -16,16 +16,21 @@ namespace BookLAB.Application.Common.Policies.Handlers
 
         public async Task<PolicyValidationResult> ValidateAsync(CreateBookingCommand request, string value)
         {
-            if (int.TryParse(value, out var maxCapacity))
-            {
-                var currentCount = await _unitOfWork.Repository<Schedule>().Entities
-                    .CountAsync(x => x.LabRoomId == request.LabRoomId &&
-                                     x.StartTime < request.EndTime &&
-                                     x.EndTime > request.StartTime);
+            var maxCapacity = 1; // default
 
-                if (currentCount >= maxCapacity)
-                    return new PolicyValidationResult(false, "Phòng đã đạt giới hạn số lượt đặt trùng giờ.");
+            if (!string.IsNullOrWhiteSpace(value) && int.TryParse(value, out var parsed))
+            {
+                maxCapacity = parsed;
             }
+
+            var currentCount = await _unitOfWork.Repository<Schedule>().Entities
+                .CountAsync(x => x.LabRoomId == request.LabRoomId &&
+                                 x.StartTime < request.EndTime &&
+                                 x.EndTime > request.StartTime);
+
+            if (currentCount >= maxCapacity)
+                return new PolicyValidationResult(false, "Phòng đã đạt giới hạn số lượt đặt trùng giờ.");
+
             return new PolicyValidationResult(true);
         }
     }

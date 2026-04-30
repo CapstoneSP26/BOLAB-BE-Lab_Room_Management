@@ -1,4 +1,5 @@
 ﻿using BookLAB.Application.Common.Extensions;
+using BookLAB.Application.Common.Helpers;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Interfaces.Services;
 using BookLAB.Application.Common.Models;
@@ -68,6 +69,7 @@ namespace BookLAB.Infrastructure.Services
         CancellationToken ct,
         bool isAllowCreateImportData = false)
         {
+
             // 1. Init
             var response = InitFlexibleResponse(schedules);
 
@@ -249,8 +251,17 @@ namespace BookLAB.Infrastructure.Services
             Guid? importBatchId,
             CancellationToken ct)
         {
+
+            foreach (var schedule in schedules)
+            {
+                schedule.Lecturer = FormatHelper.Normalize(schedule.Lecturer);
+                schedule.RoomNo = FormatHelper.Normalize(schedule.RoomNo);
+                schedule.GroupName = FormatHelper.Normalize(schedule.GroupName);
+                schedule.SubjectCode = FormatHelper.Normalize(schedule.SubjectCode);
+                schedule.SlotTypeCode = FormatHelper.Normalize(schedule.SlotTypeCode);
+            }
             var slotTypeCodes = schedules.Select(s => s.SlotTypeCode).Distinct().ToList();
-            var roomCodes = schedules.Select(s => s.RoomNo.Trim().TrimEnd('.')).Distinct().ToList();
+            var roomCodes = schedules.Select(s => s.RoomNo).Distinct().ToList();
             var lecturerCodes = schedules.Select(s => s.Lecturer).Distinct().ToList();
             var groupNames = schedules.Select(s => s.GroupName).Distinct().ToList();
 
@@ -310,7 +321,14 @@ namespace BookLAB.Infrastructure.Services
             Guid? importBatchId,
             CancellationToken ct)
         {
-            var roomCodes = schedules.Select(s => s.RoomNo.Trim().TrimEnd('.')).Distinct().ToList();
+            foreach(var schedule in schedules)
+            {
+                schedule.Lecturer = FormatHelper.Normalize(schedule.Lecturer);
+                schedule.RoomNo = FormatHelper.Normalize(schedule.RoomNo);
+                schedule.GroupName = FormatHelper.Normalize(schedule.GroupName);
+                schedule.SubjectCode = FormatHelper.Normalize(schedule.SubjectCode);
+            }
+            var roomCodes = schedules.Select(s => s.RoomNo).Distinct().ToList();
             var lecturerCodes = schedules.Select(s => s.Lecturer).Distinct().ToList();
             var groupNames = schedules.Select(s => s.GroupName).Distinct().ToList();
 
@@ -1071,11 +1089,11 @@ namespace BookLAB.Infrastructure.Services
 
         public string GenerateHash(ScheduleImportDto d)
         {
-            return $"{d.GroupName.Trim().ToLower()}_{d.Date.StringToVietnamDateOnly().ToString("yyyy-MM-dd")}_{d.SlotOrder}_{d.RoomNo.Trim().ToLower()}_{d.SlotTypeCode.Trim().ToLower()}";
+            return $"{d.GroupName.Trim().ToLower()}_{d.Date.StringToVietnamDateOnly().ToString("yyyy-MM-dd")}_{d.SlotOrder}_{d.RoomNo.Trim().ToLower()}_{d.SlotTypeCode.Trim().ToLower()}_{d.Lecturer.Trim().ToLower()}";
         }
         public string GenerateFlexibleHash(FlexibleScheduleImportDto d)
         {
-            return $"{d.GroupName.Trim().ToLower()}_{d.Date.StringToVietnamDateOnly().ToString("yyyy-MM-dd")}_{d.StartTime.StringToVietnamTimeOnly().ToString("HH:mm")}_{d.EndTime.StringToVietnamTimeOnly().ToString("HH:mm")}_{d.RoomNo.Trim().ToLower()}";
+            return $"{d.GroupName.Trim().ToLower()}_{d.Date.StringToVietnamDateOnly().ToString("yyyy-MM-dd")}_{d.StartTime.StringToVietnamTimeOnly().ToString("HH:mm")}_{d.EndTime.StringToVietnamTimeOnly().ToString("HH:mm")}_{d.RoomNo.Trim().ToLower()}_{d.Lecturer.Trim().ToLower()}";
         }
 
     }
