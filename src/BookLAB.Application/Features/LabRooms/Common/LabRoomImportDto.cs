@@ -2,13 +2,11 @@ namespace BookLAB.Application.Features.LabRooms.Common
 {
     public class LabRoomImportDto
     {
-        public int BuildingId { get; set; }
-        public string RoomName { get; set; } = string.Empty;
         public string RoomNo { get; set; } = string.Empty;
-        public string? Location { get; set; }
+        public string RoomName { get; set; } = string.Empty;
+        public string BuildingCode { get; set; } = string.Empty;
+        public bool HasEquipment { get; set; } // Chuyển từ string sang bool
         public int Capacity { get; set; }
-        public bool HasEquipment { get; set; }
-        public int OverrideNumber { get; set; }
-        public string? Description { get; set; }
+        public bool IsUpdated { get; set; }
     }
 }

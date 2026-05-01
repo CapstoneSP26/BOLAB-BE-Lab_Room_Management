@@ -1,12 +1,15 @@
+using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Application.Common.Models;
 using BookLAB.Application.Features.LabRooms.Commands.CreateLabRoom;
 using BookLAB.Application.Features.LabRooms.Commands.DeleteLabRoom;
+using BookLAB.Application.Features.LabRooms.Commands.ImportLabRooms;
 using BookLAB.Application.Features.LabRooms.Commands.UpdateLabRoom;
 using BookLAB.Application.Features.LabRooms.Commands.UpdatePolicy;
+using BookLAB.Application.Features.LabRooms.Commands.ValidateImportLabRooms;
 using BookLAB.Application.Features.LabRooms.Queries.GetLabRoomById;
+using BookLAB.Application.Features.LabRooms.Queries.GetLabRoomByRoomNo;
 using BookLAB.Application.Features.LabRooms.Queries.GetLabRoomPolicies;
 using BookLAB.Application.Features.LabRooms.Queries.GetLabRooms;
-using BookLAB.Application.Features.LabRooms.Queries.GetLabRoomByRoomNo;
 using BookLAB.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -20,11 +23,12 @@ namespace BookLAB.API.Controllers
     {
         private readonly IMediator _mediator;
         private readonly ILogger<LabRoomController> _logger;
-
-        public LabRoomController(IMediator mediator, ILogger<LabRoomController> logger)
+        private readonly ICurrentUserService _currentUserService;
+        public LabRoomController(IMediator mediator, ILogger<LabRoomController> logger, ICurrentUserService currentUserService)
         {
             _mediator = mediator;
             _logger = logger;
+            _currentUserService = currentUserService;
         }
 
         [HttpGet("{id}")]
@@ -169,25 +173,24 @@ namespace BookLAB.API.Controllers
             }
         }
 
-        //[HttpPost("validate-import")]
-        //[ProducesResponseType(typeof(ImportValidationResult<LabRoomImportDto>), StatusCodes.Status200OK)]
-        //[ProducesResponseType(StatusCodes.Status400BadRequest)]
-        //public async Task<IActionResult> ValidateImport([FromBody] ValidateLabRoomImportQuery query)
-        //{
-        //    var result = await _mediator.Send(query);
-        //    return Ok(result);
-        //}
+        [HttpPost("import/validate")]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> ValidateImport([FromBody] ValidateLabRoomImportQuery query)
+        {
+            query.CampusId = _currentUserService.CampusId;
+            var result = await _mediator.Send(query);
+            return Ok(result);
+        }
 
-
-
-        //[HttpPost("import")]
-        //[ProducesResponseType(StatusCodes.Status200OK)]
-        //[ProducesResponseType(StatusCodes.Status400BadRequest)]
-        //public async Task<IActionResult> ConfirmImport([FromBody] ConfirmLabRoomImportCommand command)
-        //{
-        //    var result = await _mediator.Send(command);
-        //    return Ok(result);
-        //}
+        [HttpPost("import/commit")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> ConfirmImport([FromBody] ConfirmLabRoomImportCommand command)
+        {
+            command.CampusId = _currentUserService.CampusId;
+            var result = await _mediator.Send(command);
+            return Ok(result);
+        }
 
     }
 }
