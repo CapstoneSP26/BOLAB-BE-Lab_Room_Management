@@ -9,6 +9,7 @@ using QRCoder;
 using BookLAB.Application.Features.Attendances.Commands.ScanAttendanceQRCode;
 using BookLAB.Application.Features.Attendances.Queries.GetStudentStatistic;
 using BookLAB.Application.Common.Interfaces.Integration;
+using BookLAB.Application.Features.Attendances.Commands.ScanFaceAttendance;
 
 namespace BookLAB.Api.Controllers;
 
@@ -259,6 +260,25 @@ public class AttendancesController : ControllerBase
         } catch (Exception ex)
         {
             return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while get student statistic");
+        }
+    }
+
+    [HttpPost("scan-face")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ScanFaceAttendance([FromBody] ScanFaceAttendanceCommand command)
+    {
+        try
+        {
+            var result = await _mediator.Send(command);
+
+            return Ok(new
+            {
+                Success = result
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while scan face");
         }
     }
 }

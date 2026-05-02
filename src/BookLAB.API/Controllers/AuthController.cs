@@ -172,7 +172,10 @@ namespace BookLAB.API.Controllers
         public async Task<IActionResult> ChangeRole([FromRoute] int roleId)
         {
             var userId = _currentUserService.UserId;
-            var roles = await _unitOfWork.Repository<UserRole>().Entities.Where(r => r.UserId == userId).Select(x => x.RoleId).ToListAsync();
+            var roles = await _unitOfWork.Repository<UserRole>().Entities
+                .Where(r => r.UserId == userId)
+                .Select(x => x.RoleId)
+                .ToListAsync();
             var campusId = _currentUserService.CampusId;
 
             if (!roles.Contains(roleId))
@@ -182,8 +185,9 @@ namespace BookLAB.API.Controllers
                     Message = "You don't have this role!"
                 });
 
-            await HttpContext.SignOutAsync("Cookies");
+            // ❌ Xóa: await HttpContext.SignOutAsync("Cookies");
 
+            // Xóa cookie cũ
             HttpContext.Response.Cookies.Delete("accessToken", new CookieOptions
             {
                 HttpOnly = true,
@@ -192,6 +196,7 @@ namespace BookLAB.API.Controllers
                 Path = "/"
             });
 
+            // Tạo token mới
             var claims = new List<Claim>
             {
                 new Claim("Id", userId.ToString()),
@@ -212,6 +217,7 @@ namespace BookLAB.API.Controllers
 
             var generatedToken = new JwtSecurityTokenHandler().WriteToken(preparedToken);
 
+            // Append token mới
             HttpContext.Response.Cookies.Append("accessToken", generatedToken,
                 new CookieOptions
                 {
@@ -222,28 +228,22 @@ namespace BookLAB.API.Controllers
                     SameSite = SameSiteMode.None
                 });
 
-            var returnUrl = string.Empty;
-
-            switch (roleId)
+            // ✅ Trả JSON thay vì Redirect
+            var redirectUrl = roleId switch
             {
-                case 1:
-                    returnUrl = "https://localhost:5173/labmanager/dashboard";
-                    break;
-                case 2:
-                    returnUrl = "https://localhost:5173/labmanager/dashboard";
-                    break;
-                case 3:
-                    returnUrl = "https://localhost:5173/";
-                    break;
-                case 4:
-                    returnUrl = "https://localhost:5173/";
-                    break;
-                default:
-                    returnUrl = "https://localhost:5173/";
-                    break;
-            }
+                1 => "/labmanager/dashboard",    // Admin
+                2 => "/labmanager/dashboard",    // Lab Manager
+                3 => "/",                        // Lecturer
+                4 => "/student",                 // Student
+                _ => "/"
+            };
 
-            return Redirect(returnUrl);
+            return Ok(new
+            {
+                success = true,
+                redirectUrl,
+                message = $"Role switched successfully"
+            });
         }
 
         [HttpGet("user-roles")]
