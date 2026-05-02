@@ -175,12 +175,13 @@ namespace BookLAB.API.Controllers
                     return BadRequest(new { success = false, message = "roomId must be a number" });
                 }
 
-                foreach (var image in request.Images)
-                {
-                    if (Enum.TryParse(typeof(FileType), image.ContentType, out var fileType)){
-                        return BadRequest("Not supported file type");
+                if(request.Images != null && request.Images.Count > 0)
+                    foreach (var image in request.Images)
+                    {
+                        if (Enum.TryParse(typeof(FileType), image.ContentType, out var fileType)){
+                            return BadRequest("Not supported file type");
+                        }
                     }
-                }
                 
 
                 var schedule = await _unitOfWork.Repository<Schedule>().Entities
