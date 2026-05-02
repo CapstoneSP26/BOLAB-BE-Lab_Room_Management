@@ -12,7 +12,7 @@ namespace BookLAB.Application.Features.Buildings.Commands.UpdateBuildings
     {
         public int Id { get; set; }
         public string BuildingName { get; set; }
-        public string Descriptions { get; set; }
+        public string? Descriptions { get; set; }
         public IFormFile? Images { get; set; }
         public bool IsImageUpdate { get; set; }
     }
