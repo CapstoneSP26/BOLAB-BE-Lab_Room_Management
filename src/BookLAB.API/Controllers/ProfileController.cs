@@ -1,5 +1,6 @@
 using BookLAB.Application.Common.Models;
 using BookLAB.Application.Features.Profile.Commands.ChangePassword;
+using BookLAB.Application.Features.Profile.Commands.MarkAllNotificationsAsRead;
 using BookLAB.Application.Features.Profile.Commands.MarkNotificationAsRead;
 using BookLAB.Application.Features.Profile.Commands.UpdateAvatar;
 using BookLAB.Application.Features.Profile.Commands.UpdateMyProfile;
@@ -84,6 +85,14 @@ public class ProfileController : ControllerBase
     {
         await _mediator.Send(new MarkNotificationAsReadCommand { NotificationId = notificationId }, cancellationToken);
         return Ok(new ApiResponse<dynamic> { Message = "Notification marked as read" });
+    }
+
+    [HttpPut("notifications/read-all")]
+    [ProducesResponseType(typeof(ApiResponse<dynamic>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> MarkAllNotificationsAsRead(CancellationToken cancellationToken)
+    {
+        await _mediator.Send(new MarkAllNotificationsAsReadCommand(), cancellationToken);
+        return Ok(new ApiResponse<dynamic> { Message = "All notifications marked as read" });
     }
 
     [HttpGet("statistics")]
