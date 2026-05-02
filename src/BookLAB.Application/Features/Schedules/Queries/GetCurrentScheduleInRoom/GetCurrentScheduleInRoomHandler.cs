@@ -32,7 +32,11 @@ namespace BookLAB.Application.Features.Schedules.Queries.GetCurrentScheduleInRoo
         public async Task<List<ScheduleDto>> Handle(GetCurrentScheduleInRoomQuery request, CancellationToken cancellationToken)
         {
             var currentTime = DateTimeOffset.UtcNow;
-            var schedules = await _unitOfWork.Repository<Schedule>().Entities.Where(s => s.LabRoom.RoomNo.ToLower().Equals(request.roomNo.ToLower()) && 
+            var schedules = await _unitOfWork.Repository<Schedule>().Entities
+                .Include(x => x.User)
+                .Include(x => x.LabRoom)
+                .Include(x => x.Group)
+                .Where(s => s.LabRoom.RoomNo.ToLower().Equals(request.roomNo.ToLower()) && 
                 s.StartTime <= currentTime && s.EndTime >= currentTime).ToListAsync(cancellationToken);
 
             var scheduleDtos = _mapper.Map<List<ScheduleDto>>(schedules);
