@@ -22,12 +22,10 @@ namespace BookLAB.API.Controllers
     public class LabRoomController : ControllerBase
     {
         private readonly IMediator _mediator;
-        private readonly ILogger<LabRoomController> _logger;
         private readonly ICurrentUserService _currentUserService;
-        public LabRoomController(IMediator mediator, ILogger<LabRoomController> logger, ICurrentUserService currentUserService)
+        public LabRoomController(IMediator mediator, ICurrentUserService currentUserService)
         {
             _mediator = mediator;
-            _logger = logger;
             _currentUserService = currentUserService;
         }
 
