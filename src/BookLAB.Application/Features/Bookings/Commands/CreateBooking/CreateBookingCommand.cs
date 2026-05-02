@@ -6,7 +6,7 @@ namespace BookLAB.Application.Features.Bookings.Commands.CreateBooking
     public record CreateBookingCommand : IRequest<Guid>
     {
         public int LabRoomId { get; init; }
-        public int SlotTypeId { get; init; }
+        public int? SlotTypeId { get; init; }
         public int PurposeTypeId { get; init; }
         public DateTime StartTime { get; init; }
         public DateTime EndTime { get; init; }

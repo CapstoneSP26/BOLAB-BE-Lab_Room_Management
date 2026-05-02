@@ -10,7 +10,13 @@ namespace BookLAB.Application.Common.Policies.Handlers
 
         public Task<PolicyValidationResult> ValidateAsync(CreateBookingCommand request, string value)
         {
-            if (TimeOnly.TryParse(value, out var curfew))
+            string defaultValue = "23:59"; // default curfew time
+            if (!string.IsNullOrEmpty(value))
+            {
+                defaultValue = value.Trim();
+            }
+
+            if (TimeOnly.TryParse(defaultValue, out var curfew))
             {
                 var bookingEndTime = TimeOnly.FromDateTime(request.EndTime);
                 if (bookingEndTime > curfew)

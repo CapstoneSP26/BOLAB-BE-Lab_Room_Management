@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using QRCoder;
 using BookLAB.Application.Features.Attendances.Commands.ScanAttendanceQRCode;
 using BookLAB.Application.Features.Attendances.Queries.GetStudentStatistic;
+using BookLAB.Application.Common.Interfaces.Integration;
 
 namespace BookLAB.Api.Controllers;
 
@@ -18,11 +19,13 @@ public class AttendancesController : ControllerBase
 {
     private readonly IMediator _mediator;
     private readonly ILogger<AttendancesController> _logger;
+    private readonly IDashboardRealtimeService _dashboardRealtimeService;
 
-    public AttendancesController(IMediator mediator, ILogger<AttendancesController> logger)
+    public AttendancesController(IMediator mediator, ILogger<AttendancesController> logger, IDashboardRealtimeService dashboardRealtimeService)
     {
         _mediator = mediator;
         _logger = logger;
+        _dashboardRealtimeService = dashboardRealtimeService;
     }
 
     /// <summary>
@@ -57,6 +60,7 @@ public class AttendancesController : ControllerBase
 
         if (result)
         {
+            await _dashboardRealtimeService.PublishOverviewUpdatedForScheduleAsync(command.ScheduleId, "attendance.submitted", HttpContext.RequestAborted);
             return Ok(new { Message = "Attendance submitted successfully." });
         }
 
@@ -174,6 +178,11 @@ public class AttendancesController : ControllerBase
             if (!result.Success)
             {
                 return BadRequest(result.Message);
+            }
+
+            if (isCheckIn)
+            {
+                await _dashboardRealtimeService.PublishOverviewUpdatedForScheduleAsync(scheduleId, "attendance.checked-in", HttpContext.RequestAborted);
             }
 
             // Return success response if the QR code scan was successful

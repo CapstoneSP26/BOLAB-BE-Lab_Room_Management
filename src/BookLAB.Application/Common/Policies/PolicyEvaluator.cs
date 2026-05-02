@@ -11,18 +11,17 @@ namespace BookLAB.Application.Common.Policies
 
         public async Task EvaluateAsync(CreateBookingCommand request, IEnumerable<RoomPolicy> policies)
         {
-            foreach (var policy in policies.Where(p => p.IsActive))
+            foreach (var handler in _handlers)
             {
-                var handler = _handlers.FirstOrDefault(h => h.PolicyType == policy.PolicyKey);
-                if (handler != null)
+                var policy = policies.FirstOrDefault(p => p.PolicyKey == handler.PolicyType);
+
+                    // Nếu có handler cho một policy nhưng policy đó không được kích hoạt, vẫn cần gọi handler để nó có thể áp dụng logic mặc định (nếu có)
+                var result = await handler.ValidateAsync(request, policy?.PolicyValue ?? "");
+                if (!result.IsSuccess)
                 {
-                    var result = await handler.ValidateAsync(request, policy.PolicyValue);
-                    if (!result.IsSuccess)
-                    {
-                        // Ném BusinessException ở đây để tầng Handler của MediatR bắt được
-                        throw new BusinessException(result.Message ?? "Vi phạm chính sách đặt phòng.");
-                    }
+                    throw new BusinessException(result.Message ?? "Vi phạm chính sách đặt phòng.");
                 }
+                
             }
         }
     }

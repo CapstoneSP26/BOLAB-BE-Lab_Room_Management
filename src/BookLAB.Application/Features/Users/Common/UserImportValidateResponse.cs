@@ -9,6 +9,5 @@ namespace BookLAB.Application.Features.Users.Common
         public UserImportMaps maps { get; set; }
         public ImportValidationResult<UserImportDto, User> result { get; set; }
 
-
     }
 }

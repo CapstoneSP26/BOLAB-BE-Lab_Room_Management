@@ -60,7 +60,7 @@ namespace BookLAB.Application.Features.Schedules.Commands.ImportSchedule
                         Id = Guid.NewGuid(),
                         Name = request.BatchName,
                         ImportBatchType = ImportBatchType.FlexibleSchedule,
-                        SemesterName = request.StartTime.ConvertTimeToSemester(),
+                        SemesterName = (request.StartTime.AddDays(1)).ConvertTimeToSemester(),
                         CreatedAt = now,
                         CreatedBy = _currentUserService.UserId,
                     };
