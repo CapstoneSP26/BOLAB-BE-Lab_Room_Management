@@ -4,6 +4,7 @@ using System.Text.Json;
 using BookLAB.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BookLAB.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(BookLABDbContext))]
-    partial class BookLABDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260421094655_SyncUserNotificationPreferences")]
+    partial class SyncUserNotificationPreferences
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -366,10 +369,6 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("BuildingCode")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
                     b.Property<string>("BuildingImageUrl")
                         .HasMaxLength(2048)
                         .HasColumnType("character varying(2048)");
@@ -660,58 +659,6 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                             SubjectCode = "",
                             UserId = new Guid("11111111-1111-1111-1111-111111111111")
                         });
-                });
-
-            modelBuilder.Entity("BookLAB.Domain.Entities.ImportBatch", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid?>("CreatedBy")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("ImportBatchType")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<bool>("IsDeleted")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
-
-                    b.Property<string>("SemesterName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid?>("UpdatedBy")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatedAt");
-
-                    b.HasIndex("ImportBatchType");
-
-                    b.HasIndex("SemesterName");
-
-                    b.HasIndex("Name", "SemesterName")
-                        .IsUnique();
-
-                    b.ToTable("ImportBatches", (string)null);
                 });
 
             modelBuilder.Entity("BookLAB.Domain.Entities.LabImage", b =>
@@ -1390,9 +1337,6 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("GroupId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("ImportBatchId")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("ImportHash")
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
@@ -1448,8 +1392,6 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.HasIndex("GroupId");
-
-                    b.HasIndex("ImportBatchId");
 
                     b.HasIndex("ImportHash")
                         .IsUnique();
@@ -2105,11 +2047,6 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .HasForeignKey("GroupId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("BookLAB.Domain.Entities.ImportBatch", "ImportBatch")
-                        .WithMany()
-                        .HasForeignKey("ImportBatchId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("BookLAB.Domain.Entities.LabRoom", "LabRoom")
                         .WithMany()
                         .HasForeignKey("LabRoomId")
@@ -2130,8 +2067,6 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                     b.Navigation("Booking");
 
                     b.Navigation("Group");
-
-                    b.Navigation("ImportBatch");
 
                     b.Navigation("LabRoom");
 

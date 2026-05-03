@@ -1,4 +1,4 @@
-﻿using BookLAB.Application.Common.Extensions;
+using BookLAB.Application.Common.Extensions;
 using BookLAB.Application.Common.Helpers;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Interfaces.Services;
@@ -31,6 +31,8 @@ namespace BookLAB.Application.Common.Jobs.Emails
                 .FirstOrDefaultAsync(u => u.Id == booking.CreatedBy.Value);
             if (user == null) return;
 
+            if (!await ShouldSendEmailAsync(user.Id)) return;
+
             var template = await _unitOfWork.Repository<EmailTemplate>().Entities
                 .FirstOrDefaultAsync(t => t.Type == EmailType.BookingSubmitted);
 
@@ -48,6 +50,13 @@ namespace BookLAB.Application.Common.Jobs.Emails
 
             var body = TemplateHelper.PopulateTemplate(template.Content, values);
             await _emailService.SendEmailAsync(user.Email, "📩 [BookLAB] Xác nhận: Yêu cầu đặt phòng đã được tiếp nhận", body);
+        }
+
+        private Task<bool> ShouldSendEmailAsync(Guid userId)
+        {
+            return _unitOfWork.Repository<UserNotificationPreference>().Entities
+                .AsNoTracking()
+                .AnyAsync(x => x.UserId == userId && x.EmailNotifications);
         }
     }
 }
