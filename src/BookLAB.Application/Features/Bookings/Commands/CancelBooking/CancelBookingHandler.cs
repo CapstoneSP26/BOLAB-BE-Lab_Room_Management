@@ -7,7 +7,9 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Text.Json;
 
 namespace BookLAB.Application.Features.Bookings.Commands.CancelBooking
 {
@@ -47,6 +49,34 @@ namespace BookLAB.Application.Features.Bookings.Commands.CancelBooking
                         Message = "Booking not found.",
                     };
 
+                var managerNotifications = new List<Notification>();
+                var metadataObject = new { bookingId = booking.Id, labRoomId = booking.LabRoomId };
+                var metadataJsonString = JsonSerializer.Serialize(metadataObject);
+
+                var ownerIds = await _unitOfWork.LabOwners.GetOwnerIdsByLabRoomIdAsync(booking.LabRoomId);
+                foreach (var managerId in ownerIds.Distinct())
+                {
+                    if (userId.HasValue && managerId == userId.Value)
+                    {
+                        continue;
+                    }
+
+                    var managerNotification = new Notification
+                    {
+                        UserId = managerId,
+                        Title = "Booking cancelled",
+                        Message = $"Booking {booking.Id} was cancelled by the requester.",
+                        Type = "BookingCancelled",
+                        IsRead = false,
+                        CreatedAt = DateTimeOffset.UtcNow,
+                        Metadata = JsonDocument.Parse(metadataJsonString).RootElement.Clone(),
+                        IsGlobal = false
+                    };
+
+                    managerNotifications.Add(managerNotification);
+                    await _unitOfWork.Repository<Notification>().AddAsync(managerNotification);
+                }
+
                 _unitOfWork.Repository<Booking>().Delete(booking);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
                 await _unitOfWork.CommitTransactionAsync();
@@ -58,6 +88,25 @@ namespace BookLAB.Application.Features.Bookings.Commands.CancelBooking
                         action = "cancelled",
                         bookingId = request.BookingId,
                         occurredAt = DateTimeOffset.UtcNow
+                    }, cancellationToken);
+                }
+
+                foreach (var managerNotification in managerNotifications)
+                {
+                    if (managerNotification.UserId is not Guid managerUserId)
+                    {
+                        continue;
+                    }
+
+                    await _notificationService.NotifyNotificationCreatedAsync(managerUserId, new
+                    {
+                        id = managerNotification.Id,
+                        type = managerNotification.Type,
+                        title = managerNotification.Title,
+                        message = managerNotification.Message,
+                        isRead = managerNotification.IsRead,
+                        createdAt = managerNotification.CreatedAt,
+                        metadata = managerNotification.Metadata
                     }, cancellationToken);
                 }
 
