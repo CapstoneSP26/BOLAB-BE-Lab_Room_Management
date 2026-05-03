@@ -2,6 +2,7 @@ using BookLAB.Application.Common.Exceptions;
 using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Application.Common.Interfaces.Integration;
 using BookLAB.Application.Common.Interfaces.Repositories;
+using BookLAB.Application.Common.Models;
 using BookLAB.Application.Common.Policies;
 using BookLAB.Application.Features.Bookings.Events;
 using BookLAB.Domain.Entities;
@@ -12,7 +13,7 @@ using System.Text.Json;
 
 namespace BookLAB.Application.Features.Bookings.Commands.CreateBooking
 {
-    public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand, Guid>
+    public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand, CreateBookingResponse>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IPolicyEvaluator _policyEvaluator;
@@ -34,8 +35,9 @@ namespace BookLAB.Application.Features.Bookings.Commands.CreateBooking
             _notificationService = notificationService;
         }
 
-        public async Task<Guid> Handle(CreateBookingCommand request, CancellationToken ct)
+        public async Task<CreateBookingResponse> Handle(CreateBookingCommand request, CancellationToken ct)
         {
+            string? warningMessage = null;
             // 1. Khai báo & Validate cơ bản
             if (request.StartTime >= request.EndTime)
                 throw new BusinessException("Thời gian bắt đầu phải trước thời gian kết thúc.");
@@ -53,6 +55,47 @@ namespace BookLAB.Application.Features.Bookings.Commands.CreateBooking
 
                 if (room == null || !room.IsActive)
                     throw new NotFoundException("Phòng không tồn tại hoặc không hoạt động.");
+
+                var startUtc = request.StartTime.ToUniversalTime();
+                var endUtc = request.EndTime.ToUniversalTime();
+
+                var overlappingSchedules = await _unitOfWork.Repository<Schedule>().Entities
+                    .Where(s => s.LabRoomId == request.LabRoomId && s.IsActive && !s.IsDeleted &&
+                                s.StartTime < endUtc && s.EndTime > startUtc)
+                    .Select(s => new { s.StartTime, s.EndTime, s.StudentCount })
+                    .ToListAsync(ct);
+
+                var events = new List<(DateTimeOffset Time, int Count)>();
+
+                foreach (var s in overlappingSchedules)
+                {
+                    events.Add((s.StartTime, s.StudentCount));   // Sinh viên vào
+                    events.Add((s.EndTime, -s.StudentCount));    // Sinh viên ra
+                }
+
+                // 3. Thuật toán Sweeping Line để tìm đỉnh cao nhất (Peak)
+                int peakStudents = 0;
+                int currentStudents = 0;
+
+                // Sắp xếp sự kiện theo thời gian, nếu trùng thời gian thì ưu tiên sự kiện "ra" trước để tránh vọt đỉnh ảo
+                var sortedEvents = events.OrderBy(e => e.Time).ThenBy(e => e.Count).ToList();
+
+                foreach (var ev in sortedEvents)
+                {
+                    currentStudents += ev.Count;
+                    if (currentStudents > peakStudents)
+                    {
+                        peakStudents = currentStudents;
+                    }
+                }
+
+                // 4. Kiểm tra với Capacity
+                int projectedPeak = peakStudents + request.StudentCount;
+
+                if (projectedPeak > room.Capacity)
+                {
+                    warningMessage = $"Cảnh báo: Tại thời điểm cao nhất, phòng {room.RoomNo} sẽ có {projectedPeak}/{room.Capacity} sinh viên.";
+                }
 
                 // 2. CHECK CONFLICT: Duyệt qua từng tuần để kiểm tra trùng lịch
                 for (int i = 0; i < totalWeeks; i++)
@@ -157,7 +200,11 @@ namespace BookLAB.Application.Features.Bookings.Commands.CreateBooking
                 // 6. TRICK: Chỉ publish event cho bản ghi đầu tiên để tránh spam Email/Event
                 await _mediator.Publish(new BookingCreatedEvent(firstBookingId), ct);
 
-                return firstBookingId;
+                return new CreateBookingResponse
+                {
+                    BookingId = firstBookingId,
+                    WarningMessage = warningMessage
+                };
             }
             catch (Exception)
             {

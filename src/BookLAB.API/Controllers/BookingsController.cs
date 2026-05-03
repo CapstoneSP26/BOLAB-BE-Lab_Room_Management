@@ -207,18 +207,18 @@ public class BookingsController : ControllerBase
     public async Task<IActionResult> CreateBooking([FromBody] CreateBookingCommand command)
     {
         // Execute command and get the resulting Guid
-        var bookingId = await _mediator.Send(command);
+        var createBookingResponse = await _mediator.Send(command);
 
         // If Guid is empty, it means the logic in Handler failed (e.g., overlapping schedule)
-        if (bookingId == Guid.Empty)
+        if (createBookingResponse.BookingId == Guid.Empty)
         {
             return BadRequest(new { Message = "Unable to create booking. Room may be unavailable." });
         }
 
-        await _dashboardRealtimeService.PublishOverviewUpdatedForBookingAsync(bookingId, "booking.created", HttpContext.RequestAborted);
+        await _dashboardRealtimeService.PublishOverviewUpdatedForBookingAsync(createBookingResponse.BookingId, "booking.created", HttpContext.RequestAborted);
 
         // Return just the ID - Simple and Independent
-        return Ok(new { Id = bookingId });
+        return Ok(new { Id = createBookingResponse.BookingId, WarningMessage = createBookingResponse.WarningMessage });
     }
 
     [HttpGet]

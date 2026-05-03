@@ -3,7 +3,7 @@ using MediatR;
 
 namespace BookLAB.Application.Features.Bookings.Commands.CreateBooking
 {
-    public record CreateBookingCommand : IRequest<Guid>
+    public record CreateBookingCommand : IRequest<CreateBookingResponse>
     {
         public int LabRoomId { get; init; }
         public int? SlotTypeId { get; init; }
