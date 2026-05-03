@@ -102,6 +102,7 @@ namespace BookLAB.Application.Features.Bookings.Commands.ApproveBooking
                 }
 
                 bookingRequest.BookingRequestStatus = BookingRequestStatus.Approved;
+                bookingRequest.ResponsedByUserId = _currentUserService.UserId;
                 _unitOfWork.Repository<BookingRequest>().Update(bookingRequest);
 
                 booking.BookingStatus = BookingStatus.Approved;

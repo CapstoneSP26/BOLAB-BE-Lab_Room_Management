@@ -60,6 +60,7 @@ namespace BookLAB.Application.Features.Bookings.Commands.RejectBooking
 
                 bookingRequest.BookingRequestStatus = BookingRequestStatus.Rejected;
                 bookingRequest.ResponseContext = request.Reason; 
+                bookingRequest.ResponsedByUserId = currentUserId;
                 _unitOfWork.Repository<BookingRequest>().Update(bookingRequest);
 
                 Notification? createdNotification = null;
