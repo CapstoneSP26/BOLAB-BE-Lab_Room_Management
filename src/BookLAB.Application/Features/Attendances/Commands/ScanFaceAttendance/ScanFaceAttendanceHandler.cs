@@ -36,6 +36,14 @@ namespace BookLAB.Application.Features.Attendances.Commands.ScanFaceAttendance
 
                 var schedule = await _unitOfWork.Repository<Schedule>().GetByIdAsync(request.scheduleId);
 
+                if (schedule.GroupId == null)
+                    return false;
+
+                var members = await _unitOfWork.Repository<GroupMember>().Entities.Where(x => x.GroupId == schedule.GroupId && schedule.SubjectCode == x.SubjectCode).Select(x => x.UserId).ToListAsync();
+
+                if (!members.Contains(student.Id))
+                    return false;
+
                 var attendanceId = Guid.NewGuid();
 
                 var attendance = new Attendance
@@ -47,7 +55,7 @@ namespace BookLAB.Application.Features.Attendances.Commands.ScanFaceAttendance
                     CheckInMethod = Domain.Enums.AttendanceCheckInMethod.FaceId,
                     AttendanceStatus = Domain.Enums.AttendanceStatus.Present,
                     CreatedAt = DateTimeOffset.UtcNow,
-                    CreatedBy = Guid.Parse("00000000-0000-0000-0000-000000000000")
+                    CreatedBy = Guid.Parse("00000000-0000-0000-0000-000000000000")  // system creates this so use this guid
                 };
                 await _unitOfWork.BeginTransactionAsync();
                 await _unitOfWork.Repository<Attendance>().AddAsync(attendance);
