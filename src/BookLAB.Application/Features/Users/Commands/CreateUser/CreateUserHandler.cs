@@ -63,12 +63,14 @@ namespace BookLAB.Application.Features.Users.Commands.CreateUser
                     await _unitOfWork.SaveChangesAsync(cancellationToken);
                     await _unitOfWork.CommitTransactionAsync();
                 }
+                var newUser = await _unitOfWork.Repository<User>().GetByIdAsync(userid);
+                var userProfile = _mapper.Map<User, UserProfileDto>(newUser);
 
                 return new ResultMessage<UserProfileDto>
                 {
                     Success = true,
                     Message = "User created successfully",
-                    Data = _mapper.Map<UserProfileDto>(user)
+                    Data = userProfile
                 };
 
             } catch (Exception ex)

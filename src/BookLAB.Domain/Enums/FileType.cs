@@ -2,6 +2,9 @@
 {
     public enum FileType
     {
-
+        png,
+        jpg,
+        jpeg,
+        jfif
     }
 }

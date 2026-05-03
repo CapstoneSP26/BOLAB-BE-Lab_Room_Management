@@ -8,6 +8,7 @@ using BookLAB.Application.Features.Schedules.Commands.UpdateSchedule;
 using BookLAB.Application.Features.Schedules.Commands.ValidateImport;
 using BookLAB.Application.Features.Schedules.Common;
 using BookLAB.Application.Features.Schedules.Queries.AddSchedule;
+using BookLAB.Application.Features.Schedules.Queries.GetCurrentScheduleInRoom;
 using BookLAB.Application.Features.Schedules.Queries.GetImportBatches;
 using BookLAB.Application.Features.Schedules.Queries.GetSchedules;
 using BookLAB.Application.Features.Schedules.Queries.GetSchedulesStudent;
@@ -199,6 +200,33 @@ public class SchedulesController : ControllerBase
             // Log the error with details for debugging
             _logger.LogError(ex, "Something is wrong while getting unchecked booking requests: " + ex.Message);
 
+            // Return internal server error response
+            return Problem("Something is wrong while getting unchecked booking requests");
+        }
+    }
+
+    [HttpGet("current_schedule/{roomNo}")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetCurrentScheduleInRoom([FromRoute] string roomNo, CancellationToken cancellationToken)
+    {
+        try
+        {
+            GetCurrentScheduleInRoomQuery query = new GetCurrentScheduleInRoomQuery
+            {
+                roomNo = roomNo
+            };
+            // Send the command through MediatR pipeline
+            var result = await _mediator.Send(query, cancellationToken);
+            // Return success response with the retrieved data
+            return Ok(new
+            {
+                result = result
+            });
+        }
+        catch (Exception ex)
+        {
+            // Log the error with details for debugging
+            _logger.LogError(ex, "Something is wrong while getting unchecked booking requests: " + ex.Message);
             // Return internal server error response
             return Problem("Something is wrong while getting unchecked booking requests");
         }

@@ -357,25 +357,13 @@ public class BookingsController : ControllerBase
     }
     [HttpGet("get-unchecked-booking-request")]
     [Authorize(Policy = "AcademicOffice_LabManager")]
-    public async Task<IActionResult> GetUncheckedBookingRequestList([FromQuery] ViewBookingHistoryDTO dto)
+    public async Task<IActionResult> GetUncheckedBookingRequestList([FromQuery] ViewUncheckedBookingRequestCommand command)
     {
         try
         {
             Guid.TryParse(HttpContext.User.FindFirst("Id")?.Value, out var userId);
 
-            ViewUncheckedBookingRequestCommand command = new ViewUncheckedBookingRequestCommand
-            {
-                userId = userId,
-                page = dto.page,
-                limit = dto.limit,
-                status = dto.status.ToLower(),
-                startDate = dto.startDate,
-                endDate = dto.endDate,
-                labRoomId = dto.labRoomId,
-                buildingId = dto.buildingId,
-                slotTypeId = dto.slotTypeId,
-                keyword = dto.keyword
-            };
+            command.userId = userId;
 
             var result = await _mediator.Send(command);
 
@@ -383,8 +371,8 @@ public class BookingsController : ControllerBase
             {
                 data = result.list,
                 total = result.total,
-                page = dto.page,
-                limit = dto.limit
+                page = command.page,
+                limit = command.limit
             });
         }
         catch (Exception ex)

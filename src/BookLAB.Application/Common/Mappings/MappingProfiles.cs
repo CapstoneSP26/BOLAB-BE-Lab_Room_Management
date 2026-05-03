@@ -53,12 +53,20 @@ namespace BookLAB.Application.Common.Mappings
 
             CreateMap<Schedule, ScheduleDto>();
 
+            CreateMap<Schedule, BookLAB.Application.Features.Schedules.Queries.GetSchedules.ScheduleDto>()
+                .ForMember(dest => dest.RoomNo, opt => opt.MapFrom(src => src.LabRoom.RoomNo))
+                .ForMember(dest => dest.LecturerName, opt => opt.MapFrom(src => src.User.FullName))
+                .ForMember(dest => dest.UserCode, opt => opt.MapFrom(src => src.User.UserCode))
+                .ForMember(dest => dest.LabRoomName, opt => opt.MapFrom(src => src.LabRoom.RoomName))
+                .ForMember(dest => dest.GroupName, opt => opt.MapFrom(src => src.Group.GroupName));
+
+
             CreateMap<User, UserProfileDto>()
-                .ForMember(dest => dest.AvatarUrl, opt => opt.MapFrom(src => src.UserImageUrl))
-                .ForMember(dest => dest.UserCode, opt => opt.MapFrom(src => src.UserCode))
-                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
-                .ForMember(dest => dest.Roles, opt => opt.MapFrom(src => src.UserRoles.Where(x => x.UserId == src.Id).Select(x => x.Role.RoleName).ToList()))
-                .ForMember(dest => dest.RoleIds, opt => opt.MapFrom(src => src.UserRoles.Where(x => x.UserId == src.Id).Select(x => x.RoleId).ToList()));
+                .ForMember(dest => (string)dest.AvatarUrl, opt => opt.MapFrom(src => src.UserImageUrl))
+                .ForMember(dest => (string)dest.UserCode, opt => opt.MapFrom(src => src.UserCode))
+                .ForMember(dest => (bool)dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
+                .ForMember(dest => (List<string>)dest.Roles, opt => opt.MapFrom(src => src.UserRoles.Select(x => x.Role.RoleName).ToList()))
+                .ForMember(dest => (List<int>)dest.RoleIds, opt => opt.MapFrom(src => src.UserRoles.Select(x => x.RoleId).ToList()));
         }
     }
 }
