@@ -28,6 +28,7 @@ namespace BookLAB.API.Controllers
         private readonly IUserRoleRepository _userRoleRepository;
         private readonly IConfiguration _configuration;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IUnitOfWork _unitOfWork;
 
         public AuthController(IMediator mediator,
                               LinkGenerator linkGenerator,
