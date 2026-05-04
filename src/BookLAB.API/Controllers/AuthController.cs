@@ -81,7 +81,8 @@ namespace BookLAB.API.Controllers
                 return Redirect($"{_configuration["FrontendUrl"]}/login?error=Account_locked");
 
             var userId = account.Id;
-            var role = await _userRoleRepository.GetAsync(userId);
+            //var role = await _userRoleRepository.GetAsync(userId);
+            var role = await _unitOfWork.Repository<UserRole>().Entities.Where(x => x.UserId == userId).MinAsync(x => x.RoleId);
 
             IConfiguration configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
@@ -91,7 +92,7 @@ namespace BookLAB.API.Controllers
             var claims = new List<Claim>
             {
                 new Claim("Id", account.Id.ToString()),
-                new Claim("Role", role?.RoleId.ToString() ?? ""),
+                new Claim("Role", role.ToString() ?? ""),
                 new Claim("CampusId", account.CampusId.ToString())
             };
 
@@ -118,7 +119,7 @@ namespace BookLAB.API.Controllers
                     SameSite = SameSiteMode.None
                 });
 
-            switch (role.RoleId)
+            switch (role)
             {
                 case 1:
                     returnUrl = "https://localhost:5173/labmanager/dashboard";
@@ -130,7 +131,7 @@ namespace BookLAB.API.Controllers
                     returnUrl = "https://localhost:5173/";
                     break;
                 case 4:
-                    returnUrl = "https://localhost:5173/";
+                    returnUrl = "https://localhost:5173/student";
                     break;
                 default:
                     returnUrl = "https://localhost:5173/";
