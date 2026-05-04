@@ -9,6 +9,7 @@ using BookLAB.Application.Features.Groups.Commands.UpdateGroup;
 using BookLAB.Application.Features.Groups.Commands.UpdateGroupMember;
 using BookLAB.Application.Features.Groups.DTOs;
 using BookLAB.Application.Features.Groups.Queries.GetGroupById;
+using BookLAB.Application.Features.Groups.Queries.GetGroupByName;
 using BookLAB.Application.Features.Groups.Queries.GetGroupMembers;
 using BookLAB.Application.Features.Groups.Queries.GetGroups;
 using BookLAB.Application.Features.Groups.Queries.ValidateGroupImport;
@@ -112,6 +113,25 @@ namespace BookLAB.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving group {GroupId}", id);
+                throw;
+            }
+        }
+
+        [HttpGet("group-name")]
+        [Authorize(Policy = "AcademicOffice_LabManager_Lecturer")]
+        public async Task<IActionResult> GetGroupsByName([FromQuery] GetGroupByNameQuery query, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var groups = await _mediator.Send(query, cancellationToken);
+                return Ok(new
+                {
+                    items = groups
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving groups");
                 throw;
             }
         }
