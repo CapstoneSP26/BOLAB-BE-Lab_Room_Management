@@ -13,7 +13,10 @@ namespace BookLAB.Application.Common.Policies
         {
             foreach (var handler in _handlers)
             {
-                var policy = policies.FirstOrDefault(p => p.PolicyKey == handler.PolicyType);
+                var policy = policies.FirstOrDefault(p => p.PolicyKey == handler.PolicyType && p.IsActive == true);
+
+                if (policy == null)
+                    continue;
 
                     // Nếu có handler cho một policy nhưng policy đó không được kích hoạt, vẫn cần gọi handler để nó có thể áp dụng logic mặc định (nếu có)
                 var result = await handler.ValidateAsync(request, policy?.PolicyValue ?? "");
