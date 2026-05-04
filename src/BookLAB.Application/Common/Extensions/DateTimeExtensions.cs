@@ -142,11 +142,11 @@ namespace BookLAB.Application.Common.Extensions
             int month = vnTime.Month;
             int year = vnTime.Year;
 
-            if (time.Month >= 1 && time.Month <= 5)
+            if (time.Month >= 1 && time.Month <= 4)
             {
                 return $"SP{time.Year % 100:D2}";
             }
-            else if (time.Month >= 6 && time.Month <= 8)
+            else if (time.Month >= 5 && time.Month <= 8)
             {
                 return $"SU{time.Year % 100:D2}";
             }
