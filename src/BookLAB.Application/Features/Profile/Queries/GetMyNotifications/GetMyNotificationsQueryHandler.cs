@@ -44,7 +44,8 @@ public class GetMyNotificationsQueryHandler : IRequestHandler<GetMyNotifications
                 Type = n.Type,
                 IsRead = n.IsRead,
                 CreatedAt = n.CreatedAt,
-                ReadAt = n.ReadAt
+                ReadAt = n.ReadAt,
+                Metadata = n.Metadata
             })
             .ToListAsync(cancellationToken);
 

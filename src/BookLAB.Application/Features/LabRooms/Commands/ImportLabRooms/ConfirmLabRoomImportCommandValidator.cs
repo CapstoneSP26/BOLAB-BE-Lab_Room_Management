@@ -6,7 +6,7 @@ namespace BookLAB.Application.Features.LabRooms.Commands.ImportLabRooms
     {
         public ConfirmLabRoomImportCommandValidator()
         {
-            RuleFor(x => x.ValidLabRooms)
+            RuleFor(x => x.LabRooms)
                 .NotNull()
                 .WithMessage("Danh sách phòng không được để trống.")
                 .Must(x => x.Count > 0)

@@ -1,4 +1,4 @@
-﻿using BookLAB.Domain.Common;
+using BookLAB.Domain.Common;
 
 namespace BookLAB.Domain.Entities
 {
@@ -19,6 +19,7 @@ namespace BookLAB.Domain.Entities
         public bool IsActive { get; set; } = true;
         public Campus? Campus { get; set; }
         public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+        public UserNotificationPreference? NotificationPreference { get; set; }
         public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
     }
 }

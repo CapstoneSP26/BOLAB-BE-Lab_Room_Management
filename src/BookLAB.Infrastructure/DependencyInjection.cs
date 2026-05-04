@@ -61,12 +61,14 @@ namespace BookLAB.Infrastructure
             services.AddScoped<IScheduleService, ScheduleService>();
             services.AddScoped<IScheduleImportService, ScheduleImportService>();
             services.AddScoped<IUserImportService, UserImportService>();
+            services.AddScoped<ILabImportService, LabImportService>();  
             services.AddScoped<ICalendarSyncService, GoogleCalendarSyncService>();
             services.AddScoped<QRCodeGenerator>();
             services.AddScoped<IQrManagements, QrManagements>();
             services.AddTransient<IEmailService, EmailService>();
             services.AddScoped<INotificationService, SignalRNotificationService>();
             services.AddSingleton<IDashboardRealtimeService, DashboardRealtimeService>();
+            services.AddScoped<IAIBookingService, AdvancedAIBookingService>();
 
 
             // ===== REPOSITORIES =====

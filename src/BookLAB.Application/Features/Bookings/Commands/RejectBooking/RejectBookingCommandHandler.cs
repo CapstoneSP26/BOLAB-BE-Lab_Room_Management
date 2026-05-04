@@ -7,6 +7,8 @@ using BookLAB.Domain.Entities;
 using BookLAB.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 
 namespace BookLAB.Application.Features.Bookings.Commands.RejectBooking
@@ -66,6 +68,7 @@ namespace BookLAB.Application.Features.Bookings.Commands.RejectBooking
                 Notification? createdNotification = null;
                 var metadataObject = new { bookingId = booking.Id, labName = "Lab 01" };
                 var metadataJsonString = JsonSerializer.Serialize(metadataObject);
+                var managerNotifications = new List<Notification>();
                 if (booking.CreatedBy.HasValue)
                 {
                     createdNotification = new Notification
@@ -83,6 +86,30 @@ namespace BookLAB.Application.Features.Bookings.Commands.RejectBooking
                     await _unitOfWork.Repository<Notification>().AddAsync(createdNotification);
                 }
 
+                var ownerIds = await _unitOfWork.LabOwners.GetOwnerIdsByLabRoomIdAsync(booking.LabRoomId);
+                foreach (var ownerId in ownerIds.Distinct())
+                {
+                    if (booking.CreatedBy.HasValue && ownerId == booking.CreatedBy.Value)
+                    {
+                        continue;
+                    }
+
+                    var managerNotification = new Notification
+                    {
+                        UserId = ownerId,
+                        Title = "Booking rejected",
+                        Message = $"Booking {booking.Id} for room {booking.LabRoomId} was rejected. Reason: {request.Reason}",
+                        Type = "BookingRejected",
+                        IsRead = false,
+                        CreatedAt = DateTimeOffset.UtcNow,
+                        Metadata = JsonDocument.Parse(metadataJsonString).RootElement.Clone(),
+                        IsGlobal = false
+                    };
+
+                    managerNotifications.Add(managerNotification);
+                    await _unitOfWork.Repository<Notification>().AddAsync(managerNotification);
+                }
+
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
                 await _unitOfWork.CommitTransactionAsync();
 
@@ -97,6 +124,25 @@ namespace BookLAB.Application.Features.Bookings.Commands.RejectBooking
                         isRead = createdNotification.IsRead,
                         createdAt = createdNotification.CreatedAt,
                         metadata = createdNotification.Metadata
+                    }, cancellationToken);
+                }
+
+                foreach (var managerNotification in managerNotifications)
+                {
+                    if (managerNotification.UserId is not Guid managerUserId)
+                    {
+                        continue;
+                    }
+
+                    await _notificationService.NotifyNotificationCreatedAsync(managerUserId, new
+                    {
+                        id = managerNotification.Id,
+                        type = managerNotification.Type,
+                        title = managerNotification.Title,
+                        message = managerNotification.Message,
+                        isRead = managerNotification.IsRead,
+                        createdAt = managerNotification.CreatedAt,
+                        metadata = managerNotification.Metadata
                     }, cancellationToken);
                 }
 
