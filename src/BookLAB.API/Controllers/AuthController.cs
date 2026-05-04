@@ -84,13 +84,9 @@ namespace BookLAB.API.Controllers
             if (account == null)
                 return Redirect($"{_configuration["FrontendUrl"]}/login?error=User_not_found");
 
-            // ✅ Lấy role
-            var role = await _userRoleRepository.GetAsync(account.Id);
-            if (role == null)
-            {
-                return BadRequest("User role not found");
-            }
-
+            var userId = account.Id;
+            //var role = await _userRoleRepository.GetAsync(userId);
+            var role = await _unitOfWork.Repository<UserRole>().Entities.Where(x => x.UserId == userId).MinAsync(x => x.RoleId);
             // ✅ Lấy config từ ENV (KHÔNG dùng ConfigurationBuilder nữa)
             var secret = _configuration["Jwt:SecretKey"];
             var issuer = _configuration["Jwt:Issuer"];
@@ -104,11 +100,11 @@ namespace BookLAB.API.Controllers
 
             // ✅ Tạo claims
             var claims = new List<Claim>
-    {
-        new Claim("Id", account.Id.ToString()),
-        new Claim("Role", role.RoleId.ToString()),
-        new Claim("CampusId", account.CampusId.ToString())
-    };
+            {
+                new Claim("Id", account.Id.ToString()),
+                new Claim("Role", role.ToString() ?? ""),
+                new Claim("CampusId", account.CampusId.ToString())
+            };
 
             // ✅ Tạo JWT
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
@@ -138,7 +134,8 @@ namespace BookLAB.API.Controllers
             // ✅ Redirect theo role (KHÔNG hardcode localhost)
             var finalUrl = feUrl ?? "https://localhost:5173";
 
-            switch (role.RoleId)
+
+            switch (role)
             {
                 case 1:
                 case 2:
@@ -146,6 +143,8 @@ namespace BookLAB.API.Controllers
                     break;
                 case 3:
                 case 4:
+                    finalUrl += "/student";
+                    break;
                 default:
                     finalUrl += "/";
                     break;

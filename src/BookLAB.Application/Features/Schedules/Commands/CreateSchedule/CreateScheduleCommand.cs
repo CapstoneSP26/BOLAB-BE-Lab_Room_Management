@@ -12,6 +12,7 @@ namespace BookLAB.Application.Features.Schedules.Commands.CreateSchedule
         public Guid LecturerId { get; set; }
         public int LabRoomId { get; set; }
         public Guid? GroupId { get; set; }
+        public string? GroupName { get; set; }
         public int? SlotTypeId { get; set; }
         public ScheduleType ScheduleType { get; set; }
         public int StudentCount { get; set; } = 0;
