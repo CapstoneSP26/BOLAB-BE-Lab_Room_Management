@@ -4,5 +4,6 @@ namespace BookLAB.Application.Common.Interfaces.Integration
     {
         Task NotifyNotificationCreatedAsync(Guid userId, object payload, CancellationToken cancellationToken = default);
         Task NotifyBookingChangedAsync(Guid userId, object payload, CancellationToken cancellationToken = default);
+        Task NotifyScheduleStatusChangedAsync(object payload, CancellationToken cancellationToken = default);
     }
 }

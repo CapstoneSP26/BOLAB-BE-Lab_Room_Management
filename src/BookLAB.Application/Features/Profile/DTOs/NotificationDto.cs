@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 namespace BookLAB.Application.Features.Profile.DTOs;
 
 public class NotificationDto
@@ -17,4 +19,6 @@ public class NotificationDto
     public DateTimeOffset CreatedAt { get; set; }
     
     public DateTimeOffset? ReadAt { get; set; }
+
+    public JsonElement Metadata { get; set; }
 }

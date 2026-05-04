@@ -7,6 +7,8 @@ using BookLAB.Domain.Entities;
 using BookLAB.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 
 namespace BookLAB.Application.Features.Bookings.Commands.ApproveBooking
@@ -110,6 +112,7 @@ namespace BookLAB.Application.Features.Bookings.Commands.ApproveBooking
                 Notification? createdNotification = null;
                 var metadataObject = new { bookingId = booking.Id, labName = "Lab 01" };
                 var metadataJsonString = JsonSerializer.Serialize(metadataObject);
+                var managerNotifications = new List<Notification>();
                 if (booking.CreatedBy.HasValue)
                 {
                     createdNotification = new Notification
@@ -125,6 +128,30 @@ namespace BookLAB.Application.Features.Bookings.Commands.ApproveBooking
                     };
 
                     await _unitOfWork.Repository<Notification>().AddAsync(createdNotification);
+                }
+
+                var ownerIds = await _unitOfWork.LabOwners.GetOwnerIdsByLabRoomIdAsync(booking.LabRoomId);
+                foreach (var ownerId in ownerIds.Distinct())
+                {
+                    if (booking.CreatedBy.HasValue && ownerId == booking.CreatedBy.Value)
+                    {
+                        continue;
+                    }
+
+                    var managerNotification = new Notification
+                    {
+                        UserId = ownerId,
+                        Title = "Booking approved",
+                        Message = $"Booking {booking.Id} for room {booking.LabRoom.RoomName} was approved.",
+                        Type = "BookingApproved",
+                        IsRead = false,
+                        CreatedAt = DateTimeOffset.UtcNow,
+                        Metadata = JsonDocument.Parse(metadataJsonString).RootElement.Clone(),
+                        IsGlobal = false
+                    };
+
+                    managerNotifications.Add(managerNotification);
+                    await _unitOfWork.Repository<Notification>().AddAsync(managerNotification);
                 }
 
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -144,6 +171,25 @@ namespace BookLAB.Application.Features.Bookings.Commands.ApproveBooking
                     }, cancellationToken);
                 }
 
+                foreach (var managerNotification in managerNotifications)
+                {
+                    if (managerNotification.UserId is not Guid managerUserId)
+                    {
+                        continue;
+                    }
+
+                    await _notificationService.NotifyNotificationCreatedAsync(managerUserId, new
+                    {
+                        id = managerNotification.Id,
+                        type = managerNotification.Type,
+                        title = managerNotification.Title,
+                        message = managerNotification.Message,
+                        isRead = managerNotification.IsRead,
+                        createdAt = managerNotification.CreatedAt,
+                        metadata = managerNotification.Metadata
+                    }, cancellationToken);
+                }
+
                 if (booking.CreatedBy is Guid bookingOwnerId)
                 {
                     await _notificationService.NotifyBookingChangedAsync(bookingOwnerId, new
@@ -158,6 +204,17 @@ namespace BookLAB.Application.Features.Bookings.Commands.ApproveBooking
 
                 // throw event to notify other parts of the system that a booking has been approved
                 await _mediator.Publish(new BookingApprovedEvent(booking.Id, currentUserId), cancellationToken);
+
+                // 3. Gọi SignalR Notify cho cả hệ thống
+                var payload = new
+                {
+                    labRoomId = booking.LabRoomId,
+                    startTime = booking.StartTime,
+                    endTime = booking.EndTime,
+                };
+
+                // Gọi method bạn vừa viết
+                await _notificationService.NotifyScheduleStatusChangedAsync(payload, cancellationToken);
 
                 return true;
             }

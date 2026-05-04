@@ -23,4 +23,6 @@ public class MyProfileDto
     public DateTime? UpdatedAt { get; set; }
     
     public bool? IsActive { get; set; }
+
+    public NotificationPreferencesDto? NotificationPreferences { get; set; }
 }

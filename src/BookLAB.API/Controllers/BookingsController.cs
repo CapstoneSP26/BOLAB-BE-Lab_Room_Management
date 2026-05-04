@@ -22,6 +22,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using BookLAB.Application.Features.Bookings.Commands.CancelBooking;
 using BookLAB.Application.Features.Bookings.Queries.GetResolvedBooking;
+using BookLAB.Application.Common.Interfaces.Integration;
 
 namespace BookLAB.API.Controllers;
 
@@ -34,14 +35,17 @@ public class BookingsController : ControllerBase
     private readonly IMediator _mediator;
     private readonly ILogger<BookingsController> _logger;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IDashboardRealtimeService _dashboardRealtimeService;
 
     public BookingsController(IMediator mediator,
         ILogger<BookingsController> logger,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        IDashboardRealtimeService dashboardRealtimeService)
     {
         _mediator = mediator;
         _logger = logger;
         _unitOfWork = unitOfWork;
+        _dashboardRealtimeService = dashboardRealtimeService;
     }
 
     /// <summary>
@@ -160,6 +164,7 @@ public class BookingsController : ControllerBase
 
         if (result)
         {
+            await _dashboardRealtimeService.PublishOverviewUpdatedForBookingAsync(id, "booking.approved", HttpContext.RequestAborted);
             return Ok(new ResultMessage<bool>
             {
                 Success = true,
@@ -188,6 +193,7 @@ public class BookingsController : ControllerBase
 
         if (result)
         {
+            await _dashboardRealtimeService.PublishOverviewUpdatedForBookingAsync(id, "booking.rejected", HttpContext.RequestAborted);
             return Ok(new { Message = "Booking has been rejected and the student will be notified." });
         }
 
@@ -201,16 +207,18 @@ public class BookingsController : ControllerBase
     public async Task<IActionResult> CreateBooking([FromBody] CreateBookingCommand command)
     {
         // Execute command and get the resulting Guid
-        var bookingId = await _mediator.Send(command);
+        var createBookingResponse = await _mediator.Send(command);
 
         // If Guid is empty, it means the logic in Handler failed (e.g., overlapping schedule)
-        if (bookingId == Guid.Empty)
+        if (createBookingResponse.BookingId == Guid.Empty)
         {
             return BadRequest(new { Message = "Unable to create booking. Room may be unavailable." });
         }
 
+        await _dashboardRealtimeService.PublishOverviewUpdatedForBookingAsync(createBookingResponse.BookingId, "booking.created", HttpContext.RequestAborted);
+
         // Return just the ID - Simple and Independent
-        return Ok(new { Id = bookingId });
+        return Ok(new { Id = createBookingResponse.BookingId, WarningMessage = createBookingResponse.WarningMessage });
     }
 
     [HttpGet]
@@ -349,25 +357,13 @@ public class BookingsController : ControllerBase
     }
     [HttpGet("get-unchecked-booking-request")]
     [Authorize(Policy = "AcademicOffice_LabManager")]
-    public async Task<IActionResult> GetUncheckedBookingRequestList([FromQuery] ViewBookingHistoryDTO dto)
+    public async Task<IActionResult> GetUncheckedBookingRequestList([FromQuery] ViewUncheckedBookingRequestCommand command)
     {
         try
         {
             Guid.TryParse(HttpContext.User.FindFirst("Id")?.Value, out var userId);
 
-            ViewUncheckedBookingRequestCommand command = new ViewUncheckedBookingRequestCommand
-            {
-                userId = userId,
-                page = dto.page,
-                limit = dto.limit,
-                status = dto.status.ToLower(),
-                startDate = dto.startDate,
-                endDate = dto.endDate,
-                labRoomId = dto.labRoomId,
-                buildingId = dto.buildingId,
-                slotTypeId = dto.slotTypeId,
-                keyword = dto.keyword
-            };
+            command.userId = userId;
 
             var result = await _mediator.Send(command);
 
@@ -375,8 +371,8 @@ public class BookingsController : ControllerBase
             {
                 data = result.list,
                 total = result.total,
-                page = dto.page,
-                limit = dto.limit
+                page = command.page,
+                limit = command.limit
             });
         }
         catch (Exception ex)
@@ -522,7 +518,10 @@ public class BookingsController : ControllerBase
             var result = await _mediator.Send(command, cancellationToken);
 
             if (result.Success)
+            {
+                await _dashboardRealtimeService.PublishOverviewUpdatedForBookingAsync(id, "booking.cancelled", HttpContext.RequestAborted);
                 return Ok(new { success = true, message = result.Message });
+            }
             return Conflict(new { success = false, message = result.Message });
         }
         catch (Exception ex)

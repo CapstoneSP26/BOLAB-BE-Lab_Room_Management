@@ -11,6 +11,7 @@ namespace BookLAB.Domain.Entities
         public Guid? GroupId { get; set; }
         public int? SlotTypeId { get; set; }
         public string? CalendarEventId { get; set; }
+        public Guid? ImportBatchId { get; set; }
         public ScheduleType ScheduleType { get; set; }
         public ScheduleStatus ScheduleStatus { get; set; }
         public int StudentCount { get; set; }
@@ -31,6 +32,7 @@ namespace BookLAB.Domain.Entities
         public virtual Booking? Booking { get; set; }
         public virtual Group? Group { get; set; }
         public virtual SlotType? SlotType { get; set; } 
+        public virtual ImportBatch? ImportBatch { get; set; }
         public virtual ICollection<Report> Reports { get; set; } = new List<Report>();
     }
 }

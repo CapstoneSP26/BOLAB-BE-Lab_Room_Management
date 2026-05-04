@@ -7,19 +7,21 @@ namespace BookLAB.Application.Common.Interfaces.Services
 {
     public interface IScheduleImportService
     {
-        Task<ImportValidationResult<ScheduleImportDto, Schedule>> ValidateAsync(
+        Task<ScheduleImportValidateResponse> ValidateAsync(
             List<ScheduleImportDto> schedules,
             int campusId,
             DateTimeOffset StartTime,
             DateTimeOffset EndTime,
+            Guid? ImportBatchId,
             CancellationToken ct,
             bool isAllowCreateImportData = false
         );
-        Task<ImportValidationResult<FlexibleScheduleImportDto, Schedule>> ValidateFlexibleAsync(
+        Task<FlexibleScheduleImportValidateResponse> ValidateFlexibleAsync(
             List<FlexibleScheduleImportDto> schedules,
             int campusId,
             DateTimeOffset StartTime,
             DateTimeOffset EndTime,
+            Guid? ImportBatchId,
             CancellationToken ct,
             bool isAllowCreateImportData = false
         );

@@ -67,17 +67,23 @@ namespace BookLAB.Infrastructure.Services
             int campusId,
             CancellationToken cancellationToken)
         {
-            var emails = users.Select(x => x.Email?.Trim().ToLower())
+            foreach (var user in users)
+            {
+                user.Email = user.Email?.Trim().ToLower();
+                user.UserCode = user.UserCode?.Trim().ToUpper();
+                user.CampusCode = user.CampusCode?.Trim().ToLower();
+            }
+            var emails = users.Select(x => x.Email)
                               .Where(x => !string.IsNullOrWhiteSpace(x))
                               .Distinct()
                               .ToList();
 
-            var userCodes = users.Select(x => x.UserCode?.Trim())
+            var userCodes = users.Select(x => x.UserCode)
                              .Where(x => !string.IsNullOrWhiteSpace(x))
                              .Distinct()
                              .ToList();
 
-            var campusCodes = users.Select(x => x.CampusCode?.Trim())
+            var campusCodes = users.Select(x => x.CampusCode)
                                .Where(x => !string.IsNullOrWhiteSpace(x))
                                .Distinct()
                                .ToList();
@@ -95,7 +101,7 @@ namespace BookLAB.Infrastructure.Services
                 .ToHashSet();
 
             var userMap = (await _unitOfWork.Repository<User>().Entities
-                .Where(x => (emails.Contains(x.Email.ToLower()) || userCodes.Contains(x.UserCode)) && x.CampusId == campusId)
+                .Where(x => (emails.Contains(x.Email) || userCodes.Contains(x.UserCode)) && x.CampusId == campusId)
                 .Include(x => x.UserRoles)
                 .ToListAsync(cancellationToken))
                 .ToDictionary(x => x.Email.ToLower(), x => x);
@@ -103,12 +109,12 @@ namespace BookLAB.Infrastructure.Services
             var campusMap = (await _unitOfWork.Repository<Campus>().Entities
                 .Where(c => campusCodes.Contains(c.CampusCode) && c.Id == campusId)
                 .ToListAsync(cancellationToken))
-                .ToDictionary(c => c.CampusCode.Trim(), c => c);
+                .ToDictionary(c => c.CampusCode, c => c);
 
             var roleMap = (await _unitOfWork.Repository<Role>().Entities
                 .Where(r => roleNames.Contains(r.RoleName))
                 .ToListAsync(cancellationToken))
-                .ToDictionary(r => r.RoleName.Trim(), r => r);
+                .ToDictionary(r => r.RoleName, r => r);
 
             return new UserImportMaps
             {
@@ -128,9 +134,9 @@ namespace BookLAB.Infrastructure.Services
 
         public void ValidateSingleRow(UserImportDto dto, RowResult<UserImportDto, User> row, UserImportMaps ctx)
         {
-            var email = dto.Email?.Trim().ToLower();
-            var code = dto.UserCode?.Trim();
-            var campusCode = dto.CampusCode?.Trim();
+            var email = dto.Email;
+            var code = dto.UserCode;
+            var campusCode = dto.CampusCode;
             var roles = RoleHelper.ParseRoles(dto.RoleNames);
 
             // ===== BASIC =====
@@ -217,8 +223,8 @@ namespace BookLAB.Infrastructure.Services
                 {
                     FullName = dto.FullName.Trim(),
                     Email = dto.Email.Trim().ToLower(),
-                    UserCode = dto.UserCode.Trim(),
-                    CampusId = maps.CampusMap[dto.CampusCode.Trim()].Id,
+                    UserCode = dto.UserCode.Trim().ToUpper(),
+                    CampusId = maps.CampusMap[dto.CampusCode.Trim().ToLower()].Id,
                     UserRoles = roles.Select(r => new UserRole
                     {
                         RoleId = maps.RoleMap[r].Id

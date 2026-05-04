@@ -8,5 +8,6 @@ namespace BookLAB.Application.Features.LabRooms.Commands.ValidateImportLabRooms
     public class ValidateLabRoomImportQuery : IRequest<ImportValidationResult<LabRoomImportDto, LabRoom>>
     {
         public List<LabRoomImportDto> LabRooms { get; set; } = new();
+        public int CampusId { get; set; }
     }
 }

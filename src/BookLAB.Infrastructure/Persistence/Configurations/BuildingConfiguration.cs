@@ -17,6 +17,10 @@ public class BuildingConfiguration : IEntityTypeConfiguration<Building>
             .HasMaxLength(100)
             .IsRequired();
 
+        builder.Property(b => b.BuildingCode)
+            .HasMaxLength(100)
+            .IsRequired(false);
+
         builder.Property(b => b.Description)
             .HasMaxLength(500)
             .IsRequired(false); // Cho phép null nếu không có mô tả

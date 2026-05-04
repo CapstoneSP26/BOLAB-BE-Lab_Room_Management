@@ -40,7 +40,8 @@ public class NotificationPushController : ControllerBase
                 Type = x.Type,
                 IsRead = x.IsRead,
                 CreatedAt = x.CreatedAt,
-                ReadAt = x.ReadAt
+                ReadAt = x.ReadAt,
+                Metadata = x.Metadata
             })
             .FirstOrDefaultAsync(cancellationToken);
 

@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Mvc;
 using QRCoder;
 using BookLAB.Application.Features.Attendances.Commands.ScanAttendanceQRCode;
 using BookLAB.Application.Features.Attendances.Queries.GetStudentStatistic;
+using BookLAB.Application.Common.Interfaces.Integration;
+using BookLAB.Application.Features.Attendances.Commands.ScanFaceAttendance;
 
 namespace BookLAB.Api.Controllers;
 
@@ -18,11 +20,13 @@ public class AttendancesController : ControllerBase
 {
     private readonly IMediator _mediator;
     private readonly ILogger<AttendancesController> _logger;
+    private readonly IDashboardRealtimeService _dashboardRealtimeService;
 
-    public AttendancesController(IMediator mediator, ILogger<AttendancesController> logger)
+    public AttendancesController(IMediator mediator, ILogger<AttendancesController> logger, IDashboardRealtimeService dashboardRealtimeService)
     {
         _mediator = mediator;
         _logger = logger;
+        _dashboardRealtimeService = dashboardRealtimeService;
     }
 
     /// <summary>
@@ -57,6 +61,7 @@ public class AttendancesController : ControllerBase
 
         if (result)
         {
+            await _dashboardRealtimeService.PublishOverviewUpdatedForScheduleAsync(command.ScheduleId, "attendance.submitted", HttpContext.RequestAborted);
             return Ok(new { Message = "Attendance submitted successfully." });
         }
 
@@ -176,6 +181,11 @@ public class AttendancesController : ControllerBase
                 return BadRequest(result.Message);
             }
 
+            if (isCheckIn)
+            {
+                await _dashboardRealtimeService.PublishOverviewUpdatedForScheduleAsync(scheduleId, "attendance.checked-in", HttpContext.RequestAborted);
+            }
+
             // Return success response if the QR code scan was successful
             return Ok(new
             {
@@ -250,6 +260,25 @@ public class AttendancesController : ControllerBase
         } catch (Exception ex)
         {
             return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while get student statistic");
+        }
+    }
+
+    [HttpPost("scan-face")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ScanFaceAttendance([FromBody] ScanFaceAttendanceCommand command)
+    {
+        try
+        {
+            var result = await _mediator.Send(command);
+
+            return Ok(new
+            {
+                Success = result
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while scan face");
         }
     }
 }

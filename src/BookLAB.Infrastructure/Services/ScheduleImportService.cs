@@ -1,4 +1,5 @@
 ﻿using BookLAB.Application.Common.Extensions;
+using BookLAB.Application.Common.Helpers;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Interfaces.Services;
 using BookLAB.Application.Common.Models;
@@ -18,11 +19,12 @@ namespace BookLAB.Infrastructure.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<ImportValidationResult<ScheduleImportDto, Schedule>> ValidateAsync(
+        public async Task<ScheduleImportValidateResponse> ValidateAsync(
         List<ScheduleImportDto> schedules,
         int campusId,
         DateTimeOffset startTime,
         DateTimeOffset endTime,
+        Guid? importBatchId,
         CancellationToken ct,
         bool isAllowCreateImportData = false)
         {
@@ -30,7 +32,7 @@ namespace BookLAB.Infrastructure.Services
             var response = InitResponse(schedules);
 
             // 2. Prefetch
-            var maps = await BuildMapsAsync(schedules, campusId, startTime, endTime, ct);
+            var maps = await BuildMapsAsync(schedules, campusId, startTime, endTime, importBatchId, ct);
 
             // 3. Row validation
             ValidateRows(schedules, maps, startTime, endTime, response);
@@ -39,7 +41,7 @@ namespace BookLAB.Infrastructure.Services
             CheckDuplicate(schedules, maps, response);
 
             // 5. Build conflict data
-            var conflictData = BuildConflictData(schedules, maps);
+            var conflictData = BuildConflictData(schedules, importBatchId, maps);
 
             // 6. Lecturer conflict
             CheckLecturerConflict(conflictData, response);
@@ -51,22 +53,28 @@ namespace BookLAB.Infrastructure.Services
                 // 8. Convert to Schedule 
                 ConvertToScheduleEntites(maps, response);
             }
-            return response;
+            return new ScheduleImportValidateResponse
+            {
+                 maps = maps,
+                 result = response
+            };
         }
 
-        public async Task<ImportValidationResult<FlexibleScheduleImportDto, Schedule>> ValidateFlexibleAsync(
+        public async Task<FlexibleScheduleImportValidateResponse> ValidateFlexibleAsync(
         List<FlexibleScheduleImportDto> schedules,
         int campusId,
         DateTimeOffset startTime,
         DateTimeOffset endTime,
+        Guid? importBatchId,
         CancellationToken ct,
         bool isAllowCreateImportData = false)
         {
+
             // 1. Init
             var response = InitFlexibleResponse(schedules);
 
             // 2. Prefetch
-            var maps = await BuildFlexibleMapsAsync(schedules, campusId, startTime, endTime, ct);
+            var maps = await BuildFlexibleMapsAsync(schedules, campusId, startTime, endTime, importBatchId, ct);
 
             // 3. Row validation
             ValidateFlexibleRows(schedules, maps, startTime, endTime, response);
@@ -75,7 +83,7 @@ namespace BookLAB.Infrastructure.Services
             CheckFlexibleDuplicate(schedules, maps, response);
 
             // 5. Build conflict data
-            var conflictData = BuildFlexibleConflictData(schedules, maps);
+            var conflictData = BuildFlexibleConflictData(schedules, importBatchId, maps);
 
             // 6. Lecturer conflict
             CheckFlexibleLecturerConflict(conflictData, response);
@@ -87,7 +95,11 @@ namespace BookLAB.Infrastructure.Services
                 // 8. Convert to Schedule 
                 ConvertToFlexibleScheduleEntites(maps, response);
             }
-            return response;
+            return new FlexibleScheduleImportValidateResponse
+            {
+                maps = maps,
+                result = response
+            };
         }
 
         private ImportValidationResult<ScheduleImportDto, Schedule> InitResponse(List<ScheduleImportDto> schedules)
@@ -236,10 +248,20 @@ namespace BookLAB.Infrastructure.Services
             int campusId,
             DateTimeOffset startTime,
             DateTimeOffset endTime,
+            Guid? importBatchId,
             CancellationToken ct)
         {
+
+            foreach (var schedule in schedules)
+            {
+                schedule.Lecturer = FormatHelper.Normalize(schedule.Lecturer);
+                schedule.RoomNo = FormatHelper.Normalize(schedule.RoomNo);
+                schedule.GroupName = FormatHelper.Normalize(schedule.GroupName);
+                schedule.SubjectCode = FormatHelper.Normalize(schedule.SubjectCode);
+                schedule.SlotTypeCode = FormatHelper.Normalize(schedule.SlotTypeCode);
+            }
             var slotTypeCodes = schedules.Select(s => s.SlotTypeCode).Distinct().ToList();
-            var roomCodes = schedules.Select(s => s.RoomNo.Trim().TrimEnd('.')).Distinct().ToList();
+            var roomCodes = schedules.Select(s => s.RoomNo).Distinct().ToList();
             var lecturerCodes = schedules.Select(s => s.Lecturer).Distinct().ToList();
             var groupNames = schedules.Select(s => s.GroupName).Distinct().ToList();
 
@@ -266,9 +288,18 @@ namespace BookLAB.Infrastructure.Services
                 .Include(s => s.User)
                 .Where(s => s.LabRoom.Building.CampusId == campusId && startTime < s.EndTime && s.StartTime < endTime)
                 .ToListAsync(ct);
+
             var subjectCodeHashes = await _unitOfWork.Repository<Subject>().Entities
                 .Select(s => s.SubjectCode)
                 .ToHashSetAsync();
+            
+            ImportBatch? importBatch = null;
+            if (importBatchId != null)
+            {
+                importBatch = await _unitOfWork.Repository<ImportBatch>().Entities
+                    .FirstOrDefaultAsync(ib => ib.Id == importBatchId, ct);
+            }
+
 
             return new ImportMaps
             {
@@ -277,7 +308,8 @@ namespace BookLAB.Infrastructure.Services
                 LecturerMap = lecturerMap,
                 GroupMap = groupMap,
                 ExistingSchedules = existingSchedules,
-                SubjectCodeHashes = subjectCodeHashes
+                SubjectCodeHashes = subjectCodeHashes,
+                ImportBatch = importBatch
             };
         }
 
@@ -286,9 +318,17 @@ namespace BookLAB.Infrastructure.Services
             int campusId,
             DateTimeOffset startTime,
             DateTimeOffset endTime,
+            Guid? importBatchId,
             CancellationToken ct)
         {
-            var roomCodes = schedules.Select(s => s.RoomNo.Trim().TrimEnd('.')).Distinct().ToList();
+            foreach(var schedule in schedules)
+            {
+                schedule.Lecturer = FormatHelper.Normalize(schedule.Lecturer);
+                schedule.RoomNo = FormatHelper.Normalize(schedule.RoomNo);
+                schedule.GroupName = FormatHelper.Normalize(schedule.GroupName);
+                schedule.SubjectCode = FormatHelper.Normalize(schedule.SubjectCode);
+            }
+            var roomCodes = schedules.Select(s => s.RoomNo).Distinct().ToList();
             var lecturerCodes = schedules.Select(s => s.Lecturer).Distinct().ToList();
             var groupNames = schedules.Select(s => s.GroupName).Distinct().ToList();
 
@@ -313,13 +353,21 @@ namespace BookLAB.Infrastructure.Services
             var subjectCodeHashes = await _unitOfWork.Repository<Subject>().Entities
                 .Select(s => s.SubjectCode)
                 .ToHashSetAsync();
+
+            ImportBatch? importBatch = null;
+            if (importBatchId != null)
+            {
+                importBatch = await _unitOfWork.Repository<ImportBatch>().Entities
+                    .FirstOrDefaultAsync(ib => ib.Id == importBatchId, ct);
+            }
             return new ImportMaps
             {
                 RoomMap = roomMap,
                 LecturerMap = lecturerMap,
                 GroupMap = groupMap,
                 ExistingSchedules = existingSchedules,
-                SubjectCodeHashes = subjectCodeHashes
+                SubjectCodeHashes = subjectCodeHashes,
+                ImportBatch = importBatch
             };
         }
         private void ValidateRows(
@@ -584,9 +632,9 @@ namespace BookLAB.Infrastructure.Services
             ImportMaps maps,
             ImportValidationResult<ScheduleImportDto, Schedule> response)
         {
-            var existingHashSet = maps.ExistingSchedules
-                .Select(s => s.ImportHash)
-                .ToHashSet();
+            var existingScheduleDictionary = maps.ExistingSchedules
+                .Where(s => s.ImportHash != null) // Chỉ xét các lịch đã được import trước đó
+                .ToDictionary(s => s.ImportHash!, s => s);
 
             // Dùng Dictionary: Key là Hash, Value là Index (số dòng) của lần đầu xuất hiện
             var processedInFileTracker = new Dictionary<string, int>();
@@ -611,8 +659,32 @@ namespace BookLAB.Infrastructure.Services
                 }
 
                 // --- Kiểm tra trùng lặp với Database ---
-                if (existingHashSet.Contains(hash))
+                if (existingScheduleDictionary.TryGetValue(hash, out var existingSchedule))
                 {
+                    if(maps.ImportBatch == null)
+                    {
+                        // Nếu importBatchId là null, tức là không cho phép cập nhật, thì đánh lỗi
+                        item.IsValid = false;
+                        response.Rows[item.Index - 1].Errors.Add(new RowError
+                        {
+                            FieldName = "RoomNo",
+                            Message = "Lịch đã tồn tại trên hệ thống.",
+                            Severity = ErrorSeverity.Error
+                        });
+                        continue;
+                    }
+                    else if(existingSchedule.ImportBatchId != maps.ImportBatch.Id) 
+                    {
+                         item.IsValid = false;
+                         response.Rows[item.Index - 1].Errors.Add(new RowError
+                         {
+                             FieldName = "RoomNo",
+                             Message = $"Lịch đã tồn tại trên batch {maps.ImportBatch.Name}",
+                             Severity = ErrorSeverity.Error
+                         });
+                         continue;
+
+                    }
                     item.IsUpdated = true;
                     response.Rows[item.Index - 1].Errors.Add(new RowError
                     {
@@ -632,9 +704,9 @@ namespace BookLAB.Infrastructure.Services
     ImportMaps maps,
     ImportValidationResult<FlexibleScheduleImportDto, Schedule> response)
         {
-            var existingHashSet = maps.ExistingSchedules
-                .Select(s => s.ImportHash)
-                .ToHashSet();
+            var existingScheduleDictionary = maps.ExistingSchedules
+    .Where(s => s.ImportHash != null) // Chỉ xét các lịch đã được import trước đó
+    .ToDictionary(s => s.ImportHash!, s => s);
 
             // Lưu vết: <Hash, Số dòng trong Excel>
             var processedInFileTracker = new Dictionary<string, int>();
@@ -656,13 +728,37 @@ namespace BookLAB.Infrastructure.Services
                     continue;
                 }
 
-                if (existingHashSet.Contains(hash))
+                if (existingScheduleDictionary.TryGetValue(hash, out var existingSchedule))
                 {
+                    if (maps.ImportBatch == null)
+                    {
+                        // Nếu importBatchId là null, tức là không cho phép cập nhật, thì đánh lỗi
+                        item.IsValid = false;
+                        response.Rows[item.Index - 1].Errors.Add(new RowError
+                        {
+                            FieldName = "RoomNo",
+                            Message = "Lịch đã tồn tại trên hệ thống.",
+                            Severity = ErrorSeverity.Error
+                        });
+                        continue;
+                    }
+                    else if (existingSchedule.ImportBatchId != maps.ImportBatch.Id)
+                    {
+                        item.IsValid = false;
+                        response.Rows[item.Index - 1].Errors.Add(new RowError
+                        {
+                            FieldName = "RoomNo",
+                            Message = $"Lịch đã tồn tại trên batch {maps.ImportBatch.Name}",
+                            Severity = ErrorSeverity.Error
+                        });
+                        continue;
+
+                    }
                     item.IsUpdated = true;
                     response.Rows[item.Index - 1].Errors.Add(new RowError
                     {
                         FieldName = "RoomNo",
-                        Message = "Lịch linh hoạt này đã tồn tại (Sẽ được cập nhật)",
+                        Message = "Lịch đã tồn tại trên hệ thống (Sẽ được cập nhật)",
                         Severity = ErrorSeverity.Warning
                     });
                 }
@@ -673,9 +769,12 @@ namespace BookLAB.Infrastructure.Services
 
         private List<ConflictScheduleDto> BuildConflictData(
             List<ScheduleImportDto> schedules,
+            Guid? importBatchId,
             ImportMaps maps)
         {
-            var db = maps.ExistingSchedules.Select(s =>
+            var db = maps.ExistingSchedules
+                .Where(s => importBatchId == null || s.ImportBatchId != importBatchId)
+                .Select(s =>
             {
                 return new ConflictScheduleDto
                 {
@@ -686,6 +785,7 @@ namespace BookLAB.Infrastructure.Services
                     End = s.EndTime.ToVietnamTimeOnly(),
                     Source = "DB",
                     RefId = s.Id,
+                    ImportBatchId = s.ImportBatchId,
                     Index = -1
                 };
             });
@@ -711,9 +811,12 @@ namespace BookLAB.Infrastructure.Services
 
         private List<ConflictScheduleDto> BuildFlexibleConflictData(
             List<FlexibleScheduleImportDto> schedules,
+            Guid? importBatchId,
             ImportMaps maps)
         {
-            var db = maps.ExistingSchedules.Select(s =>
+            var db = maps.ExistingSchedules
+                .Where(s => importBatchId == null || s.ImportBatchId != importBatchId)
+                .Select(s =>
             {
                 return new ConflictScheduleDto
                 {
@@ -986,11 +1089,11 @@ namespace BookLAB.Infrastructure.Services
 
         public string GenerateHash(ScheduleImportDto d)
         {
-            return $"{d.GroupName.Trim().ToLower()}_{d.Date.StringToVietnamDateOnly().ToString("yyyy-MM-dd")}_{d.SlotOrder}_{d.RoomNo.Trim().ToLower()}_{d.SlotTypeCode.Trim().ToLower()}";
+            return $"{d.GroupName.Trim().ToLower()}_{d.Date.StringToVietnamDateOnly().ToString("yyyy-MM-dd")}_{d.SlotOrder}_{d.RoomNo.Trim().ToLower()}_{d.SlotTypeCode.Trim().ToLower()}_{d.Lecturer.Trim().ToLower()}";
         }
         public string GenerateFlexibleHash(FlexibleScheduleImportDto d)
         {
-            return $"{d.GroupName.Trim().ToLower()}_{d.Date.StringToVietnamDateOnly().ToString("yyyy-MM-dd")}_{d.StartTime.StringToVietnamTimeOnly().ToString("HH:mm")}_{d.EndTime.StringToVietnamTimeOnly().ToString("HH:mm")}_{d.RoomNo.Trim().ToLower()}";
+            return $"{d.GroupName.Trim().ToLower()}_{d.Date.StringToVietnamDateOnly().ToString("yyyy-MM-dd")}_{d.StartTime.StringToVietnamTimeOnly().ToString("HH:mm")}_{d.EndTime.StringToVietnamTimeOnly().ToString("HH:mm")}_{d.RoomNo.Trim().ToLower()}_{d.Lecturer.Trim().ToLower()}";
         }
 
     }

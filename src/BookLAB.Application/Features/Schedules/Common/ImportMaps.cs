@@ -17,5 +17,6 @@ namespace BookLAB.Application.Features.Schedules.Common
         // ⚡ Optional (performance optimization)
         public HashSet<string> ExistingHashes { get; set; } = new();
         public HashSet<string> SubjectCodeHashes {  get; set; } = new();
+        public ImportBatch? ImportBatch { get; set; } = null;
     }
 }
