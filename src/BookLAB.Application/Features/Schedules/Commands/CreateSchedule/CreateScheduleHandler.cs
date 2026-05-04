@@ -86,6 +86,13 @@ namespace BookLAB.Application.Features.Schedules.Commands.CreateSchedule
                 IsDeleted = false,
             };
 
+
+            if (request.GroupName != null)
+            {
+                var group = await _unitOfWork.Repository<Group>().Entities.FirstOrDefaultAsync(x => x.GroupName.Equals(request.GroupName));
+                schedule.GroupId = group != null ? group.Id : schedule.GroupId;
+            }
+                
             try
             {
                 await _unitOfWork.BeginTransactionAsync();

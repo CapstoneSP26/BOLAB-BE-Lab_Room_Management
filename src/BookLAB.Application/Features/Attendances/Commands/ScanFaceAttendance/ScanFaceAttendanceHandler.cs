@@ -44,24 +44,41 @@ namespace BookLAB.Application.Features.Attendances.Commands.ScanFaceAttendance
                 if (!members.Contains(student.Id))
                     return false;
 
-                var attendanceId = Guid.NewGuid();
-
-                var attendance = new Attendance
+                var existedAttendance = await _unitOfWork.Repository<Attendance>().Entities.FirstOrDefaultAsync(x => x.ScheduleId == request.scheduleId && x.UserId == student.Id);
+                
+                if (existedAttendance != null)
                 {
-                    Id = attendanceId,
-                    ScheduleId = request.scheduleId,
-                    UserId = student.Id,
-                    CheckInTime = request.scanTime,
-                    CheckInMethod = Domain.Enums.AttendanceCheckInMethod.FaceId,
-                    AttendanceStatus = Domain.Enums.AttendanceStatus.Present,
-                    CreatedAt = DateTimeOffset.UtcNow,
-                    CreatedBy = Guid.Parse("00000000-0000-0000-0000-000000000000")  // system creates this so use this guid
-                };
-                await _unitOfWork.BeginTransactionAsync();
-                await _unitOfWork.Repository<Attendance>().AddAsync(attendance);
-                await _unitOfWork.SaveChangesAsync(cancellationToken);
-                await _unitOfWork.CommitTransactionAsync();
-                return true;
+                    existedAttendance.UpdatedAt = DateTimeOffset.UtcNow;
+                    existedAttendance.CheckInMethod = Domain.Enums.AttendanceCheckInMethod.FaceId;
+                    existedAttendance.CheckInTime = request.scanTime;
+                    existedAttendance.AttendanceStatus = Domain.Enums.AttendanceStatus.Present;
+
+                    await _unitOfWork.BeginTransactionAsync();
+                    await _unitOfWork.Repository<Attendance>().UpdateAsync(existedAttendance);
+                    await _unitOfWork.SaveChangesAsync(cancellationToken);
+                    await _unitOfWork.CommitTransactionAsync();
+                    return true;
+                } else
+                {
+                    var attendanceId = Guid.NewGuid();
+
+                    var attendance = new Attendance
+                    {
+                        Id = attendanceId,
+                        ScheduleId = request.scheduleId,
+                        UserId = student.Id,
+                        CheckInTime = request.scanTime,
+                        CheckInMethod = Domain.Enums.AttendanceCheckInMethod.FaceId,
+                        AttendanceStatus = Domain.Enums.AttendanceStatus.Present,
+                        CreatedAt = DateTimeOffset.UtcNow,
+                        CreatedBy = Guid.Parse("00000000-0000-0000-0000-000000000000")  // system creates this so use this guid
+                    };
+                    await _unitOfWork.BeginTransactionAsync();
+                    await _unitOfWork.Repository<Attendance>().AddAsync(attendance);
+                    await _unitOfWork.SaveChangesAsync(cancellationToken);
+                    await _unitOfWork.CommitTransactionAsync();
+                    return true;
+                }
             } catch (Exception ex)
             {
                 await _unitOfWork.RollbackTransactionAsync();
