@@ -1,4 +1,6 @@
-﻿namespace BookLAB.Application.Common.Interfaces.Repositories
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace BookLAB.Application.Common.Interfaces.Repositories
 {
     public interface IUnitOfWork : IDisposable
     {

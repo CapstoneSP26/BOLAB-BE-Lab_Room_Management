@@ -1,11 +1,15 @@
-﻿using BookLAB.Application.Common.Events;
 using BookLAB.Application.Common.Exceptions;
 using BookLAB.Application.Common.Interfaces.Identity;
+using BookLAB.Application.Common.Interfaces.Integration;
 using BookLAB.Application.Common.Interfaces.Repositories;
+using BookLAB.Application.Features.Bookings.Events;
 using BookLAB.Domain.Entities;
 using BookLAB.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
 
 namespace BookLAB.Application.Features.Bookings.Commands.ApproveBooking
 {
@@ -14,12 +18,18 @@ namespace BookLAB.Application.Features.Bookings.Commands.ApproveBooking
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMediator _mediator;
         private readonly ICurrentUserService _currentUserService;
+        private readonly INotificationService _notificationService;
 
-        public ApproveBookingCommandHandler(IUnitOfWork unitOfWork, IMediator mediator, ICurrentUserService currentUserService)
+        public ApproveBookingCommandHandler(
+            IUnitOfWork unitOfWork,
+            IMediator mediator,
+            ICurrentUserService currentUserService,
+            INotificationService notificationService)
         {
             _unitOfWork = unitOfWork;
             _mediator = mediator;
             _currentUserService = currentUserService;
+            _notificationService = notificationService;
         }
 
         public async Task<bool> Handle(ApproveBookingCommand request, CancellationToken cancellationToken)
@@ -55,6 +65,13 @@ namespace BookLAB.Application.Features.Bookings.Commands.ApproveBooking
                 throw new BusinessException("The requester already has another confirmed schedule during this time period.");
             }
 
+            // Get Max Concurrent Bookings Policy for the room
+            var maxConcurrentBookingsPolicy = await  _unitOfWork.Repository<RoomPolicy>().Entities
+                .Where(rp => rp.LabRoomId == booking.LabRoomId && rp.PolicyKey == PolicyType.MaxConcurrentBookings)
+                .Select(rp => rp.PolicyValue)
+                .FirstOrDefaultAsync(cancellationToken);
+            var maxConcurrentBookings = int.TryParse(maxConcurrentBookingsPolicy, out var result) ? result : 1;
+
             // 5. ROOM CAPACITY & OCCUPANCY CHECK
             var activeSchedules = await _unitOfWork.Repository<Schedule>().Entities
                 .Where(s => s.LabRoomId == booking.LabRoomId &&
@@ -64,9 +81,9 @@ namespace BookLAB.Application.Features.Bookings.Commands.ApproveBooking
                     s.EndTime > booking.StartTime)
                 .ToListAsync(cancellationToken);
             // Validate occupancy count (Single vs Multi Occupancy)
-            if (booking.LabRoom.OverrideNumber <= activeSchedules.Count && booking.LabRoom.OverrideNumber > 0)
+            if (maxConcurrentBookings <= activeSchedules.Count)
             {
-                throw new BusinessException($"{booking.LabRoom.RoomName} has reached its maximum group limit ({booking.LabRoom.OverrideNumber}).");
+                throw new BusinessException($"{booking.LabRoom.RoomName} has reached its maximum group limit ({maxConcurrentBookings}).");
             }
 
             // Validate student capacity
@@ -76,23 +93,129 @@ namespace BookLAB.Application.Features.Bookings.Commands.ApproveBooking
                 throw new BusinessException($"Not enough capacity in {booking.LabRoom.RoomName}. Required: {booking.StudentCount}, Available: {booking.LabRoom.Capacity - currentStudents}.");
             }
 
-            var bookingRequest = await _unitOfWork.Repository<BookingRequest>().Entities
-                .FirstOrDefaultAsync(x => x.BookingId == booking.Id, cancellationToken);
-
             await _unitOfWork.BeginTransactionAsync();
             try
             {
-                if (bookingRequest != null)
+                var bookingRequest = await _unitOfWork.Repository<BookingRequest>().Entities
+                    .FirstOrDefaultAsync(x => x.BookingId == booking.Id, cancellationToken);
+                if (bookingRequest == null)
                 {
-                    bookingRequest.BookingRequestStatus = BookingRequestStatus.Approved;
-                    _unitOfWork.Repository<BookingRequest>().Update(bookingRequest);
+                    throw new NotFoundException(nameof(BookingRequest), booking.Id);
+                }
+
+                bookingRequest.BookingRequestStatus = BookingRequestStatus.Approved;
+                bookingRequest.ResponsedByUserId = _currentUserService.UserId;
+                _unitOfWork.Repository<BookingRequest>().Update(bookingRequest);
+
+                booking.BookingStatus = BookingStatus.Approved;
+                _unitOfWork.Repository<Booking>().Update(booking);
+
+                Notification? createdNotification = null;
+                var metadataObject = new { bookingId = booking.Id, labName = "Lab 01" };
+                var metadataJsonString = JsonSerializer.Serialize(metadataObject);
+                var managerNotifications = new List<Notification>();
+                if (booking.CreatedBy.HasValue)
+                {
+                    createdNotification = new Notification
+                    {
+                        UserId = booking.CreatedBy.Value,
+                        Title = "Booking approved",
+                        Message = $"Your booking for room {booking.LabRoom.RoomName} has been approved.",
+                        Type = "BookingApproved",
+                        IsRead = false,
+                        CreatedAt = DateTimeOffset.UtcNow,
+                        Metadata = JsonDocument.Parse(metadataJsonString).RootElement.Clone(),
+                        IsGlobal = false
+                    };
+
+                    await _unitOfWork.Repository<Notification>().AddAsync(createdNotification);
+                }
+
+                var ownerIds = await _unitOfWork.LabOwners.GetOwnerIdsByLabRoomIdAsync(booking.LabRoomId);
+                foreach (var ownerId in ownerIds.Distinct())
+                {
+                    if (booking.CreatedBy.HasValue && ownerId == booking.CreatedBy.Value)
+                    {
+                        continue;
+                    }
+
+                    var managerNotification = new Notification
+                    {
+                        UserId = ownerId,
+                        Title = "Booking approved",
+                        Message = $"Booking {booking.Id} for room {booking.LabRoom.RoomName} was approved.",
+                        Type = "BookingApproved",
+                        IsRead = false,
+                        CreatedAt = DateTimeOffset.UtcNow,
+                        Metadata = JsonDocument.Parse(metadataJsonString).RootElement.Clone(),
+                        IsGlobal = false
+                    };
+
+                    managerNotifications.Add(managerNotification);
+                    await _unitOfWork.Repository<Notification>().AddAsync(managerNotification);
                 }
 
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
                 await _unitOfWork.CommitTransactionAsync();
 
+                if (createdNotification?.UserId is Guid notificationUserId)
+                {
+                    await _notificationService.NotifyNotificationCreatedAsync(notificationUserId, new
+                    {
+                        id = createdNotification.Id,
+                        type = createdNotification.Type,
+                        title = createdNotification.Title,
+                        message = createdNotification.Message,
+                        isRead = createdNotification.IsRead,
+                        createdAt = createdNotification.CreatedAt,
+                        metadata = createdNotification.Metadata
+                    }, cancellationToken);
+                }
+
+                foreach (var managerNotification in managerNotifications)
+                {
+                    if (managerNotification.UserId is not Guid managerUserId)
+                    {
+                        continue;
+                    }
+
+                    await _notificationService.NotifyNotificationCreatedAsync(managerUserId, new
+                    {
+                        id = managerNotification.Id,
+                        type = managerNotification.Type,
+                        title = managerNotification.Title,
+                        message = managerNotification.Message,
+                        isRead = managerNotification.IsRead,
+                        createdAt = managerNotification.CreatedAt,
+                        metadata = managerNotification.Metadata
+                    }, cancellationToken);
+                }
+
+                if (booking.CreatedBy is Guid bookingOwnerId)
+                {
+                    await _notificationService.NotifyBookingChangedAsync(bookingOwnerId, new
+                    {
+                        action = "approved",
+                        bookingId = booking.Id,
+                        labRoomId = booking.LabRoomId,
+                        status = booking.BookingStatus.ToString(),
+                        occurredAt = DateTimeOffset.UtcNow
+                    }, cancellationToken);
+                }
+
                 // throw event to notify other parts of the system that a booking has been approved
-                await _mediator.Publish(new BookingApprovedEvent(booking.Id), cancellationToken);
+                await _mediator.Publish(new BookingApprovedEvent(booking.Id, currentUserId), cancellationToken);
+
+                // 3. Gọi SignalR Notify cho cả hệ thống
+                var payload = new
+                {
+                    labRoomId = booking.LabRoomId,
+                    startTime = booking.StartTime,
+                    endTime = booking.EndTime,
+                };
+
+                // Gọi method bạn vừa viết
+                await _notificationService.NotifyScheduleStatusChangedAsync(payload, cancellationToken);
 
                 return true;
             }

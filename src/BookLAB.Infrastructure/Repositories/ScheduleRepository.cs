@@ -1,0 +1,43 @@
+﻿using BookLAB.Application.Common.Interfaces.Repositories;
+using BookLAB.Domain.Entities;
+using BookLAB.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace BookLAB.Infrastructure.Repositories
+{
+    public class ScheduleRepository : IScheduleRepository
+    {
+        private readonly BookLABDbContext _context;
+
+        public ScheduleRepository(BookLABDbContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<bool> CheckConflictAsync(int roomId, DateTimeOffset startTime, DateTimeOffset endTime, CancellationToken cancellationToken)
+        {
+            return await _context.Schedules.AnyAsync(s => 
+                s.LabRoomId.Equals(roomId) &&                                   // Check for the same room
+                (((startTime < s.EndTime) && (startTime > s.StartTime)) ||      // Start time overlaps
+                ((endTime > s.StartTime) && (endTime < s.EndTime))));           // End time overlaps
+        }
+
+        public async Task<bool> AddScheduleAsync(Schedule schedule)
+        {
+            var result = 0;
+            try
+            {
+                await _context.Schedules.AddAsync(schedule);
+                result = await _context.SaveChangesAsync();
+            } catch (Exception)
+            {
+                return false;
+            }
+
+            return result > 0;
+        }
+    }
+}

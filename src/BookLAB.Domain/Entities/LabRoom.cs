@@ -7,6 +7,7 @@ namespace BookLAB.Domain.Entities
         public int Id { get; set; } 
         public int BuildingId { get; set; }
         public string RoomName { get; set; } = null!;
+        public string RoomNo { get; set; } = null!;
         public string? Location { get; set; }
         public int OverrideNumber { get; set; } = 0;
         public bool HasEquipment { get; set; }

@@ -30,6 +30,13 @@ public class GroupConfiguration : IEntityTypeConfiguration<Group>
 
         // 5. Cấu hình Quan hệ (Relationships)
 
+        //Group - Campus (1-n)
+
+        builder.HasOne(g => g.Campus)
+            .WithMany()
+            .HasForeignKey(g => g.CampusId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         // Group - User (Owner) (N-1)
         builder.HasOne(g => g.User)
             .WithMany() // Một User (Giảng viên) có thể sở hữu nhiều Group

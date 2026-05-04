@@ -12,6 +12,10 @@ public class GroupMemberConfiguration : IEntityTypeConfiguration<GroupMember>
         builder.ToTable("GroupMembers");
         builder.HasKey(gm => gm.Id);
 
+        builder.Property(gm => gm.SubjectCode)
+            .IsRequired(false)
+            .HasMaxLength(20);
+
         // 2. Cấu hình Quan hệ (Relationships)
 
         // GroupMember - Group (N-1)
@@ -30,9 +34,9 @@ public class GroupMemberConfiguration : IEntityTypeConfiguration<GroupMember>
 
         // 3. Ràng buộc duy nhất (Unique Constraint)
         // Rule: Một sinh viên không thể tham gia vào cùng một nhóm 2 lần.
-        builder.HasIndex(gm => new { gm.GroupId, gm.UserId })
+        builder.HasIndex(gm => new { gm.GroupId, gm.UserId, gm.SubjectCode })
             .IsUnique()
-            .HasDatabaseName("UQ_Group_User_Member");
+            .HasDatabaseName("UQ_Group_User_Member_Subject");
 
         // 4. Index để tối ưu truy vấn
 

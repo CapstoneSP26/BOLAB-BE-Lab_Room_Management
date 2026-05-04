@@ -1,27 +1,48 @@
-﻿using BookLAB.Application.Common.Interfaces.Identity;
+using BookLAB.Application.Common.Interfaces.Identity;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 
-namespace BookLAB.Infrastructure.Identity
+namespace BookLAB.Infrastructure.Identity;
+
+public class CurrentUserService : ICurrentUserService
 {
-    public class CurrentUserService : ICurrentUserService
+    private readonly IHttpContextAccessor _httpContextAccessor;
+
+    public CurrentUserService(IHttpContextAccessor httpContextAccessor)
     {
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        public CurrentUserService(IHttpContextAccessor httpContextAccessor)
-        {
-            _httpContextAccessor = httpContextAccessor;
-        }
-        public Guid? UserId
-        {
-            get
-            {
-                var userId = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
-                return string.IsNullOrEmpty(userId) ? null : Guid.Parse(userId);
-            }
-        }
-
-        public IReadOnlyList<string> Roles => throw new NotImplementedException();
-
-        public bool IsAuthenticated => throw new NotImplementedException();
+        _httpContextAccessor = httpContextAccessor;
     }
+
+    public Guid? UserId
+    {
+        get
+        {
+            var idClaim = _httpContextAccessor.HttpContext?.User?.FindFirst("Id");
+            if (idClaim == null) return null;
+            
+            return Guid.TryParse(idClaim.Value, out var userId) ? userId : null;
+        }
+    }
+
+    public int CampusId
+    {
+        get
+        {
+            var idClaim = _httpContextAccessor.HttpContext?.User?.FindFirst("CampusId");
+            if (idClaim == null) return 0;
+            return int.Parse(idClaim.Value);
+        }
+    }
+    public IReadOnlyList<string> Roles 
+    {
+        get
+        {
+            return _httpContextAccessor.HttpContext?.User?.Claims
+                .Where(c => c.Type == ClaimTypes.Role)
+                .Select(c => c.Value)
+                .ToList() ?? new List<string>();
+        }
+    }
+
+    public bool IsAuthenticated => _httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated ?? false;
 }

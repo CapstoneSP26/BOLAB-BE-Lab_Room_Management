@@ -4,3 +4,95 @@ GET {{BookLAB.API_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###
+
+### ===== Google Calendar Integration API Tests =====
+### IMPORTANT: Replace {bookingId} with actual GUID from database
+### Get Booking ID by running SQL: SELECT "Id" FROM "Bookings" ORDER BY "CreatedAt" DESC LIMIT 1;
+
+### Health Check
+GET {{BookLAB.API_HostAddress}}/api/health
+Accept: application/json
+
+###
+
+### Check Migrations Status
+GET {{BookLAB.API_HostAddress}}/api/health/migrations
+Accept: application/json
+
+###
+
+### 1. Sync Approved Booking to Google Calendar
+POST {{BookLAB.API_HostAddress}}/api/bookings/{bookingId}/sync-calendar
+Content-Type: application/json
+
+###
+
+### Example: Sync booking to calendar (Replace with your Booking ID)
+# POST {{BookLAB.API_HostAddress}}/api/bookings/02b8e8e7-d871-48a0-bf65-b4e11724e10e/sync-calendar
+# Content-Type: application/json
+
+###
+
+### 2. Update Calendar Event (after changing booking details)
+PUT {{BookLAB.API_HostAddress}}/api/bookings/{bookingId}/update-calendar
+Content-Type: application/json
+
+###
+
+### 3. Delete Calendar Event (when booking is cancelled)
+DELETE {{BookLAB.API_HostAddress}}/api/bookings/{bookingId}/delete-calendar
+Content-Type: application/json
+
+###
+
+### ===== Expected Responses =====
+
+### Success Response (Sync):
+# {
+#   "success": true,
+#   "message": "Booking synced to Google Calendar successfully",
+#   "calendarEventId": "abc123xyz",
+#   "bookingId": "02b8e8e7-d871-48a0-bf65-b4e11724e10e"
+# }
+
+### Error Response (Not Approved):
+# {
+#   "success": false,
+#   "message": "Only approved bookings can be synced to calendar."
+# }
+
+### Error Response (No Credentials):
+# {
+#   "success": false,
+#   "message": "An error occurred while syncing to calendar"
+# }
+
+###
+
+### ===== Incident Reporting API =====
+
+POST {{BookLAB.API_HostAddress}}/api/incidents/report
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+	"title": "App crashes after schedule import",
+	"description": "The testing portal crashes immediately after I confirm a schedule import with a malformed row.",
+	"severity": "Critical",
+	"environment": "UAT / Chrome 134 / Windows 11",
+	"stepsToReproduce": [
+		"Sign in with a student test account.",
+		"Open schedule import.",
+		"Upload a file containing an invalid room code.",
+		"Click confirm import."
+	],
+	"expectedResult": "The system should reject the file and show validation errors.",
+	"actualResult": "The API returns 500 and the page shows a generic error dialog.",
+	"attachmentUrl": "https://storage.example.com/incidents/crash-screenshot.png"
+}
+
+### Expected 201 Response
+# {
+#   "incidentId": "9d8f58b8-0c16-4fb7-a5b5-25d6f53d6f6a"
+# }
+

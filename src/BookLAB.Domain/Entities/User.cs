@@ -1,4 +1,4 @@
-﻿using BookLAB.Domain.Common;
+using BookLAB.Domain.Common;
 
 namespace BookLAB.Domain.Entities
 {
@@ -6,6 +6,7 @@ namespace BookLAB.Domain.Entities
     {
         public string Email { get; set; } = string.Empty;
         public string FullName { get; set; } = string.Empty;
+        public string UserCode { get; set; } = string.Empty;
         public string UserImageUrl { get; set; } = string.Empty;
         public string? Provider { get; set; } 
         public string? ProviderId { get; set; }
@@ -16,7 +17,9 @@ namespace BookLAB.Domain.Entities
         public Guid? UpdatedBy { get; set; }
         public bool IsDeleted { get; set; }
         public bool IsActive { get; set; } = true;
-        public Campus Campus { get; set; }
+        public Campus? Campus { get; set; }
+        public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+        public UserNotificationPreference? NotificationPreference { get; set; }
         public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
     }
 }

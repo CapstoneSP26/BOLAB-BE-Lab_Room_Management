@@ -29,6 +29,14 @@ public class ScheduleConfiguration : IEntityTypeConfiguration<Schedule>
         builder.Property(s => s.SubjectCode)
             .HasMaxLength(20);
 
+        builder.Property(s => s.ImportHash)
+            .IsRequired(false)
+            .HasMaxLength(255); 
+
+        builder.Property(s => s.CalendarEventId)
+            .HasMaxLength(255)
+            .IsRequired(false);
+
         builder.Property(s => s.StartTime)
             .IsRequired();
 
@@ -86,6 +94,12 @@ public class ScheduleConfiguration : IEntityTypeConfiguration<Schedule>
             .HasForeignKey(r => r.ScheduleId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        // Schedule - ImportBatch (N-1)
+        builder.HasOne(s => s.ImportBatch)
+            .WithMany()
+            .HasForeignKey(s => s.ImportBatchId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         // 6. Cấu hình Hiệu năng và Ràng buộc (Performance & Index)
 
         // Tìm nhanh lịch trình của một Giảng viên cụ thể
@@ -93,5 +107,8 @@ public class ScheduleConfiguration : IEntityTypeConfiguration<Schedule>
 
         // Index cho trạng thái để lọc lịch (VD: Active, Cancelled)
         builder.HasIndex(s => s.ScheduleStatus);
+
+        builder.HasIndex(s => s.ImportHash)
+               .IsUnique();
     }
 }

@@ -14,6 +14,7 @@ public class RoomPolicyConfiguration : IEntityTypeConfiguration<RoomPolicy>
 
         // 2. Cấu hình các thuộc tính cơ bản
         builder.Property(rp => rp.PolicyKey)
+            .HasConversion<string>()
             .HasMaxLength(100)
             .IsRequired();
 

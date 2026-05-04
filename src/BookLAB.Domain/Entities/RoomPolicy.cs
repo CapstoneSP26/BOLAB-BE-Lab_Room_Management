@@ -1,11 +1,12 @@
 ﻿using BookLAB.Domain.Common;
+using BookLAB.Domain.Enums;
 
 namespace BookLAB.Domain.Entities
 {
     public class RoomPolicy : BaseEntity, IAuditable, IUserTrackable
     {
         public int LabRoomId { get; set; }
-        public string PolicyKey { get; set; } = null!;
+        public PolicyType PolicyKey { get; set; }
         public string PolicyValue { get; set; } = null!;
         public DateTimeOffset CreatedAt { get; set; }
         public DateTimeOffset? UpdatedAt { get; set; }

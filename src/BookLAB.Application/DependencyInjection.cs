@@ -1,10 +1,11 @@
-﻿using System.Reflection;
-using BookLAB.Application.Common.Behaviors;
+﻿using BookLAB.Application.Common.Behaviors;
 using BookLAB.Application.Common.Interfaces.Services;
 using BookLAB.Application.Common.Policies;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
+using QRCoder;
+using System.Reflection;
 
 namespace BookLAB.Application;
 
@@ -36,18 +37,18 @@ public static class DependencyInjection
             //cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(PerformanceBehaviour<,>));
         });
 
-        services.AddScoped<IPolicyEngine, PolicyEngine>();
+        services.AddScoped<IPolicyEvaluator, PolicyEvaluator>();
 
         var assembly = Assembly.GetExecutingAssembly();
         var handlerTypes = assembly.GetTypes()
-            .Where(t => typeof(IBookingPolicyHandler).IsAssignableFrom(t)
+            .Where(t => typeof(IPolicyHandler).IsAssignableFrom(t)
                         && !t.IsInterface
                         && !t.IsAbstract);
 
         foreach (var type in handlerTypes)
         {
             // Register as Scoped so they can inject IUnitOfWork or other services
-            services.AddScoped(typeof(IBookingPolicyHandler), type);
+            services.AddScoped(typeof(IPolicyHandler), type);
         }
 
         return services;
