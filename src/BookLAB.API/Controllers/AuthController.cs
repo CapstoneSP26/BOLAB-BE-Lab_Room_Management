@@ -142,6 +142,8 @@ namespace BookLAB.API.Controllers
                     finalUrl += "/labmanager/dashboard";
                     break;
                 case 3:
+                    finalUrl += "/";
+                    break;
                 case 4:
                     finalUrl += "/student";
                     break;
