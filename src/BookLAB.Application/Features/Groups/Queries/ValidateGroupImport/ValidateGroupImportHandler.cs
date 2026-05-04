@@ -23,11 +23,14 @@ namespace BookLAB.Application.Features.Groups.Queries.ValidateGroupImport
             var data = request.Groups;
 
             // 1. Tải trước danh sách để tối ưu O(1) lookup
-            var fileSubjectCodes = data.Select(d => d.SubjectCode.ToUpper()).Distinct().ToList();
+            var fileSubjectCodes = data
+                .Select(d => d.SubjectCode.Trim().ToUpper())
+                .Distinct()
+                .ToList();
             var subjectCodes = await _unitOfWork.Repository<Subject>().Entities
-                .Where(s => fileSubjectCodes.Contains(s.SubjectCode.ToUpper()))
-                .Select(s => s.SubjectCode.ToUpper())
-                .ToListAsync();
+                .Where(s => fileSubjectCodes.Contains(s.SubjectCode.Trim().ToUpper()))
+                .Select(s => s.SubjectCode.Trim().ToUpper())
+                .ToListAsync(ct);
 
             var groupNames = data.Select(d => d.GroupName.ToUpper()).Distinct().ToList();
             var groups = await _unitOfWork.Repository<Group>().Entities
