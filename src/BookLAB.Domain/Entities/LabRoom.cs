@@ -22,6 +22,7 @@ namespace BookLAB.Domain.Entities
         public bool IsDeleted { get; set; }
         
         public virtual Building Building { get; set; }
+        public virtual TabletAccount TabletAccount { get; set; }
         public ICollection<LabOwner> LabOwners = new List<LabOwner>();
         public ICollection<RoomPolicy> RoomPolicies = new List<RoomPolicy>();
         public ICollection<LabImage> LabImages = new List<LabImage>();

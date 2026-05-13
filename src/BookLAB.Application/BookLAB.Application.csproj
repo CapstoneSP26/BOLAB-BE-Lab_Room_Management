@@ -26,6 +26,7 @@
   <ItemGroup>
     <Folder Include="Common\Mappings\" />
     <Folder Include="Features\Auth\Commands\" />
+    <Folder Include="Features\TabletAccounts\Commands\LoginTablet\" />
   </ItemGroup>
 
   <PropertyGroup>

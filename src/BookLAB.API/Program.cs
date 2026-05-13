@@ -101,6 +101,11 @@ builder.Services.AddAuthorization(options =>
         policyBuilder => policyBuilder.RequireAssertion(
             context => context.User.HasClaim(claim => claim.Type == "Role")
             && context.User.FindFirst(claim => claim.Type == "Role").Value == "4"));
+
+    options.AddPolicy("Tablet",
+        policyBuilder => policyBuilder.RequireAssertion(
+            context => context.User.HasClaim(claim => claim.Type == "Role")
+            && context.User.FindFirst(claim => claim.Type == "Role").Value == "0"));
 });
 
 builder.Services.AddCors(opt =>
