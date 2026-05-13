@@ -1,4 +1,5 @@
-﻿using BookLAB.Application.Common.Interfaces.Repositories;
+using BookLAB.Application.Common.Interfaces.Integration;
+using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Interfaces.Services;
 using BookLAB.Domain.Entities;
 using BookLAB.Domain.Enums;
@@ -10,11 +11,13 @@ namespace BookLAB.Application.Common.Jobs.Schedules
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IBackgroundJobService _jobService;
+        private readonly INotificationService _notificationService;
 
-        public CreateScheduleJob(IUnitOfWork unitOfWork, IBackgroundJobService jobService)
+        public CreateScheduleJob(IUnitOfWork unitOfWork, IBackgroundJobService jobService, INotificationService notificationService)
         {
             _unitOfWork = unitOfWork;
             _jobService = jobService;
+            _notificationService = notificationService;
         }
 
         public async Task Execute(Guid bookingId)
@@ -48,6 +51,18 @@ namespace BookLAB.Application.Common.Jobs.Schedules
 
             await _unitOfWork.Repository<Schedule>().AddAsync(schedule);
             await _unitOfWork.SaveChangesAsync(CancellationToken.None);
+
+            await _notificationService.NotifyScheduleCreatedAsync(schedule.LecturerId, new
+            {
+                scheduleId = schedule.Id,
+                bookingId = schedule.BookingId,
+                labRoomId = schedule.LabRoomId,
+                startTime = schedule.StartTime,
+                endTime = schedule.EndTime,
+                scheduleStatus = schedule.ScheduleStatus.ToString(),
+                scheduleType = schedule.ScheduleType.ToString(),
+                occurredAt = DateTimeOffset.UtcNow
+            });
 
             // 5. SAU KHI LƯU THÀNH CÔNG MỚI ĐẶT LỊCH REMINDER
             var reminderTime = schedule.StartTime.AddMinutes(-30);

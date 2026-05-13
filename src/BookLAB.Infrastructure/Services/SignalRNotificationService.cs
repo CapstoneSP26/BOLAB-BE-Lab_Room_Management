@@ -27,9 +27,13 @@ namespace BookLAB.Infrastructure.Services
 
         public async Task NotifyScheduleStatusChangedAsync(object payload, CancellationToken ct = default)
         {
-            // Bạn có thể gửi thêm vào một group chung của Campus hoặc Global
             await _hubContext.Clients.All.SendAsync("calendar.statusUpdated", payload, ct);
         }
 
+        public async Task NotifyScheduleCreatedAsync(Guid userId, object payload, CancellationToken cancellationToken = default)
+        {
+            await _hubContext.Clients.Group(NotificationsHub.GetUserGroup(userId.ToString()))
+                .SendAsync("schedule.created", payload, cancellationToken);
+        }
     }
 }
