@@ -42,6 +42,27 @@ namespace BookLAB.Application.Features.Schedules.Queries.SearchFreeSlots
                 .ToListAsync(cancellationToken);
 
             var freeSlots = new List<FreeSlotDto>();
+
+            if (result.Count <= 0)
+            {
+                freeSlots.Add(new FreeSlotDto
+                {
+                    BuildingId = request.BuildingId,
+                    RoomId = request.LabRoomId ?? 0,
+                    StartDate = request.StartDay,
+                    EndDate = request.EndDay,
+                    StartTime = request.StartTime ?? TimeOnly.FromTimeSpan(new TimeSpan(7, 0, 0)),
+                    EndTime = request.EndTime ?? TimeOnly.FromTimeSpan(new TimeSpan(22, 0, 0))
+                });
+                return new ResultMessage<List<FreeSlotDto>>
+                {
+                    Success = true,
+                    Message = "No schedules found, all slots are free.",
+                    Data = freeSlots
+                };
+            }
+                
+
             var currRoom = result[0].LabRoomId;
 
             for (int i = 0; i < result.Count - 1; i++)
