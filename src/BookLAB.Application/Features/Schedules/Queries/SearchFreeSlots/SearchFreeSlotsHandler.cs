@@ -76,7 +76,7 @@ namespace BookLAB.Application.Features.Schedules.Queries.SearchFreeSlots
 
             if (result.Count <= 0)
             {
-                LabRoom room = new LabRoom();
+                LabRoom room = null;
                 for (DateOnly date = request.StartDay; date <= request.EndDay; date = date.AddDays(1))
                 {
                     room = request.LabRoomId.HasValue ? await _unitOfWork.Repository<LabRoom>().GetByIdAsync(request.LabRoomId) : null;
@@ -84,10 +84,10 @@ namespace BookLAB.Application.Features.Schedules.Queries.SearchFreeSlots
                     freeSlots.Add(new FreeSlotDto
                     {
                         BuildingId = request.BuildingId,
-                        RoomId = room == null ? room.Id : 0,
-                        RoomName = room == null ? room.RoomName : "Room 0",
-                        StartDate = request.StartDay,
-                        EndDate = request.EndDay,
+                        RoomId = room != null ? room.Id : 0,
+                        RoomName = room != null ? room.RoomName : "Room 0",
+                        StartDate = date,
+                        EndDate = date,
                         StartTime = request.StartTime ?? TimeOnly.FromTimeSpan(new TimeSpan(7, 0, 0)),
                         EndTime = request.EndTime ?? TimeOnly.FromTimeSpan(new TimeSpan(22, 0, 0))
                     });
