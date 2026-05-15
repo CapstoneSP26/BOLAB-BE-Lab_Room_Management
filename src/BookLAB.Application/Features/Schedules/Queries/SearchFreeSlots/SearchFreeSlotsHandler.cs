@@ -76,15 +76,23 @@ namespace BookLAB.Application.Features.Schedules.Queries.SearchFreeSlots
 
             if (result.Count <= 0)
             {
-                freeSlots.Add(new FreeSlotDto
+                LabRoom room = new LabRoom();
+                for (DateOnly date = request.StartDay; date <= request.EndDay; date = date.AddDays(1))
                 {
-                    BuildingId = request.BuildingId,
-                    RoomId = request.LabRoomId ?? 0,
-                    StartDate = request.StartDay,
-                    EndDate = request.EndDay,
-                    StartTime = request.StartTime ?? TimeOnly.FromTimeSpan(new TimeSpan(7, 0, 0)),
-                    EndTime = request.EndTime ?? TimeOnly.FromTimeSpan(new TimeSpan(22, 0, 0))
-                });
+                    room = request.LabRoomId.HasValue ? await _unitOfWork.Repository<LabRoom>().GetByIdAsync(request.LabRoomId) : null;
+
+                    freeSlots.Add(new FreeSlotDto
+                    {
+                        BuildingId = request.BuildingId,
+                        RoomId = room == null ? room.Id : 0,
+                        RoomName = room == null ? room.RoomName : "Room 0",
+                        StartDate = request.StartDay,
+                        EndDate = request.EndDay,
+                        StartTime = request.StartTime ?? TimeOnly.FromTimeSpan(new TimeSpan(7, 0, 0)),
+                        EndTime = request.EndTime ?? TimeOnly.FromTimeSpan(new TimeSpan(22, 0, 0))
+                    });
+                }
+
                 return new ResultMessage<List<FreeSlotDto>>
                 {
                     Success = true,
@@ -103,6 +111,7 @@ namespace BookLAB.Application.Features.Schedules.Queries.SearchFreeSlots
                     {
                         BuildingId = result[0].LabRoom.BuildingId,
                         RoomId = result[0].LabRoomId,
+                        RoomName = result[0].LabRoom.RoomName,
                         StartDate = DateOnly.FromDateTime(result[0].StartTime.ToLocalTime().Date),
                         EndDate = DateOnly.FromDateTime(result[0].StartTime.ToLocalTime().Date),
                         StartTime = new TimeOnly(7, 0, 0),
@@ -117,6 +126,7 @@ namespace BookLAB.Application.Features.Schedules.Queries.SearchFreeSlots
                     {
                         BuildingId = result[0].LabRoom.BuildingId,
                         RoomId = result[0].LabRoomId,
+                        RoomName = result[0].LabRoom.RoomName,
                         StartDate = DateOnly.FromDateTime(result[0].EndTime.ToLocalTime().Date),
                         EndDate = DateOnly.FromDateTime(result[0].EndTime.ToLocalTime().Date),
                         StartTime = TimeOnly.FromTimeSpan(result[0].EndTime.ToLocalTime().TimeOfDay),
@@ -155,6 +165,7 @@ namespace BookLAB.Application.Features.Schedules.Queries.SearchFreeSlots
                         {
                             BuildingId = result[i].LabRoom.BuildingId,
                             RoomId = result[i].LabRoomId,
+                            RoomName = result[i].LabRoom.RoomName,
                             StartDate = DateOnly.FromDateTime(result[i].StartTime.ToLocalTime().Date),
                             EndDate = DateOnly.FromDateTime(result[i].EndTime.ToLocalTime().Date),
                             StartTime = TimeOnly.FromTimeSpan(result[i].EndTime.ToLocalTime().TimeOfDay),
@@ -175,6 +186,7 @@ namespace BookLAB.Application.Features.Schedules.Queries.SearchFreeSlots
                     {
                         BuildingId = result[i].LabRoom.BuildingId,
                         RoomId = result[i].LabRoomId,
+                        RoomName = result[i].LabRoom.RoomName,
                         StartDate = DateOnly.FromDateTime(result[i].EndTime.ToLocalTime().Date),
                         EndDate = DateOnly.FromDateTime(result[i + 1].StartTime.ToLocalTime().Date),
                         StartTime = TimeOnly.FromTimeSpan(result[i].EndTime.ToLocalTime().TimeOfDay),
@@ -192,6 +204,7 @@ namespace BookLAB.Application.Features.Schedules.Queries.SearchFreeSlots
                         {
                             BuildingId = result[i + 1].LabRoom.BuildingId,
                             RoomId = result[i + 1].LabRoomId,
+                            RoomName = result[i + 1].LabRoom.RoomName,
                             StartDate = DateOnly.FromDateTime(result[i + 1].StartTime.ToLocalTime().Date),
                             EndDate = DateOnly.FromDateTime(result[i + 1].StartTime.ToLocalTime().Date),
                             StartTime = new TimeOnly(7, 0, 0),
@@ -206,6 +219,7 @@ namespace BookLAB.Application.Features.Schedules.Queries.SearchFreeSlots
                         {
                             BuildingId = result[i].LabRoom.BuildingId,
                             RoomId = result[i].LabRoomId,
+                            RoomName = result[i].LabRoom.RoomName,
                             StartDate = DateOnly.FromDateTime(result[i].EndTime.ToLocalTime().Date),
                             EndDate = DateOnly.FromDateTime(result[i].EndTime.ToLocalTime().Date),
                             StartTime = TimeOnly.FromTimeSpan(result[i].EndTime.ToLocalTime().TimeOfDay),
@@ -225,6 +239,7 @@ namespace BookLAB.Application.Features.Schedules.Queries.SearchFreeSlots
                     {
                         BuildingId = result.Last().LabRoom.BuildingId,
                         RoomId = result.Last().LabRoomId,
+                        RoomName = result.Last().LabRoom.RoomName,
                         StartDate = DateOnly.FromDateTime(result.Last().StartTime.ToLocalTime().Date),
                         EndDate = DateOnly.FromDateTime(result.Last().StartTime.ToLocalTime().Date),
                         StartTime = new TimeOnly(7, 0, 0),
@@ -239,6 +254,7 @@ namespace BookLAB.Application.Features.Schedules.Queries.SearchFreeSlots
                     {
                         BuildingId = result.Last().LabRoom.BuildingId,
                         RoomId = result.Last().LabRoomId,
+                        RoomName = result.Last().LabRoom.RoomName,
                         StartDate = DateOnly.FromDateTime(result.Last().EndTime.ToLocalTime().Date),
                         EndDate = DateOnly.FromDateTime(result.Last().EndTime.ToLocalTime().Date),
                         StartTime = TimeOnly.FromTimeSpan(result.Last().EndTime.ToLocalTime().TimeOfDay),
@@ -255,6 +271,7 @@ namespace BookLAB.Application.Features.Schedules.Queries.SearchFreeSlots
                     {
                         BuildingId = result.Last().LabRoom.BuildingId,
                         RoomId = result.Last().LabRoomId,
+                        RoomName = result.Last().LabRoom.RoomName,
                         StartDate = DateOnly.FromDateTime(result.Last().EndTime.ToLocalTime().Date),
                         EndDate = DateOnly.FromDateTime(result.Last().EndTime.ToLocalTime().Date),
                         StartTime = TimeOnly.FromTimeSpan(result.Last().EndTime.ToLocalTime().TimeOfDay),

@@ -7,6 +7,7 @@ namespace BookLAB.Application.Features.Schedules.Common
     public class FreeSlotDto
     {
         public int RoomId { get; set; }
+        public string RoomName { get; set; }
         public int? BuildingId { get; set; }
         public DateOnly StartDate { get; set; }
         public DateOnly EndDate { get; set; }
