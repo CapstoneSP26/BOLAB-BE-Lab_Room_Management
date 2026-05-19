@@ -46,6 +46,15 @@ namespace BookLAB.Application.Features.Attendances.Commands.ScanAttendanceQRCode
         /// <returns>True if attendance was recorded successfully, false otherwise.</returns>
         public async Task<ResultMessage<bool>> Handle(ScanAttendanceQrCodeCommand request, CancellationToken cancellationToken)
         {
+            if (request.Accuracy > 30)
+            {
+                return new ResultMessage<bool>
+                {
+                    Success = false,
+                    Message = "Location accuracy is too low for check-in."
+                };
+            }
+
             var campus = await _unitOfWork.Repository<Campus>().GetByIdAsync(_currentUserService.CampusId);
             if (campus == null)
                 return new ResultMessage<bool>
@@ -54,7 +63,7 @@ namespace BookLAB.Application.Features.Attendances.Commands.ScanAttendanceQRCode
                     Message = "Campus not found."
                 };
 
-            var distance = CalculateDistance(campus.Latitude, campus.Longitude, request.Latitude, request.Longtitude);
+            var distance = CalculateDistance(campus.Latitude, campus.Longitude, request.Latitude, request.Longitude);
 
             if (distance > 50)
             {

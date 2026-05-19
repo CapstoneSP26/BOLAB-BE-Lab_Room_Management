@@ -14,7 +14,8 @@ namespace BookLAB.Application.Features.Attendances.Commands.ScanAttendanceQRCode
         public Guid scheduleId { get; set; }
         public Guid studentId { get; set; }
         public bool IsCheckIn { get; set; }
+        public int Accuracy { get; set; }
         public double Latitude { get; set; }
-        public double Longtitude { get; set; }
+        public double Longitude { get; set; }
     }
 }
