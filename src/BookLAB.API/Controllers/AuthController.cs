@@ -84,10 +84,10 @@ namespace BookLAB.API.Controllers
             //var role = await _userRoleRepository.GetAsync(userId);
             var role = await _unitOfWork.Repository<UserRole>().Entities.Where(x => x.UserId == userId).MinAsync(x => x.RoleId);
 
-            IConfiguration configuration = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", true, true)
-                .Build();
+            var secret = _configuration["Jwt:SecretKey"];
+            var issuer = _configuration["Jwt:Issuer"];
+            var audience = _configuration["Jwt:Audience"];
+            var feUrl = _configuration["FrontendUrl"];
 
             var claims = new List<Claim>
             {
@@ -97,12 +97,12 @@ namespace BookLAB.API.Controllers
             };
 
             var symetricKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(configuration["JWT:SecretKey"]));
+                Encoding.UTF8.GetBytes(secret));
             var signCredential = new SigningCredentials(symetricKey, SecurityAlgorithms.HmacSha256);
 
             var preparedToken = new JwtSecurityToken(
-                issuer: configuration["JWT:Issuer"],
-                audience: configuration["JWT:Audience"],
+                issuer: issuer,
+                audience: audience,
                 claims: claims,
                 expires: DateTime.Now.AddMinutes(30),
                 signingCredentials: signCredential);
@@ -122,19 +122,19 @@ namespace BookLAB.API.Controllers
             switch (role)
             {
                 case 1:
-                    returnUrl = "https://localhost:5173/labmanager/dashboard";
+                    returnUrl = $"{feUrl}/labmanager/dashboard";
                     break;
                 case 2:
-                    returnUrl = "https://localhost:5173/labmanager/dashboard";
+                    returnUrl = $"{feUrl}/labmanager/dashboard";
                     break;
                 case 3:
-                    returnUrl = "https://localhost:5173/";
+                    returnUrl = $"{feUrl}/";
                     break;
                 case 4:
-                    returnUrl = "https://localhost:5173/student";
+                    returnUrl = $"{feUrl}/student";
                     break;
                 default:
-                    returnUrl = "https://localhost:5173/";
+                    returnUrl = $"{feUrl}/";
                     break;
             }
 
