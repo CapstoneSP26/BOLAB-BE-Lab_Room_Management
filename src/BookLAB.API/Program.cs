@@ -2,14 +2,13 @@ using BookLAB.API.Middlewares;
 using BookLAB.Application;
 using BookLAB.Infrastructure;
 using BookLAB.Infrastructure.Hubs;
-using BookLAB.Infrastructure.Persistence;
 using BookLAB.Infrastructure.Services;
 using Hangfire;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Tokens;
 using QRCoder;
 using System.Text;
@@ -142,6 +141,14 @@ var app = builder.Build();
 //    var db = scope.ServiceProvider.GetRequiredService<BookLABDbContext>();
 //    db.Database.Migrate();
 //}
+
+if (app.Environment.IsProduction())
+{
+    app.UseForwardedHeaders(new ForwardedHeadersOptions
+    {
+        ForwardedHeaders = ForwardedHeaders.XForwardedProto
+    });
+}
 app.UseStaticFiles();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 // Middleware pipeline
@@ -161,5 +168,4 @@ app.MapControllers();
 app.MapHub<NotificationsHub>("/hubs/notifications");
 app.MapGet("/", () => "API Running");
 
-//var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 app.Run();

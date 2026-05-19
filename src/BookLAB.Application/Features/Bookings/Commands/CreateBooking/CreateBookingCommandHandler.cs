@@ -2,7 +2,6 @@ using BookLAB.Application.Common.Exceptions;
 using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Application.Common.Interfaces.Integration;
 using BookLAB.Application.Common.Interfaces.Repositories;
-using BookLAB.Application.Common.Models;
 using BookLAB.Application.Common.Policies;
 using BookLAB.Application.Features.Bookings.Events;
 using BookLAB.Domain.Entities;

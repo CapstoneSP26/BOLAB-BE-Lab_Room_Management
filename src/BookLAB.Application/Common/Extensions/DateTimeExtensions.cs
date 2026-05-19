@@ -155,5 +155,34 @@ namespace BookLAB.Application.Common.Extensions
                 return $"FA{time.Year % 100:D2}";
             }
         }
+
+        public static DateTime GetCurrentSemesterEndDateUtc(DateTime currentUtc)
+        {
+            // Để đồng bộ với FE (thường chạy múi giờ VN GMT+7), ta chuyển đổi nhẹ để xác định đúng tháng thực tế
+            var localTime = currentUtc.AddHours(7);
+            var year = localTime.Year;
+            var month = localTime.Month;
+
+            DateTime endDateLocal;
+
+            // Kì Spring (SP): Kết thúc ngày 30/04
+            // Kì Summer (SU): Kết thúc ngày 31/08
+            // Kì Fall (FA): Kết thúc ngày 31/12
+            if (month >= 1 && month <= 4)
+            {
+                endDateLocal = new DateTime(year, 4, 30, 23, 59, 59, DateTimeKind.Unspecified);
+            }
+            else if (month >= 5 && month <= 8)
+            {
+                endDateLocal = new DateTime(year, 8, 31, 23, 59, 59, DateTimeKind.Unspecified);
+            }
+            else
+            {
+                endDateLocal = new DateTime(year, 12, 31, 23, 59, 59, DateTimeKind.Unspecified);
+            }
+
+            // Chuyển mốc cuối ngày của VN ngược lại thành giờ UTC để BE so sánh chính xác với requestStartUtc
+            return endDateLocal.AddHours(-7);
+        }
     }
 }
