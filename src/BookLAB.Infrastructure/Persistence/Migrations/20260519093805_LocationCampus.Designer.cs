@@ -13,8 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BookLAB.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(BookLABDbContext))]
-    [Migration("20260511180351_TabletAccountTable3")]
-    partial class TabletAccountTable3
+    [Migration("20260519093805_LocationCampus")]
+    partial class LocationCampus
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -298,6 +298,12 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
                         .HasDefaultValue(true);
+
+                    b.Property<double>("Latitude")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("Longitude")
+                        .HasColumnType("double precision");
 
                     b.HasKey("Id");
 
