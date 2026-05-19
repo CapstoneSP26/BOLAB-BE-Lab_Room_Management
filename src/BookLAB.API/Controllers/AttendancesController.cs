@@ -150,7 +150,7 @@ public class AttendancesController : ControllerBase
     /// </returns>
     [HttpGet("scan-qrcode")]
     [Authorize(Policy = "Student")]
-    public async Task<IActionResult> ScanAttendanceQRCode([FromQuery] Guid qrId, [FromQuery] Guid scheduleId, [FromQuery] Guid studentId, [FromQuery] bool isCheckIn, CancellationToken cancellationToken)
+    public async Task<IActionResult> ScanAttendanceQRCode([FromQuery] Guid qrId, [FromQuery] Guid scheduleId, [FromQuery] Guid studentId, [FromQuery] bool isCheckIn, [FromQuery] double latitude, [FromQuery] double longtitude, CancellationToken cancellationToken)
     {
         try
         {
@@ -169,7 +169,9 @@ public class AttendancesController : ControllerBase
                 qrId = qrId,
                 scheduleId = scheduleId,
                 studentId = studentId,
-                IsCheckIn = isCheckIn
+                IsCheckIn = isCheckIn,
+                Latitude = latitude,
+                Longtitude = longtitude,
             };
 
             // Send the command through MediatR pipeline

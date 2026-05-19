@@ -1,4 +1,5 @@
-﻿using BookLAB.Application.Common.Interfaces.Repositories;
+﻿using BookLAB.Application.Common.Interfaces.Identity;
+using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Interfaces.Services;
 using BookLAB.Application.Common.Models;
 using BookLAB.Application.Features.Attendances.Commands.ScanAttendanceQRCode;
@@ -19,15 +20,19 @@ namespace BookLAB.Application.Features.Attendances.Commands.ScanAttendanceQRCode
         private readonly IUnitOfWork _unitOfWork;
         private readonly IQrManagements _qrManagements;
         private readonly IUserRepository _userRepository;
+        private readonly ICurrentUserService _currentUserService;
         private readonly ILogger<ScanAttendanceQrCodeHandler> _logger;
+
         public ScanAttendanceQrCodeHandler(IUnitOfWork unitOfWork,
             IQrManagements qrManagements,
             IUserRepository userRepository,
+            ICurrentUserService currentUserService,
             ILogger<ScanAttendanceQrCodeHandler> logger)
         {
             _unitOfWork = unitOfWork;
             _qrManagements = qrManagements;
             _userRepository = userRepository;
+            _currentUserService = currentUserService;
             _logger = logger;
         }
 
@@ -41,6 +46,25 @@ namespace BookLAB.Application.Features.Attendances.Commands.ScanAttendanceQRCode
         /// <returns>True if attendance was recorded successfully, false otherwise.</returns>
         public async Task<ResultMessage<bool>> Handle(ScanAttendanceQrCodeCommand request, CancellationToken cancellationToken)
         {
+            var campus = await _unitOfWork.Repository<Campus>().GetByIdAsync(_currentUserService.CampusId);
+            if (campus == null)
+                return new ResultMessage<bool>
+                {
+                    Success = false,
+                    Message = "Campus not found."
+                };
+
+            var distance = CalculateDistance(campus.Latitude, campus.Longitude, request.Latitude, request.Longtitude);
+
+            if (distance > 50)
+            {
+                return new ResultMessage<bool>
+                {
+                    Success = false,
+                    Message = "You are too far from the campus to check in."
+                };
+            }
+
             // Ensure the QR code does not already exist in the system
             if (_qrManagements.CheckQrCodeExist(new Qr { scheduleId = request.scheduleId, isCheckIn = request.IsCheckIn }))
                 return new ResultMessage<bool> { Success = false, Message = "QR code already exists." };
@@ -133,6 +157,25 @@ namespace BookLAB.Application.Features.Attendances.Commands.ScanAttendanceQRCode
             }
         }
 
+        public static double CalculateDistance(double lat1, double lon1, double lat2, double lon2)
+        {
+            const double R = 6371000; // Bán kính Trái Đất (mét)
 
+            // Chuyển đổi độ sang radian
+            double latRad1 = lat1 * Math.PI / 180.0;
+            double latRad2 = lat2 * Math.PI / 180.0;
+            double deltaLat = (lat2 - lat1) * Math.PI / 180.0;
+            double deltaLon = (lon2 - lon1) * Math.PI / 180.0;
+
+            // Công thức Haversine
+            double a = Math.Sin(deltaLat / 2) * Math.Sin(deltaLat / 2) +
+                       Math.Cos(latRad1) * Math.Cos(latRad2) *
+                       Math.Sin(deltaLon / 2) * Math.Sin(deltaLon / 2);
+
+            double c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+
+            double distance = R * c; // Khoảng cách tính bằng mét
+            return distance;
+        }
     }
 }
