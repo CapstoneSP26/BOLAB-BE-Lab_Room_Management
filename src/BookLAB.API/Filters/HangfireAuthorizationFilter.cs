@@ -8,9 +8,12 @@ namespace BookLAB.API.Filters
         {
             var httpContext = context.GetHttpContext();
 
-            var secret = httpContext.Request.Query["key"];
+            if (!httpContext.User.Identity?.IsAuthenticated ?? true)
+            {
+                return false;
+            }
 
-            return secret == "booklab-admin-hangfire-20052026";
+            return httpContext.User.HasClaim("Role", "1");
         }
     }
 }

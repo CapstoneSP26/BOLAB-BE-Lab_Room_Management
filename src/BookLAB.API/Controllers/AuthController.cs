@@ -140,7 +140,6 @@ namespace BookLAB.API.Controllers
 
             var pictureUrl = result.Principal?.FindFirst("picture")?.Value;
             var providerId = result.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            Console.WriteLine($"Url: {pictureUrl}");
 
             if (pictureUrl != null && account.UserImageUrl != pictureUrl)
             {
