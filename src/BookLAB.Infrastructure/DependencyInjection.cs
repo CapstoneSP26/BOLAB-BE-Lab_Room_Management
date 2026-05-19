@@ -40,7 +40,7 @@ namespace BookLAB.Infrastructure
             services.AddHangfireServer(options =>
             {
                 // Với dự án BookLAB, chỉ nên để từ 5-10 workers
-                options.WorkerCount = Environment.ProcessorCount;
+                options.WorkerCount = Math.Max(Environment.ProcessorCount * 2, 5);
 
                 // Đặt tên server để dễ quản lý trên Dashboard
                 options.ServerName = "BookLAB_Background_Server";

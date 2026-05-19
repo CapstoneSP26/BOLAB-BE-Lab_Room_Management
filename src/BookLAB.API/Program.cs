@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Tokens;
 using QRCoder;
+using BookLAB.API.Filters;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -156,8 +157,14 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-    app.UseHangfireDashboard();
 }
+app.UseHangfireDashboard("/hangfire", new DashboardOptions
+{
+    Authorization = new[]
+    {
+        new HangfireAuthorizationFilter()
+    }
+});
 app.UseCors("CorsPolicy");
 app.UseHttpsRedirection();
 
