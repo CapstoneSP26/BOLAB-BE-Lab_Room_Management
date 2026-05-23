@@ -20,7 +20,7 @@ public class GroupMemberConfiguration : IEntityTypeConfiguration<GroupMember>
 
         // GroupMember - Group (N-1)
         builder.HasOne(gm => gm.Group)
-            .WithMany() // Nếu trong Group có ICollection<GroupMember> Members thì đổi thành .WithMany(g => g.Members)
+            .WithMany(gm => gm.GroupMembers) // Nếu trong Group có ICollection<GroupMember> Members thì đổi thành .WithMany(g => g.Members)
             .HasForeignKey(gm => gm.GroupId)
             .OnDelete(DeleteBehavior.Cascade);
         // Rule: Nếu xóa Nhóm, danh sách thành viên trong nhóm đó tự động bị xóa theo.

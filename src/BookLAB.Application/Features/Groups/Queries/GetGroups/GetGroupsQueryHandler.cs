@@ -24,22 +24,20 @@ namespace BookLAB.Application.Features.Groups.Queries.GetGroups
         {
             var currentUserId = _currentUserService.UserId ?? Guid.Empty;
 
-            var groups = await _unitOfWork.Repository<GroupMember>().Entities
-                .Include(x => x.Group)
-                .Where(g => g.Group.OwnerId == currentUserId && !g.Group.IsDeleted)
-                .Include(g => g.Group.User)
+            var groups = await _unitOfWork.Repository<Group>().Entities
+                .Include(x => x.User)
+                .Where(g => g.OwnerId == currentUserId && !g.IsDeleted)
                 .Select(g => new GroupDto
                 {
-                    Id = g.Group.Id,
-                    GroupName = g.Group.GroupName,
-                    OwnerId = g.Group.OwnerId,
-                    OwnerName = g.Group.User.FullName,
-                    MembersCount = g.Group.Id == Guid.Empty ? 0 : 0, // Will be populated below
-                    CreatedAt = g.Group.CreatedAt,
-                    UpdatedAt = g.Group.UpdatedAt,
-                    SubjectCode = g.SubjectCode
+                    Id = g.Id,
+                    GroupName = g.GroupName,
+                    OwnerId = g.OwnerId,
+                    OwnerName = g.User.FullName,
+                    MembersCount = g.Id == Guid.Empty ? 0 : 0, // Will be populated below
+                    CreatedAt = g.CreatedAt,
+                    UpdatedAt = g.UpdatedAt,
+                    SubjectCode = g.GroupMembers.Select(x => x.SubjectCode).ToList()
                 })
-                .Distinct()
                 .OrderBy(x => x.GroupName)
                 .ToListAsync(cancellationToken);
 
