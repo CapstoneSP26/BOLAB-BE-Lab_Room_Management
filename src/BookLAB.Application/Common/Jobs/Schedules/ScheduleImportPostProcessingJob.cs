@@ -1,5 +1,5 @@
 ﻿using BookLAB.Application.Common.Interfaces.Services;
-using BookLAB.Application.Common.Jobs.Emails;
+using BookLAB.Application.Common.Interfaces.Jobs;
 using BookLAB.Application.Common.Jobs.Schedules;
 
 public class ScheduleImportPostProcessingJob
@@ -19,7 +19,7 @@ public class ScheduleImportPostProcessingJob
         {
             // Chạy ngầm hoàn toàn, không gây block UI
             _jobService.Enqueue<PrepareLecturerReminderJob>(x => x.Execute(id));
-            _jobService.Enqueue<StudentScheduleNotifyJob>(x => x.Execute(id));
+            _jobService.Enqueue<IStudentScheduleNotifyJob>(x => x.Execute(id));
         }
 
         await Task.CompletedTask;
