@@ -1,4 +1,4 @@
-﻿using BookLAB.Application.Common.Models;
+using BookLAB.Application.Common.Models;
 using BookLAB.Application.Features.Bookings.Queries.ViewUncheckedBookingRequest;
 using BookLAB.Application.Features.Groups.DTOs;
 using BookLAB.Domain.Entities;
@@ -38,6 +38,7 @@ namespace BookLAB.Application.Common.Mappings
                 .ForMember(dest => dest.StudentCount, opt => opt.MapFrom(src => src.Booking.StudentCount))
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.BookingRequestStatus))
                 .ForMember(dest => dest.Purpose, opt => opt.MapFrom(src => src.Booking.PurposeType.PurposeName))
+                .ForMember(dest => dest.Reason, opt => opt.MapFrom(src => src.Booking.Reason))
                 .ForMember(dest => dest.Requester, opt => opt.MapFrom(src => src.Requester));
 
             CreateMap<Schedule, ScheduleDto2>()
