@@ -196,6 +196,17 @@ namespace BookLAB.Application.Features.Bookings.Commands.CreateBooking
                     }, ct);
                 }
 
+                var payload = new
+                {
+                    publisherId = currentUserId,
+                    labRoomId = room.Id,
+                    startTime = request.StartTime,
+                    endTime = request.EndTime,
+                };
+
+                // Gọi method bạn vừa viết
+                await _notificationService.NotifyNewBookingAsync(payload, ct);
+
                 // 6. TRICK: Chỉ publish event cho bản ghi đầu tiên để tránh spam Email/Event
                 await _mediator.Publish(new BookingCreatedEvent(firstBookingId), ct);
 
