@@ -16,6 +16,7 @@ namespace BookLAB.Domain.Entities
         public string Reason {  get; set; } = string.Empty;
         public int PurposeTypeId { get; set; }
         public Guid? ScheduleId { get; set; }
+        public Guid? AutoRejectedByBookingId { get; set; }
         public DateTimeOffset CreatedAt { get; set; }
         public DateTimeOffset? UpdatedAt { get; set; }
         public Guid? CreatedBy { get; set; }
@@ -25,6 +26,7 @@ namespace BookLAB.Domain.Entities
         public virtual PurposeType PurposeType { get; set; } 
         public virtual Schedule? Schedule { get; set; }
         public virtual SlotType? SlotType { get; set; } 
+        public virtual Booking? AutoRejectedByBooking { get; set; }
         public ICollection<BookingGroup> BookingGroups { get; set; } = new List<BookingGroup>();
     }
 }

@@ -2,5 +2,5 @@
 
 namespace BookLAB.Application.Features.Bookings.Commands.ApproveBooking
 {
-    public record ApproveBookingCommand(Guid BookingId) : IRequest<bool>;
+    public record ApproveBookingCommand(Guid BookingId) : IRequest<ApproveBookingResponse>;
 }

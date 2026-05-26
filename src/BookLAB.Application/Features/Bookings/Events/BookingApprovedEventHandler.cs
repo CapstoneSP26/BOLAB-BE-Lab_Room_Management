@@ -22,6 +22,9 @@ namespace BookLAB.Application.Features.Bookings.Events
             _jobService.Enqueue<IApproveBookingEmailJob>(
                 x => x.Execute(notification.BookingId));
 
+            _jobService.Enqueue<IRejectBookingByPriorityEmailJob>(
+                x => x.Execute(notification.RejectedBookingIds, notification.RejectedScheduleIds));    
+
             return Task.CompletedTask;
         }
     }

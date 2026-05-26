@@ -86,6 +86,7 @@ namespace BookLAB.Infrastructure
             services.AddScoped<INotifyAdminNewBookingJob, NotifyAdminNewBookingJob>();
             services.AddScoped<IRejectBookingEmailJob, RejectBookingEmailJob>();
             services.AddScoped<IStudentScheduleNotifyJob, StudentScheduleNotifyJob>();
+            services.AddScoped<IRejectBookingByPriorityEmailJob, RejectBookingByPriorityEmailJob>();    
 
             services.AddScoped<AutoRejectBookingJob>();
 

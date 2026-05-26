@@ -30,6 +30,11 @@ namespace BookLAB.Infrastructure.Services
             // Bạn có thể gửi thêm vào một group chung của Campus hoặc Global
             await _hubContext.Clients.All.SendAsync("calendar.statusUpdated", payload, ct);
         }
+        public async Task NotifyNewBookingAsync(object payload, CancellationToken ct = default)
+        {
+            await _hubContext.Clients.All.SendAsync("booking.new", payload, ct);
+
+        }
 
     }
 }

@@ -25,7 +25,6 @@ namespace BookLAB.Infrastructure.BackgroundJobs.Emails
 
         public async Task Execute(Guid bookingId)
         {
-            Console.WriteLine("=======================================================================>");
             // 1. Lấy thông tin Booking và người đặt
             var bookingRequest = await _unitOfWork.Repository<BookingRequest>().Entities
                 .Include(br => br.Booking)
@@ -44,7 +43,6 @@ namespace BookLAB.Infrastructure.BackgroundJobs.Emails
             // 2. Lấy Template (Bạn có thể thêm EmailType.AdminNotification vào Enum)
             var template = await _unitOfWork.Repository<EmailTemplate>().Entities
                 .FirstOrDefaultAsync(t => t.Type == EmailType.BookingReminder); // Hoặc template riêng cho Admin
-            Console.WriteLine(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Template: " + (template != null ? "Found" : "Not Found"));
             var pendingBookingUrl = $"{_configuration["FrontendUrl"]}/labmanager/booking-requests/pending";
 
             // 3. Chuẩn bị dữ liệu
