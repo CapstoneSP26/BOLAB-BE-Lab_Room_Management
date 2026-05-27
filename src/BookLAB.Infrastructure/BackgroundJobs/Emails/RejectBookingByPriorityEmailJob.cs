@@ -85,6 +85,8 @@ namespace BookLAB.Infrastructure.BackgroundJobs.Emails
                     .Include(cs => cs.LabRoom)
                     .Where(cs => scheduleIds.Contains(cs.Id))
                     .ToListAsync();
+                Console.WriteLine("=============> RejectedSchedules : " + rejectedSchedules.Count);
+
 
                 foreach (var sched in rejectedSchedules)
                 {
