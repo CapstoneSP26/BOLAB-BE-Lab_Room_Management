@@ -204,7 +204,7 @@ public class BookingsController : ControllerBase
     [HttpPost]
     [ProducesResponseType(typeof(Guid), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [Authorize(Policy = "Lecturer")]
+    [Authorize(Policy = "AcademicOffice_Lecturer")]
     public async Task<IActionResult> CreateBooking([FromBody] CreateBookingCommand command)
     {
         // Execute command and get the resulting Guid

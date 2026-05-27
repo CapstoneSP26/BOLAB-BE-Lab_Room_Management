@@ -16,8 +16,11 @@ namespace BookLAB.Application.Features.Bookings.Events
 
         public Task Handle(BookingApprovedEvent notification, CancellationToken cancellationToken)
         {
-            _jobService.Enqueue<CreateScheduleJob>(
-                x => x.Execute(notification.BookingId));
+            if (notification.allowedCreateSchedule)
+            {
+                _jobService.Enqueue<CreateScheduleJob>(
+                    x => x.Execute(notification.BookingId));
+            }
 
             _jobService.Enqueue<IApproveBookingEmailJob>(
                 x => x.Execute(notification.BookingId));
