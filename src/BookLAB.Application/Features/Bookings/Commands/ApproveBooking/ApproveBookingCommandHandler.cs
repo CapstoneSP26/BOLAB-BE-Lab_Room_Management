@@ -7,8 +7,6 @@ using BookLAB.Domain.Entities;
 using BookLAB.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
 
 namespace BookLAB.Application.Features.Bookings.Commands.ApproveBooking

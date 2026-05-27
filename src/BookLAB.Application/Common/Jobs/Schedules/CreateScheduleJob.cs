@@ -31,7 +31,7 @@ namespace BookLAB.Application.Common.Jobs.Schedules
 
             var purposePriority = booking.PurposeType?.PriorityLevel ?? 1;
             var schedulePriority = purposePriority == 1 ? SchedulePriority.NORMAL : (purposePriority == 2 ? SchedulePriority.ACADEMIC : SchedulePriority.SCHOOL_EVENT);
-
+           
             if (exists) return;
 
             var schedule = new Schedule
