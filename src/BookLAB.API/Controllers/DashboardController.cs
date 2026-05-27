@@ -1,8 +1,11 @@
-using BookLAB.Application.Features.Dashboard.Queries.GetDashboardStats;
 using BookLAB.Application.Features.Dashboard.Queries.GetDashboardOverview;
+using BookLAB.Application.Features.Dashboard.Queries.GetDashboardStats;
+using BookLAB.Application.Features.Dashboard.Queries.GetPdfStatistic;
+using Hangfire.Storage.Monitoring;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using QuestPDF.Fluent;
 
 namespace BookLAB.API.Controllers
 {
@@ -63,5 +66,87 @@ namespace BookLAB.API.Controllers
 
             return Ok(result);
         }
+
+        [HttpGet("pdfFile")]
+        [Authorize(Policy = "AcademicOffice_LabManager")]
+        public async Task<IActionResult> GetPdfFile([FromQuery] string timeType, CancellationToken cancellationToken)
+        {
+            if (!(timeType == "1d" || timeType == "1w" || timeType == "4m" || timeType == "8m" || timeType == "1y"))
+                return BadRequest("timeType is not correct");
+
+            GetPdfStatisticQuery query = new GetPdfStatisticQuery
+            {
+                TimeType = timeType
+            };
+
+            var result = await _mediator.Send(query, cancellationToken);
+
+            return File(result, "application/pdf", "report.pdf");
+        }
+
+        [HttpGet("pdf")]
+        [Authorize(Policy = "AcademicOffice_LabManager")]
+        public async Task<IActionResult> GetPdf([FromQuery] string timeType, CancellationToken cancellationToken)
+        {
+            var pdfBytes = GenerateReport(new List<StatisticDto>
+            {
+                new StatisticDto{ Name = "Thống kê 1", Value = 100 },
+                new StatisticDto{ Name = "Thống kê 2", Value = 200 },
+                new StatisticDto{ Name = "Thống kê 3", Value = 300 },
+            });
+
+            return File(pdfBytes, "application/pdf", "report.pdf");
+        }
+
+        internal byte[] GenerateReport(List<StatisticDto> data)
+        {
+            data = new List<StatisticDto>
+            {
+                new StatisticDto{ Name = "Thống kê 1", Value = 100 },
+                new StatisticDto{ Name = "Thống kê 2", Value = 200 },
+                new StatisticDto{ Name = "Thống kê 3", Value = 300 },
+            };
+
+            var document = Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Header().Text("Báo cáo thống kê").FontSize(20);
+                    page.Content().Table(table =>
+                    {
+                        table.ColumnsDefinition(columns =>
+                        {
+                            columns.ConstantColumn(50);
+                            columns.RelativeColumn();
+                            columns.RelativeColumn();
+                        });
+
+                        table.Header(header =>
+                        {
+                            header.Cell().Text("STT");
+                            header.Cell().Text("Tên");
+                            header.Cell().Text("Giá trị");
+                        });
+
+                        int index = 1;
+                        foreach (var item in data)
+                        {
+                            table.Cell().Text(index++.ToString());
+                            table.Cell().Text(item.Name);
+                            table.Cell().Text(item.Value.ToString());
+                        }
+                    });
+                });
+            });
+
+            return document.GeneratePdf();
+        }
+
+    }
+
+    internal class StatisticDto
+    {
+        public string Name { get; set; }
+        public int Value { get; set; }
     }
 }

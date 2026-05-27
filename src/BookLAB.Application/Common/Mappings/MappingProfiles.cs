@@ -67,6 +67,9 @@ namespace BookLAB.Application.Common.Mappings
                 .ForMember(dest => (bool)dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
                 .ForMember(dest => (List<string>)dest.Roles, opt => opt.MapFrom(src => src.UserRoles.Select(x => x.Role.RoleName).ToList()))
                 .ForMember(dest => (List<int>)dest.RoleIds, opt => opt.MapFrom(src => src.UserRoles.Select(x => x.RoleId).ToList()));
+
+            CreateMap<LabRoom, LabRoomDto>()
+                .ReverseMap();
         }
     }
 }
