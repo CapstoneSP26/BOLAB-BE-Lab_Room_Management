@@ -162,13 +162,14 @@ public class BookingsController : ControllerBase
 
         var result = await _mediator.Send(command);
 
-        if (result)
+        if (result!=null)
         {
             await _dashboardRealtimeService.PublishOverviewUpdatedForBookingAsync(id, "booking.approved", HttpContext.RequestAborted);
-            return Ok(new ResultMessage<bool>
+            return Ok(new ResultMessage<ApproveBookingResponse>
             {
                 Success = true,
-                Message = "Booking request processed successfully." 
+                Message = "Booking request processed successfully.",
+                Data = result,
             });
         }
 
@@ -203,7 +204,7 @@ public class BookingsController : ControllerBase
     [HttpPost]
     [ProducesResponseType(typeof(Guid), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [Authorize(Policy = "Lecturer")]
+    [Authorize(Policy = "AcademicOffice_Lecturer")]
     public async Task<IActionResult> CreateBooking([FromBody] CreateBookingCommand command)
     {
         // Execute command and get the resulting Guid

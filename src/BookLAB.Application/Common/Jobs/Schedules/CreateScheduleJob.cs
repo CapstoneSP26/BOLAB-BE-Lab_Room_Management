@@ -19,8 +19,9 @@ namespace BookLAB.Application.Common.Jobs.Schedules
 
         public async Task Execute(Guid bookingId)
         {
-            var booking = await _unitOfWork.Repository<Booking>()
-                .GetByIdAsync(bookingId);
+            var booking = await _unitOfWork.Repository<Booking>().Entities
+                .Include(b => b.PurposeType)
+                .FirstOrDefaultAsync(booking => booking.Id == bookingId);
 
             if (booking == null) return;
 
@@ -28,6 +29,9 @@ namespace BookLAB.Application.Common.Jobs.Schedules
             var exists = await _unitOfWork.Repository<Schedule>().Entities
                 .AnyAsync(s => s.BookingId == bookingId);
 
+            var purposePriority = booking.PurposeType?.PriorityLevel ?? 1;
+            var schedulePriority = purposePriority == 1 ? SchedulePriority.NORMAL : (purposePriority == 2 ? SchedulePriority.ACADEMIC : SchedulePriority.SCHOOL_EVENT);
+           
             if (exists) return;
 
             var schedule = new Schedule
@@ -36,6 +40,7 @@ namespace BookLAB.Application.Common.Jobs.Schedules
                 BookingId = booking.Id,
                 LabRoomId = booking.LabRoomId,
                 LecturerId = booking.CreatedBy ?? Guid.Empty,
+                SchedulePriority = schedulePriority,
                 SlotTypeId = booking.SlotTypeId,
                 StudentCount = booking.StudentCount,
                 StartTime = booking.StartTime,

@@ -1,7 +1,5 @@
 ﻿using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Interfaces.Services;
-using BookLAB.Application.Common.Jobs.Emails;
-using BookLAB.Application.Common.Jobs.Schedules;
 using MediatR;
 
 namespace BookLAB.Application.Features.Schedules.Events

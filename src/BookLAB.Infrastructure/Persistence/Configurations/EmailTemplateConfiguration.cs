@@ -21,6 +21,15 @@ public class EmailTemplateConfiguration : IEntityTypeConfiguration<EmailTemplate
             .IsRequired()
             .HasColumnType("text");
 
+        builder.Property(et => et.Subject)
+            .IsRequired(false)
+            .HasMaxLength(255); // Giới hạn độ dài tiêu đề để tối ưu lưu trữ
+
+
+        builder.Property(et => et.VariablesJson)
+            .IsRequired(false)
+            .HasMaxLength(512); // Giới hạn độ dài JSON để tránh lưu trữ quá lớn
+
         // 4. Cấu hình Enum EmailType
         // Tối ưu Space: Lưu dưới dạng int (integer) thay vì string
         builder.Property(et => et.Type)

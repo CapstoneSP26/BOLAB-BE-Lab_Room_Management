@@ -23,6 +23,10 @@ public class ScheduleConfiguration : IEntityTypeConfiguration<Schedule>
             .HasMaxLength(20)
             .IsRequired();
 
+        builder.Property(s => s.SchedulePriority)
+            .HasConversion<int>()
+            .IsRequired(false);
+
         builder.Property(s => s.StudentCount)
             .IsRequired(); 
         
@@ -100,6 +104,11 @@ public class ScheduleConfiguration : IEntityTypeConfiguration<Schedule>
             .HasForeignKey(s => s.ImportBatchId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // Schedule - AutoCancelledByBooking (1-1)
+        builder.HasOne(s => s.AutoCancelledByBooking)
+            .WithOne()
+            .HasForeignKey<Schedule>(s => s.AutoCancelledByBookingId)
+            .OnDelete(DeleteBehavior.Restrict);
         // 6. Cấu hình Hiệu năng và Ràng buộc (Performance & Index)
 
         // Tìm nhanh lịch trình của một Giảng viên cụ thể

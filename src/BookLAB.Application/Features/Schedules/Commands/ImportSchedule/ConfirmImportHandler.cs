@@ -95,6 +95,7 @@ namespace BookLAB.Application.Features.Schedules.Commands.ImportSchedule
                         entity.ImportBatchId = improtBatchId;
                         entity.ScheduleStatus = ScheduleStatus.Active;
                         entity.ScheduleType = ScheduleType.Academic;
+                        entity.SchedulePriority = SchedulePriority.ACADEMIC;
                         entity.CreatedAt = now;
                         entity.CreatedBy = _currentUserService.UserId;                  
                         newSchedules.Add(entity);

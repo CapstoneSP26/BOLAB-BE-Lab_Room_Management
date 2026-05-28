@@ -1,9 +1,11 @@
 ﻿using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Application.Common.Interfaces.Integration;
+using BookLAB.Application.Common.Interfaces.Jobs;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Interfaces.Services;
 using BookLAB.Application.Common.Jobs.Bookings;
 using BookLAB.Infrastructure.BackgroundJobs;
+using BookLAB.Infrastructure.BackgroundJobs.Emails;
 using BookLAB.Infrastructure.Identity;
 using BookLAB.Infrastructure.Persistence;
 using BookLAB.Infrastructure.Repositories;
@@ -40,7 +42,7 @@ namespace BookLAB.Infrastructure
             services.AddHangfireServer(options =>
             {
                 // Với dự án BookLAB, chỉ nên để từ 5-10 workers
-                options.WorkerCount = Environment.ProcessorCount;
+                options.WorkerCount = Math.Max(Environment.ProcessorCount * 2, 5);
 
                 // Đặt tên server để dễ quản lý trên Dashboard
                 options.ServerName = "BookLAB_Background_Server";
@@ -79,6 +81,13 @@ namespace BookLAB.Infrastructure
             services.AddScoped<IScheduleRepository, ScheduleRepository>();
 
             // ===== BACKGROUND JOBS =====
+            services.AddScoped<IApproveBookingEmailJob, ApproveBookingEmailJob>(); 
+            services.AddScoped<IBookingSubmittedEmailJob, BookingSubmittedEmailJob>();
+            services.AddScoped<INotifyAdminNewBookingJob, NotifyAdminNewBookingJob>();
+            services.AddScoped<IRejectBookingEmailJob, RejectBookingEmailJob>();
+            services.AddScoped<IStudentScheduleNotifyJob, StudentScheduleNotifyJob>();
+            services.AddScoped<IRejectBookingByPriorityEmailJob, RejectBookingByPriorityEmailJob>();    
+
             services.AddScoped<AutoRejectBookingJob>();
 
             services.AddScoped<RecurringJobScheduler>();

@@ -6,7 +6,8 @@
         BookingRejected = 2,
         BookingCancelled = 3,
         BookingSubmitted = 4,
-        BoookingReminder = 5,
+        BookingReminder = 5,
         StudentNotification = 6,
+        RejectedByPriority = 7
     }
 }

@@ -12,8 +12,10 @@ namespace BookLAB.Domain.Entities
         public int? SlotTypeId { get; set; }
         public string? CalendarEventId { get; set; }
         public Guid? ImportBatchId { get; set; }
+        public Guid? AutoCancelledByBookingId { get; set; }
         public ScheduleType ScheduleType { get; set; }
         public ScheduleStatus ScheduleStatus { get; set; }
+        public SchedulePriority? SchedulePriority { get; set; }
         public int StudentCount { get; set; }
         public string? SubjectCode { get; set; }
         public string? ImportHash { get; set; } // For tracking imported schedules
@@ -33,6 +35,7 @@ namespace BookLAB.Domain.Entities
         public virtual Group? Group { get; set; }
         public virtual SlotType? SlotType { get; set; } 
         public virtual ImportBatch? ImportBatch { get; set; }
+        public virtual Booking? AutoCancelledByBooking { get; set; }
         public virtual ICollection<Report> Reports { get; set; } = new List<Report>();
     }
 }
