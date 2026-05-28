@@ -52,7 +52,7 @@ namespace BookLAB.API.Controllers
 
         [HttpGet("overview")]
         [Authorize(Policy = "AcademicOffice_LabManager")]
-        public async Task<IActionResult> GetOverview(CancellationToken cancellationToken)
+        public async Task<IActionResult> GetOverview([FromQuery] DateTimeOffset StartDate, [FromQuery] DateTimeOffset EndDate, CancellationToken cancellationToken)
         {
             var userIdClaim = User.FindFirst("Id")?.Value;
             var role = User.FindFirst("Role")?.Value ?? string.Empty;
@@ -61,7 +61,9 @@ namespace BookLAB.API.Controllers
             var result = await _mediator.Send(new GetDashboardOverviewQuery
             {
                 UserId = userId,
-                Role = role
+                Role = role,
+                StartDate = StartDate,
+                EndDate = EndDate
             }, cancellationToken);
 
             return Ok(result);
