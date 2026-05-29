@@ -33,6 +33,11 @@ namespace BookLAB.Infrastructure.Services
             using var smtp = new SmtpClient();
             try
             {
+                smtp.ServerCertificateValidationCallback = (s, c, h, e) => true;
+
+                // Cài đặt thời gian timeout rõ ràng (30 giây) phòng trường hợp mạng Cloud bị nghẽn ca đặt phòng
+                smtp.Timeout = 30000;
+
                 // Kết nối tới Server SMTP
                 await smtp.ConnectAsync(_settings.SmtpServer, _settings.SmtpPort, MailKit.Security.SecureSocketOptions.StartTls);
 
@@ -41,6 +46,12 @@ namespace BookLAB.Infrastructure.Services
 
                 // Gửi mail
                 await smtp.SendAsync(email);
+            }
+            catch (Exception ex)
+            {
+                // Ghi log lỗi chi tiết để dễ dàng rà soát tiến trình hoạt động ngầm của Hangfire
+                Console.WriteLine("Lỗi thực thi gửi thư qua MailKit SMTP Job ngầm:"+ ex.Message);
+                throw; // Re-throw để Hangfire ghi nhận trạng thái Failed và tự động Retry lại ca sau
             }
             finally
             {
