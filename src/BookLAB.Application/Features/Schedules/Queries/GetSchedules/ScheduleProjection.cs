@@ -1,4 +1,5 @@
 ﻿using BookLAB.Domain.Entities;
+using BookLAB.Domain.Enums;
 
 namespace BookLAB.Application.Features.Schedules.Queries.GetSchedules
 {
@@ -22,6 +23,7 @@ namespace BookLAB.Application.Features.Schedules.Queries.GetSchedules
                 Status = x.ScheduleStatus,
                 Type = x.ScheduleType,
                 CreatedAt = x.CreatedAt,
+                SchedulePriority = x.SchedulePriority ?? SchedulePriority.NORMAL
             });
         }
     }

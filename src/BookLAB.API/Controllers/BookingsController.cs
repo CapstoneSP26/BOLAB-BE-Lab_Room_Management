@@ -511,11 +511,11 @@ public class BookingsController : ControllerBase
 
     [HttpPost("cancel/{id:guid}")]
     [Authorize(Policy = "Lecturer")]
-    public async Task<IActionResult> CancelBooking([FromRoute] Guid id, CancellationToken cancellationToken)
+    public async Task<IActionResult> CancelBooking([FromRoute] Guid id, [FromBody] CancelBookingCommand command, CancellationToken cancellationToken)
     {
         try
         {
-            var command = new CancelBookingCommand { BookingId = id };
+            command.BookingId = id;
             var result = await _mediator.Send(command, cancellationToken);
 
             if (result.Success)

@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
 namespace BookLAB.Application.Common.Models
 {
@@ -8,7 +8,8 @@ namespace BookLAB.Application.Common.Models
         MissingRoom,
         ConflictDetected,
         ParseError,
-        SystemError
+        SystemError,
+        QuotaExceeded
     }
 
     public class AIBookingResponse

@@ -28,7 +28,6 @@ namespace BookLAB.Infrastructure.BackgroundJobs.Emails
             var template = await _unitOfWork.Repository<EmailTemplate>().Entities
                 .AsNoTracking()
                 .FirstOrDefaultAsync(t => t.Type == EmailType.RejectedByPriority);
-            Console.WriteLine($"=======>[RejectBookingByPriorityEmailJob] Fetched email template: {(template != null ? "Found" : "Not Found")}");
             if (template == null) return;
 
             // =========================================================================
@@ -36,13 +35,11 @@ namespace BookLAB.Infrastructure.BackgroundJobs.Emails
             // =========================================================================
             if (bookingIds != null && bookingIds.Any())
             {
-                Console.WriteLine("=============> bookingIds : " + bookingIds.Count);
                 var rejectedBookings = await _unitOfWork.Repository<BookingRequest>().Entities
                     .AsNoTracking()
                     .Include(br => br.Booking).ThenInclude(b => b.LabRoom)
                     .Where(br => bookingIds.Contains(br.BookingId) && br.CreatedBy.HasValue)
                     .ToListAsync();
-                Console.WriteLine("=============> RejectedBookings : " + rejectedBookings.Count);
 
                 foreach (var br in rejectedBookings)
                 {
@@ -82,18 +79,17 @@ namespace BookLAB.Infrastructure.BackgroundJobs.Emails
             {
                 var rejectedSchedules = await _unitOfWork.Repository<Schedule>().Entities
                     .AsNoTracking()
+                    .IgnoreQueryFilters() // 🔥 THÊM DÒNG NÀY: Bỏ qua bộ lọc IsDeleted tự động của EF Core
                     .Include(cs => cs.LabRoom)
-                    .Where(cs => scheduleIds.Contains(cs.Id))
+                    .Where(cs => cs.Id == scheduleIds[0])
                     .ToListAsync();
-                Console.WriteLine("=============> RejectedSchedules : " + rejectedSchedules.Count);
-
 
                 foreach (var sched in rejectedSchedules)
                 {
                     // Tập hợp ID những người liên quan (Giảng viên phụ trách và Người tạo lịch nếu có)
-                    var recipientUserIds = new HashSet<Guid> { sched.LecturerId };
+                    var recipientUserIds = new HashSet<Guid>();
+                    if (sched.LecturerId != null) recipientUserIds.Add(sched.LecturerId);
                     if (sched.CreatedBy.HasValue) recipientUserIds.Add(sched.CreatedBy.Value);
-
                     // Lấy danh sách User hợp lệ có bật cấu hình nhận thông báo qua Email
                     var usersToNotify = await _unitOfWork.Repository<User>().Entities
                         .AsNoTracking()

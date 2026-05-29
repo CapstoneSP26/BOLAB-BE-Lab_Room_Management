@@ -21,5 +21,8 @@ namespace BookLAB.Domain.Entities
         public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
         public UserNotificationPreference? NotificationPreference { get; set; }
         public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
+
+        public int AIRequestQuota { get; set; } = 20;
+        public DateTimeOffset? LastAIQuotaReset { get; set; }
     }
 }

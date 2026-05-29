@@ -1,4 +1,4 @@
-﻿using BookLAB.Application.Common.Exceptions;
+using BookLAB.Application.Common.Exceptions;
 using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Models;
@@ -39,8 +39,12 @@ namespace BookLAB.Application.Features.Auth.Queries.GetProfile
                     Email = user.Email,
                     FullName = user.FullName,
                     Roles = user.UserRoles.Select(ur => ur.Role.RoleName).ToList(),
+                    RoleIds = user.UserRoles.Select(ur => ur.RoleId).ToList(),
                     CampusId = user.CampusId,
                     AvatarUrl = user.UserImageUrl,
+                    UserCode = user.UserCode,
+                    IsActive = user.IsActive,
+                    AIRequestQuota = user.AIRequestQuota
                 };
             } catch (Exception ex)
             {
