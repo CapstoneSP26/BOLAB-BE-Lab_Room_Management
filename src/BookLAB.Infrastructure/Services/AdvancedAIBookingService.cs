@@ -1,4 +1,4 @@
-﻿using BookLAB.Application.Common.Interfaces.Identity;
+using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Interfaces.Services;
 using BookLAB.Application.Common.Models;
@@ -46,6 +46,21 @@ namespace BookLAB.Infrastructure.Services
         {
             try
             {
+                var userId = _currentUserService.UserId ?? Guid.Empty;
+                if (userId != Guid.Empty)
+                {
+                    var user = await _unitOfWork.Repository<User>().GetByIdAsync(userId);
+                    if (user != null && user.AIRequestQuota <= 0)
+                    {
+                        return new AIBookingResponse
+                        {
+                            Status = AIResponseStatus.QuotaExceeded,
+                            Message = "Bạn đã sử dụng hết lượt AI Smart Booking trong tuần. Vui lòng quay lại vào tuần sau hoặc sử dụng chức năng đặt phòng thủ công.",
+                            Confidence = 0
+                        };
+                    }
+                }
+
                 // 1. Extract raw data từ Gemini
                 var rawParsing = await ParseBookingCommandAsync(userPrompt, ct);
 
@@ -62,6 +77,21 @@ namespace BookLAB.Infrastructure.Services
                 // 2. Normalize & Validate parsed data
                 var normalized = await NormalizeAndEnrichAsync(rawParsing, ct);
 
+                if (normalized.LabRoomId == 0)
+                {
+                    bool foundRoom = await AutoAssignRoomAsync(normalized, ct);
+                    if (!foundRoom)
+                    {
+                        return new AIBookingResponse
+                        {
+                            Status = AIResponseStatus.MissingRoom,
+                            Message = "Không tìm thấy phòng nào trống và phù hợp với số lượng sinh viên yêu cầu.",
+                            Confidence = 0,
+                            RequiresUserConfirmation = true
+                        };
+                    }
+                }
+
                 // 3. Detect conflicts với lịch của user
                 var conflicts = await DetectConflictsAsync(normalized, ct);
 
@@ -70,6 +100,17 @@ namespace BookLAB.Infrastructure.Services
 
                 // 6. Build response with confidence scoring
                 var response = BuildResponse(normalized, suggestions, conflicts);
+
+                if (userId != Guid.Empty)
+                {
+                    var userToUpdate = await _unitOfWork.Repository<User>().GetByIdAsync(userId);
+                    if (userToUpdate != null)
+                    {
+                        userToUpdate.AIRequestQuota--;
+                        await _unitOfWork.Repository<User>().UpdateAsync(userToUpdate);
+                        await _unitOfWork.SaveChangesAsync(ct);
+                    }
+                }
 
                 return response;
             }
@@ -112,8 +153,8 @@ Mục đích sử dụng:
 
 2. **RoomCode** (phòng cần đặt):
    - Ví dụ: AL-202, LAB-301
-   - Nếu user nói 'phòng đã quen' hoặc 'bất kỳ phòng nào', để null
-   - Nếu không nhắc tới, để null
+   - Nếu user yêu cầu một chuyên ngành/loại phòng (ví dụ: 'kinh tế', 'phần mềm', 'đồ họa', 'hóa học'), hãy TỰ ĐỘNG CHỌN một RoomCode trong danh sách phòng có RoomName phù hợp nhất với lĩnh vực đó.
+   - Nếu user nói 'bất kỳ phòng nào' hoặc không nhắc tới yêu cầu cụ thể về phòng, để null
 
 3. **Dates & Times** (TỚI QUAN TRỌNG):
    
@@ -125,8 +166,8 @@ Mục đích sử dụng:
       - StartTime, EndTime: NULL
       - Date: Ngày đặt (yyyy-MM-dd)
    
-   b) **Cách B - Giờ tự do** (user nói: 'từ 8h đến 12h' hoặc 'trong 4 tiếng'):
-      - StartTime, EndTime: HH:mm (ví dụ '08:00', '12:00')
+   b) **Cách B - Giờ tự do** (user nói: 'từ 8h đến 12h' hoặc 'trong 4 tiếng' hoặc 'lúc 14:00'):
+      - StartTime, EndTime: HH:mm (ví dụ '08:00', '12:00'). Nếu user chỉ cho giờ bắt đầu, tự tính EndTime bằng cách cộng thêm 2 tiếng.
       - Slots, SlotTypeName: NULL
       - Date: Ngày đặt (yyyy-MM-dd)
    
@@ -303,13 +344,19 @@ Chỉ trả về JSON, không giải thích thêm:
                 }
             }
             // Handle custom time
-            else if (!string.IsNullOrEmpty(parsed.StartTime) && !string.IsNullOrEmpty(parsed.EndTime))
+            else if (!string.IsNullOrEmpty(parsed.StartTime))
             {
-                if (TimeOnly.TryParse(parsed.StartTime, out var start) &&
-                    TimeOnly.TryParse(parsed.EndTime, out var end))
+                if (TimeOnly.TryParse(parsed.StartTime, out var start))
                 {
                     normalized.StartTime = start;
-                    normalized.EndTime = end;
+                    if (!string.IsNullOrEmpty(parsed.EndTime) && TimeOnly.TryParse(parsed.EndTime, out var end))
+                    {
+                        normalized.EndTime = end;
+                    }
+                    else
+                    {
+                        normalized.EndTime = start.AddHours(2);
+                    }
                 }
             }
 
@@ -318,6 +365,64 @@ Chỉ trả về JSON, không giải thích thêm:
             normalized.OriginalPrompt = parsed;
 
             return normalized;
+        }
+
+        private async Task<bool> AutoAssignRoomAsync(NormalizedBookingRequest normalized, CancellationToken ct)
+        {
+            if (normalized.BaseDate == default || normalized.StartTime == default || normalized.EndTime == default)
+                return false;
+
+            var campusId = _currentUserService.CampusId;
+
+            // Lấy danh sách các phòng đang hoạt động và đủ sức chứa tại campus
+            var availableRooms = await _unitOfWork.Repository<LabRoom>().Entities
+                .Include(r => r.Building)
+                .Where(r => r.IsActive && !r.IsDeleted && r.Capacity >= normalized.StudentCount && r.Building.CampusId == campusId)
+                .OrderBy(r => r.Capacity) // Ưu tiên phòng nhỏ nhất đủ chỗ
+                .ToListAsync(ct);
+
+            if (!availableRooms.Any()) return false;
+
+            foreach (var room in availableRooms)
+            {
+                bool isRoomAvailable = true;
+
+                for (int i = 0; i < normalized.RecurringCount; i++)
+                {
+                    var weekDate = normalized.BaseDate.AddDays(i * 7);
+                    var startDateTime = weekDate.Add(normalized.StartTime.ToTimeSpan()).ToUniversalTime();
+                    var endDateTime = weekDate.Add(normalized.EndTime.ToTimeSpan()).ToUniversalTime();
+
+                    var roomBookingsCount = await _unitOfWork.Repository<Schedule>().Entities
+                        .CountAsync(s => s.LabRoomId == room.Id &&
+                                         s.IsActive &&
+                                         !s.IsDeleted &&
+                                         s.StartTime < endDateTime &&
+                                         s.EndTime > startDateTime, ct);
+
+                    var pendingBookingsCount = await _unitOfWork.Repository<BookingRequest>().Entities
+                        .Include(b => b.Booking)
+                        .CountAsync(b => b.BookingRequestStatus == BookingRequestStatus.Pending &&
+                                         b.Booking.LabRoomId == room.Id &&
+                                         b.Booking.StartTime < endDateTime &&
+                                         b.Booking.EndTime > startDateTime, ct);
+
+                    if (roomBookingsCount > 0 || pendingBookingsCount > 0)
+                    {
+                        isRoomAvailable = false;
+                        break;
+                    }
+                }
+
+                if (isRoomAvailable)
+                {
+                    normalized.LabRoomId = room.Id;
+                    normalized.RoomName = room.RoomName;
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -371,15 +476,25 @@ Chỉ trả về JSON, không giải thích thêm:
                     result.ConflictDetails.Add($"Tuần {i + 1}: Bạn đã đặt {bookingConflicts.Count} phòng khác");
                 }
 
-                // Check room capacity at this time
-                var roomBookings = await _unitOfWork.Repository<Schedule>().Entities
+                // Check if the room is ALREADY BOOKED by ANY user
+                var roomScheduleConflictsCount = await _unitOfWork.Repository<Schedule>().Entities
                     .CountAsync(s => s.LabRoomId == normalized.LabRoomId &&
-                                      s.StartTime < endDateTime &&
-                                      s.EndTime > startDateTime, ct);
+                                     s.IsActive && !s.IsDeleted &&
+                                     s.StartTime < endDateTime &&
+                                     s.EndTime > startDateTime, ct);
 
-                if (roomBookings >= 10) // Giả sử max 10 concurrent bookings
+                var roomBookingRequestsConflictsCount = await _unitOfWork.Repository<BookingRequest>().Entities
+                    .Include(b => b.Booking)
+                    .CountAsync(b => b.Booking.LabRoomId == normalized.LabRoomId &&
+                                     b.BookingRequestStatus == BookingRequestStatus.Pending &&
+                                     b.Booking.StartTime < endDateTime &&
+                                     b.Booking.EndTime > startDateTime, ct);
+
+                if (roomScheduleConflictsCount > 0 || roomBookingRequestsConflictsCount > 0)
                 {
-                    result.RoomCapacityIssues.Add($"Tuần {i + 1}: Phòng sắp đầy");
+                    result.HasBookingConflict = true;
+                    if (!result.ConflictingWeeks.Contains(i + 1)) result.ConflictingWeeks.Add(i + 1);
+                    result.ConflictDetails.Add($"Tuần {i + 1}: Phòng đã có lịch hoặc đang có người đặt (BR)");
                 }
             }
 
@@ -472,6 +587,10 @@ Chỉ trả về JSON, không giải thích thêm:
             {
                 status = AIResponseStatus.MissingRoom;
                 message = "Chưa xác định phòng. Bạn muốn đặt phòng nào?";
+            }
+            else if (string.IsNullOrEmpty(normalized.OriginalPrompt?.RoomCode) && alternatives.Count == 0 && conflicts.ConflictDetails.Count == 0)
+            {
+                message = $"Đã tự động chọn phòng trống {normalized.RoomName} phù hợp với yêu cầu.";
             }
 
             if (conflicts.HasScheduleConflict || conflicts.HasBookingConflict)

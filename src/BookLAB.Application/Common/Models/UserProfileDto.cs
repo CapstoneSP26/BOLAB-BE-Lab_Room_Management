@@ -1,4 +1,4 @@
-﻿namespace BookLAB.Application.Common.Models
+namespace BookLAB.Application.Common.Models
 {
     public class UserProfileDto
     {
@@ -11,5 +11,6 @@
         public string? AvatarUrl { get; set; }
         public string? UserCode { get; set; }
         public bool? IsActive { get; set; }
+        public int AIRequestQuota { get; set; }
     }
 }
