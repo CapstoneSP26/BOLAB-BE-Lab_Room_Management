@@ -7,5 +7,7 @@ namespace BookLAB.Application.Features.Dashboard.Queries.GetDashboardOverview
     {
         public Guid? UserId { get; init; }
         public string Role { get; init; } = string.Empty;
+        public DateTimeOffset StartDate { get; set; }
+        public DateTimeOffset EndDate { get; set; }
     }
 }

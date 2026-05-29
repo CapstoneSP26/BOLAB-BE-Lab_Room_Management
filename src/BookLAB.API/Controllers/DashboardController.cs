@@ -1,8 +1,11 @@
-using BookLAB.Application.Features.Dashboard.Queries.GetDashboardStats;
 using BookLAB.Application.Features.Dashboard.Queries.GetDashboardOverview;
+using BookLAB.Application.Features.Dashboard.Queries.GetDashboardStats;
+using BookLAB.Application.Features.Dashboard.Queries.GetPdfStatistic;
+using Hangfire.Storage.Monitoring;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using QuestPDF.Fluent;
 
 namespace BookLAB.API.Controllers
 {
@@ -49,7 +52,7 @@ namespace BookLAB.API.Controllers
 
         [HttpGet("overview")]
         [Authorize(Policy = "AcademicOffice_LabManager")]
-        public async Task<IActionResult> GetOverview(CancellationToken cancellationToken)
+        public async Task<IActionResult> GetOverview([FromQuery] DateTimeOffset StartDate, [FromQuery] DateTimeOffset EndDate, CancellationToken cancellationToken)
         {
             var userIdClaim = User.FindFirst("Id")?.Value;
             var role = User.FindFirst("Role")?.Value ?? string.Empty;
@@ -58,10 +61,30 @@ namespace BookLAB.API.Controllers
             var result = await _mediator.Send(new GetDashboardOverviewQuery
             {
                 UserId = userId,
-                Role = role
+                Role = role,
+                StartDate = StartDate,
+                EndDate = EndDate
             }, cancellationToken);
 
             return Ok(result);
         }
+
+        [HttpGet("pdfFile")]
+        [Authorize(Policy = "AcademicOffice_LabManager")]
+        public async Task<IActionResult> GetPdfFile([FromQuery] string timeType, CancellationToken cancellationToken)
+        {
+            if (!(timeType == "1d" || timeType == "1w" || timeType == "4m" || timeType == "8m" || timeType == "1y"))
+                return BadRequest("timeType is not correct");
+
+            GetPdfStatisticQuery query = new GetPdfStatisticQuery
+            {
+                TimeType = timeType
+            };
+
+            var result = await _mediator.Send(query, cancellationToken);
+
+            return File(result, "application/pdf", "report.pdf");
+        }
+
     }
 }

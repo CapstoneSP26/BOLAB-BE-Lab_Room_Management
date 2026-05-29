@@ -11,10 +11,12 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Tokens;
 using QRCoder;
+using QuestPDF.Infrastructure;
 using BookLAB.API.Filters;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+QuestPDF.Settings.License = LicenseType.Community;
 
 builder.Services.AddAuthentication(options =>
 {
@@ -101,6 +103,11 @@ builder.Services.AddAuthorization(options =>
         policyBuilder => policyBuilder.RequireAssertion(
             context => context.User.HasClaim(claim => claim.Type == "Role")
             && context.User.FindFirst(claim => claim.Type == "Role").Value == "4"));
+
+    options.AddPolicy("Tablet",
+        policyBuilder => policyBuilder.RequireAssertion(
+            context => context.User.HasClaim(claim => claim.Type == "Role")
+            && context.User.FindFirst(claim => claim.Type == "Role").Value == "0"));
 });
 
 builder.Services.AddCors(opt =>

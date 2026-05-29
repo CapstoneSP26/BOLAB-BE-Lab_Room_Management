@@ -5,6 +5,7 @@ namespace BookLAB.Application.Features.Groups.Queries.GetGroupMembers
     public record GetGroupMembersQuery : IRequest<List<GroupMemberDto>>
     {
         public Guid GroupId { get; init; }
+        public string? SubjectCode { get; set; }
     }
 
     public class GroupMemberDto

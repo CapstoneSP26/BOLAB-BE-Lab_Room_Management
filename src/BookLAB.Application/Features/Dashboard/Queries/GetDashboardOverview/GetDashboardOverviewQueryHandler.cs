@@ -24,8 +24,10 @@ namespace BookLAB.Application.Features.Dashboard.Queries.GetDashboardOverview
         public async Task<DashboardOverviewDto> Handle(GetDashboardOverviewQuery request, CancellationToken cancellationToken)
         {
             var now = DateTimeOffset.UtcNow;
-            var todayStart = new DateTimeOffset(now.Year, now.Month, now.Day, 0, 0, 0, TimeSpan.Zero);
-            var tomorrowStart = todayStart.AddDays(1);
+            //var todayStart = new DateTimeOffset(now.Year, now.Month, now.Day, 0, 0, 0, TimeSpan.Zero);
+            //var tomorrowStart = todayStart.AddDays(1);
+            var todayStart = new DateTimeOffset(request.StartDate.Year, request.StartDate.Month, request.StartDate.Day, 0, 0, 0, TimeSpan.Zero);
+            var tomorrowStart = new DateTimeOffset(request.EndDate.Year, request.EndDate.Month, request.EndDate.Day, 0, 0, 0, TimeSpan.Zero);
             var monthStart = new DateTimeOffset(now.Year, now.Month, 1, 0, 0, 0, TimeSpan.Zero);
             var nextMonthStart = monthStart.AddMonths(1);
             var year = now.Year;

@@ -233,7 +233,7 @@ namespace BookLAB.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [Authorize(Policy = "AcademicOffice_Lecturer")]
-        public async Task<IActionResult> GetGroupMembers(Guid groupId, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetGroupMembers([FromRoute] Guid groupId, [FromQuery] string? subjectCode, CancellationToken cancellationToken)
         {
             try
             {

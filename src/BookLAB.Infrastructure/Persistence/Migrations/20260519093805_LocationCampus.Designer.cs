@@ -4,6 +4,7 @@ using System.Text.Json;
 using BookLAB.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BookLAB.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(BookLABDbContext))]
-    partial class BookLABDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260519093805_LocationCampus")]
+    partial class LocationCampus
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -84,9 +87,6 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("AutoRejectedByBookingId")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("BookingStatus")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -141,9 +141,6 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("AutoRejectedByBookingId")
-                        .IsUnique();
 
                     b.HasIndex("BookingStatus");
 
@@ -331,48 +328,14 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Subject")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
-
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
-                    b.Property<string>("VariablesJson")
-                        .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
-
                     b.HasKey("Id");
 
                     b.ToTable("EmailTemplates", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Content = "<h1>Booking Confirmed</h1>",
-                            Subject = "",
-                            Type = "0",
-                            VariablesJson = "[]"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Content = "<h1>Booking Rejected</h1>",
-                            Subject = "",
-                            Type = "0",
-                            VariablesJson = "[]"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Content = "<h1>Attendance Report</h1>",
-                            Subject = "",
-                            Type = "0",
-                            VariablesJson = "[]"
-                        });
                 });
 
             modelBuilder.Entity("BookLAB.Domain.Entities.Group", b =>
@@ -713,9 +676,6 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("PriorityLevel")
-                        .HasColumnType("integer");
-
                     b.Property<string>("PurposeName")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -728,26 +688,6 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("UQ_PurposeType_Name");
 
                     b.ToTable("PurposeTypes", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            PriorityLevel = 0,
-                            PurposeName = "Lecture"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            PriorityLevel = 0,
-                            PurposeName = "Practical"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            PriorityLevel = 0,
-                            PurposeName = "Workshop"
-                        });
                 });
 
             modelBuilder.Entity("BookLAB.Domain.Entities.Report", b =>
@@ -918,22 +858,12 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("AutoCancelledByBookingId")
-                        .HasColumnType("uuid");
-
                     b.Property<Guid?>("BookingId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("CalendarEventId")
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
-
-                    b.Property<string>("CancelReason")
-                        .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
-
-                    b.Property<Guid?>("CancelledBy")
-                        .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -970,9 +900,6 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("LecturerId")
                         .HasColumnType("uuid");
 
-                    b.Property<int?>("SchedulePriority")
-                        .HasColumnType("integer");
-
                     b.Property<string>("ScheduleStatus")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -1003,9 +930,6 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("AutoCancelledByBookingId")
-                        .IsUnique();
 
                     b.HasIndex("BookingId")
                         .IsUnique();
@@ -1175,9 +1099,6 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<int>("AIRequestQuota")
-                        .HasColumnType("integer");
-
                     b.Property<int>("CampusId")
                         .HasColumnType("integer");
 
@@ -1206,9 +1127,6 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
                         .HasDefaultValue(false);
-
-                    b.Property<DateTimeOffset?>("LastAIQuotaReset")
-                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Provider")
                         .HasMaxLength(100)
@@ -1248,47 +1166,6 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("UQ_User_Code");
 
                     b.ToTable("Users", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("11111111-1111-1111-1111-111111111111"),
-                            AIRequestQuota = 20,
-                            CampusId = 1,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            Email = "alice@example.edu",
-                            FullName = "Alice Tran",
-                            IsActive = true,
-                            IsDeleted = false,
-                            UserCode = "AliceT",
-                            UserImageUrl = ""
-                        },
-                        new
-                        {
-                            Id = new Guid("22222222-2222-2222-2222-222222222222"),
-                            AIRequestQuota = 20,
-                            CampusId = 1,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            Email = "bob@example.edu",
-                            FullName = "Bob Nguyen",
-                            IsActive = true,
-                            IsDeleted = false,
-                            UserCode = "BobN",
-                            UserImageUrl = ""
-                        },
-                        new
-                        {
-                            Id = new Guid("33333333-3333-3333-3333-333333333333"),
-                            AIRequestQuota = 20,
-                            CampusId = 2,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 3, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            Email = "carol@example.edu",
-                            FullName = "Carol Le",
-                            IsActive = true,
-                            IsDeleted = false,
-                            UserCode = "CarolL",
-                            UserImageUrl = ""
-                        });
                 });
 
             modelBuilder.Entity("BookLAB.Domain.Entities.UserNotificationPreference", b =>
@@ -1372,11 +1249,6 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("BookLAB.Domain.Entities.Booking", b =>
                 {
-                    b.HasOne("BookLAB.Domain.Entities.Booking", "AutoRejectedByBooking")
-                        .WithOne()
-                        .HasForeignKey("BookLAB.Domain.Entities.Booking", "AutoRejectedByBookingId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("BookLAB.Domain.Entities.LabRoom", "LabRoom")
                         .WithMany()
                         .HasForeignKey("LabRoomId")
@@ -1398,8 +1270,6 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("SlotTypeId")
                         .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("AutoRejectedByBooking");
 
                     b.Navigation("LabRoom");
 
@@ -1596,11 +1466,6 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("BookLAB.Domain.Entities.Schedule", b =>
                 {
-                    b.HasOne("BookLAB.Domain.Entities.Booking", "AutoCancelledByBooking")
-                        .WithOne()
-                        .HasForeignKey("BookLAB.Domain.Entities.Schedule", "AutoCancelledByBookingId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("BookLAB.Domain.Entities.Booking", "Booking")
                         .WithOne()
                         .HasForeignKey("BookLAB.Domain.Entities.Schedule", "BookingId")
@@ -1632,8 +1497,6 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("SlotTypeId")
                         .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("AutoCancelledByBooking");
 
                     b.Navigation("Booking");
 

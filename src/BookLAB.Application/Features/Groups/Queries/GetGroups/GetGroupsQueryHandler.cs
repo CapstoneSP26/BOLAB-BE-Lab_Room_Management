@@ -25,8 +25,8 @@ namespace BookLAB.Application.Features.Groups.Queries.GetGroups
             var currentUserId = _currentUserService.UserId ?? Guid.Empty;
 
             var groups = await _unitOfWork.Repository<Group>().Entities
+                .Include(x => x.User)
                 .Where(g => g.OwnerId == currentUserId && !g.IsDeleted)
-                .Include(g => g.User)
                 .Select(g => new GroupDto
                 {
                     Id = g.Id,
@@ -35,8 +35,10 @@ namespace BookLAB.Application.Features.Groups.Queries.GetGroups
                     OwnerName = g.User.FullName,
                     MembersCount = g.Id == Guid.Empty ? 0 : 0, // Will be populated below
                     CreatedAt = g.CreatedAt,
-                    UpdatedAt = g.UpdatedAt
+                    UpdatedAt = g.UpdatedAt,
+                    SubjectCode = g.GroupMembers.Select(x => x.SubjectCode).ToList()
                 })
+                .OrderBy(x => x.GroupName)
                 .ToListAsync(cancellationToken);
 
             // Get members count for each group

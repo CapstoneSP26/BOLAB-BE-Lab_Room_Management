@@ -32,11 +32,12 @@ namespace BookLAB.Infrastructure.Persistence
         public DbSet<Schedule> Schedules => Set<Schedule>();
         public DbSet<Subject> Subjects => Set<Subject>();
         public DbSet<UserNotificationPreference> UserNotificationPreferences => Set<UserNotificationPreference>();
+        public DbSet<TabletAccount> TabletAccounts => Set<TabletAccount>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(BookLABDbContext).Assembly);
-            modelBuilder.Seed();
+            //modelBuilder.Seed();
             base.OnModelCreating(modelBuilder);
         }
     }
