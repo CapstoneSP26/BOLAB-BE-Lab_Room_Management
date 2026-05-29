@@ -510,7 +510,7 @@ public class BookingsController : ControllerBase
     }
 
     [HttpPost("cancel/{id:guid}")]
-    [Authorize(Policy = "Lecturer")]
+    [Authorize(Policy = "AcademicOffice_LabManager_Lecturer")]
     public async Task<IActionResult> CancelBooking([FromRoute] Guid id, [FromBody] CancelBookingCommand command, CancellationToken cancellationToken)
     {
         try
