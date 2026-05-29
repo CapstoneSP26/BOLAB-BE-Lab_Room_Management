@@ -1,4 +1,4 @@
-﻿using BookLAB.Application.Common.Interfaces.Identity;
+using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Models;
 using BookLAB.Domain.Entities;
@@ -40,14 +40,14 @@ namespace BookLAB.Application.Features.LabRooms.Commands.UpdateLabRoom
                         Message = "Lab Room is not existed"
                     };
 
-                labRoom.BuildingId = request.BuildingId == 0 ? request.BuildingId : labRoom.BuildingId;
-                labRoom.RoomName = request.RoomName == "" ? request.RoomName : labRoom.RoomName;
-                labRoom.RoomNo = request.RoomNo == "" ? request.RoomNo : labRoom.RoomNo;
-                labRoom.Location = request.Location == "" ? request.Location : labRoom.Location;
+                labRoom.BuildingId = request.BuildingId != 0 ? request.BuildingId : labRoom.BuildingId;
+                labRoom.RoomName = !string.IsNullOrEmpty(request.RoomName) ? request.RoomName : labRoom.RoomName;
+                labRoom.RoomNo = !string.IsNullOrEmpty(request.RoomNo) ? request.RoomNo : labRoom.RoomNo;
+                labRoom.Location = !string.IsNullOrEmpty(request.Location) ? request.Location : labRoom.Location;
                 labRoom.OverrideNumber = request.OverrideNumber;
                 labRoom.HasEquipment = request.HasEquipment;
-                labRoom.Capacity = request.Capacity == 0 ? request.Capacity : labRoom.Capacity;
-                labRoom.Description = request.Description == "" ? request.Description : labRoom.Description;
+                labRoom.Capacity = request.Capacity != 0 ? request.Capacity : labRoom.Capacity;
+                labRoom.Description = request.Description ?? labRoom.Description;
                 labRoom.UpdatedBy = _currentUserService.UserId;
                 labRoom.UpdatedAt = DateTimeOffset.UtcNow;
                 labRoom.IsActive = request.IsActive;
