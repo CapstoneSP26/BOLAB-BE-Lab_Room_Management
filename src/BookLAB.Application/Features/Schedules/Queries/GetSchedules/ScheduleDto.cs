@@ -15,6 +15,7 @@ namespace BookLAB.Application.Features.Schedules.Queries.GetSchedules
         public DateTimeOffset StartTime { get; init; }
         public DateTimeOffset EndTime { get; init; }
         public int StudentCount { get; init; }
+        public SchedulePriority SchedulePriority { get; init; }    // Enum string representation
         public ScheduleStatus Status { get; init; }     // Enum string representation
         public ScheduleType Type { get; init; }    // Enum string representation
         public DateTimeOffset CreatedAt {  get; init; }

@@ -22,8 +22,10 @@ namespace BookLAB.Application.Features.Bookings.Queries.GetBookings
                 EndTime = x.Booking.EndTime,
                 StudentCount = x.Booking.StudentCount,
                 Reason = x.Booking.Reason,
+                PriorityLevel = x.Booking.PurposeTypeId,
                 Status = x.Booking.BookingStatus,
                 CreatedAt = x.Booking.CreatedAt,
+
             });
         }
     }

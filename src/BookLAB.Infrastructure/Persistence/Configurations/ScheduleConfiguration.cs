@@ -33,6 +33,10 @@ public class ScheduleConfiguration : IEntityTypeConfiguration<Schedule>
         builder.Property(s => s.SubjectCode)
             .HasMaxLength(20);
 
+        builder.Property(s => s.CancelReason)
+            .HasMaxLength(512)
+            .IsRequired(false);
+
         builder.Property(s => s.ImportHash)
             .IsRequired(false)
             .HasMaxLength(255); 
@@ -56,6 +60,7 @@ public class ScheduleConfiguration : IEntityTypeConfiguration<Schedule>
         // 3. Cấu hình Auditing
         builder.Property(s => s.CreatedAt).IsRequired();
         builder.Property(s => s.CreatedBy).IsRequired();
+        builder.Property(s => s.CancelledBy).IsRequired(false);
 
         // 4. Global Query Filter (Soft Delete)
         builder.HasQueryFilter(s => !s.IsDeleted);

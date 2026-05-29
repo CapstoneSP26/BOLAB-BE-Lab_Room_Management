@@ -21,6 +21,8 @@ namespace BookLAB.Domain.Entities
         public string? ImportHash { get; set; } // For tracking imported schedules
         public DateTimeOffset StartTime { get; set; }
         public DateTimeOffset EndTime { get; set; }
+        public Guid? CancelledBy { get; set; } // ID của người bấm nút hủy lịch (Có thể là Lecturer hoặc Trưởng Lab)
+        public string? CancelReason { get; set; } // Lý do hủy lịch chính thức
 
         public DateTimeOffset CreatedAt { get; set; }
         public DateTimeOffset? UpdatedAt { get; set; }

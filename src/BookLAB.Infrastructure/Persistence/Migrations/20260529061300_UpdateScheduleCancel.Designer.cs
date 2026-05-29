@@ -4,6 +4,7 @@ using System.Text.Json;
 using BookLAB.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BookLAB.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(BookLABDbContext))]
-    partial class BookLABDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260529061300_UpdateScheduleCancel")]
+    partial class UpdateScheduleCancel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1715,9 +1718,6 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<int>("AIRequestQuota")
-                        .HasColumnType("integer");
-
                     b.Property<int>("CampusId")
                         .HasColumnType("integer");
 
@@ -1746,9 +1746,6 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
                         .HasDefaultValue(false);
-
-                    b.Property<DateTimeOffset?>("LastAIQuotaReset")
-                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Provider")
                         .HasMaxLength(100)
@@ -1793,7 +1790,6 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = new Guid("11111111-1111-1111-1111-111111111111"),
-                            AIRequestQuota = 20,
                             CampusId = 1,
                             CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Email = "alice@example.edu",
@@ -1806,7 +1802,6 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = new Guid("22222222-2222-2222-2222-222222222222"),
-                            AIRequestQuota = 20,
                             CampusId = 1,
                             CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Email = "bob@example.edu",
@@ -1819,7 +1814,6 @@ namespace BookLAB.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = new Guid("33333333-3333-3333-3333-333333333333"),
-                            AIRequestQuota = 20,
                             CampusId = 2,
                             CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 3, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Email = "carol@example.edu",
