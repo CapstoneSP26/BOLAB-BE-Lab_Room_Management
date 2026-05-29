@@ -17,6 +17,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using QRCoder;
+using Resend;
 
 namespace BookLAB.Infrastructure
 {
@@ -50,6 +51,12 @@ namespace BookLAB.Infrastructure
 
             // Ánh xạ cấu hình từ appsettings.json vào class EmailSettings
             services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
+            services.Configure<ResendClientOptions>(o =>
+            {
+                o.ApiToken = configuration["Resend:ApiKey"]!;
+            });
+
+            services.AddHttpClient<ResendClient>();
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
