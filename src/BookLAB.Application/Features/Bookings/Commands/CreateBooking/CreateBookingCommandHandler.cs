@@ -236,7 +236,6 @@ namespace BookLAB.Application.Features.Bookings.Commands.CreateBooking
                         {
                             lowBooking.BookingStatus = BookingStatus.Rejected;
                             lowBooking.AutoRejectedByBookingId = bookingId; // Đóng dấu bắn thông báo
-                            lowBooking.PurposeType = null;
                             _unitOfWork.Repository<Booking>().Update(lowBooking);
                             rejectedBookingIds.Add(lowBooking.Id);
 
