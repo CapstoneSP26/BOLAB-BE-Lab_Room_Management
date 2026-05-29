@@ -9,7 +9,7 @@ namespace BookLAB.Domain.Entities
         public Guid RequestedByUserId { get; set; }
         public Guid? ResponsedByUserId { get; set; }
         public BookingRequestStatus BookingRequestStatus { get; set; }
-        public string? ResponseContext { get; set; }
+        public string? ResponseContext { get; set; }// for rejection reason or approval note
         public DateTimeOffset CreatedAt { get; set; }
         public DateTimeOffset? UpdatedAt { get; set; }
         public Guid? CreatedBy { get; set; }

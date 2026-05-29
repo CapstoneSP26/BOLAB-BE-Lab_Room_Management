@@ -5,6 +5,7 @@ namespace BookLAB.Domain.Enums
     {
         Pending,
         Approved,
-        Rejected
+        Rejected,
+        Cancelled,
     }
 }
