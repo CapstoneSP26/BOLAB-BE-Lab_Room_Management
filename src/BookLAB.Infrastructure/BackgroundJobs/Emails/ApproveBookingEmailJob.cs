@@ -48,6 +48,10 @@ namespace BookLAB.Infrastructure.BackgroundJobs.Emails
             var vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"); 
 
             var myBookingUrl = $"{_configuration["FrontendUrl"]}/my-bookings";
+            Console.WriteLine("======== EMAIL JOB ========");
+            Console.WriteLine(_configuration["FrontendUrl"]);
+            Console.WriteLine(
+                Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"));
 
             var values = new Dictionary<string, string>
         {
