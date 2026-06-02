@@ -1,50 +1,45 @@
-﻿using BookLAB.Application.Common.Interfaces.Services;
-using Microsoft.Extensions.Options;
-using MailKit.Net.Smtp;
-using MimeKit;
-using BookLAB.Infrastructure.Settings;
+﻿using Resend;
+using BookLAB.Application.Common.Interfaces.Services;
 
 namespace BookLAB.Infrastructure.Services
 {
     public class EmailService : IEmailService
     {
-        private readonly EmailSettings _settings;
+        private readonly ResendClient _resend;
 
-        public EmailService(IOptions<EmailSettings> settings)
+        public EmailService(ResendClient resend)
         {
-            _settings = settings.Value;
+            _resend = resend;
         }
 
-        public async Task SendEmailAsync(string to, string subject, string body)
+        public async Task SendEmailAsync(
+            string to,
+            string subject,
+            string body)
         {
-            var email = new MimeMessage();
-            email.From.Add(new MailboxAddress(_settings.SenderName, _settings.SenderEmail));
+            var message = new EmailMessage
+            {
+                From = "BookLAB <noreply@booklab.cloud>",
+                Subject = subject,
+                HtmlBody = body
+            };
 
-            var recipients = to.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
+            var recipients = to.Split(
+                new[] { ',', ';' },
+                StringSplitOptions.RemoveEmptyEntries);
+
             foreach (var recipient in recipients)
             {
-                email.To.Add(MailboxAddress.Parse(recipient.Trim()));
+                message.To.Add(recipient.Trim());
             }
-            email.Subject = subject;
 
-            var builder = new BodyBuilder { HtmlBody = body };
-            email.Body = builder.ToMessageBody();
+            var response =
+                await _resend.EmailSendAsync(message);
 
-            using var smtp = new SmtpClient();
-            try
+            if (!response.Success)
             {
-                // Kết nối tới Server SMTP
-                await smtp.ConnectAsync(_settings.SmtpServer, _settings.SmtpPort, MailKit.Security.SecureSocketOptions.StartTls);
-
-                // Xác thực
-                await smtp.AuthenticateAsync(_settings.Username, _settings.Password);
-
-                // Gửi mail
-                await smtp.SendAsync(email);
-            }
-            finally
-            {
-                await smtp.DisconnectAsync(true);
+                throw new Exception(
+                    response.Exception.Message);
             }
         }
     }

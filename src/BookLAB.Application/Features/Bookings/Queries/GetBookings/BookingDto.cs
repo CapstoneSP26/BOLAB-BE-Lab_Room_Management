@@ -17,6 +17,7 @@ namespace BookLAB.Application.Features.Bookings.Queries.GetBookings
         public DateTimeOffset EndTime { get; set; }
         public int StudentCount { get; set; }
         public string? Reason { get; set; } 
+        public int PriorityLevel { get; set; }
 
         public BookingStatus Status { get; set; }
         public DateTimeOffset CreatedAt { get; set; }

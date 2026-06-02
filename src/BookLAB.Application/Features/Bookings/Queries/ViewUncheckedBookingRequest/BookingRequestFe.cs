@@ -1,4 +1,4 @@
-﻿using BookLAB.Application.Common.Models;
+using BookLAB.Application.Common.Models;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -19,6 +19,7 @@ namespace BookLAB.Application.Features.Bookings.Queries.ViewUncheckedBookingRequ
         public int? StudentCount { get; set; }
         public string Status { get; set; }
         public string Purpose { get; set; }
+        public string Reason { get; set; }
         public UserProfileDto? Requester { get; set; }
     }
 }

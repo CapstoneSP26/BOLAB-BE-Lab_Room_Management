@@ -2,14 +2,18 @@ using BookLAB.Application.Common.Exceptions;
 using BookLAB.Application.Common.Interfaces.Identity;
 using BookLAB.Application.Common.Interfaces.Integration;
 using BookLAB.Application.Common.Interfaces.Repositories;
-using BookLAB.Application.Common.Models;
 using BookLAB.Application.Common.Policies;
 using BookLAB.Application.Features.Bookings.Events;
 using BookLAB.Domain.Entities;
 using BookLAB.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace BookLAB.Application.Features.Bookings.Commands.CreateBooking
 {
@@ -22,11 +26,11 @@ namespace BookLAB.Application.Features.Bookings.Commands.CreateBooking
         private readonly INotificationService _notificationService;
 
         public CreateBookingCommandHandler(
-        IUnitOfWork unitOfWork,
-        IPolicyEvaluator policyEvaluator,
-        ICurrentUserService currentUserService,
-        IMediator mediator,
-        INotificationService notificationService)
+            IUnitOfWork unitOfWork,
+            IPolicyEvaluator policyEvaluator,
+            ICurrentUserService currentUserService,
+            IMediator mediator,
+            INotificationService notificationService)
         {
             _unitOfWork = unitOfWork;
             _policyEvaluator = policyEvaluator;
@@ -38,14 +42,33 @@ namespace BookLAB.Application.Features.Bookings.Commands.CreateBooking
         public async Task<CreateBookingResponse> Handle(CreateBookingCommand request, CancellationToken ct)
         {
             string? warningMessage = null;
-            // 1. Khai báo & Validate cơ bản
+
+            // ==================== BƯỚC 1: VALIDATE ĐẦU VÀO CƠ BẢN ====================
             if (request.StartTime >= request.EndTime)
                 throw new BusinessException("Thời gian bắt đầu phải trước thời gian kết thúc.");
 
-            // Giới hạn cứng tối đa 4 tuần theo yêu cầu của bạn
-            int totalWeeks = Math.Min(request.RecurringCount > 0 ? request.RecurringCount : 1, 4);
             var currentUserId = _currentUserService.UserId ?? Guid.Empty;
+            var startUtc = request.StartTime.ToUniversalTime();
+            var endUtc = request.EndTime.ToUniversalTime();
 
+            // Trích xuất thông tin loại mục đích để lấy trọng số PriorityLevel
+            var purposeType = await _unitOfWork.Repository<PurposeType>().Entities
+                .FirstOrDefaultAsync(p => p.Id == request.PurposeTypeId, ct);
+            if (purposeType == null) throw new NotFoundException("Mục đích đặt phòng không hợp lệ.");
+
+            // Quy ước đặc quyền: Loại mục đích ID = 3 (School Event của PĐT) -> Tự động duyệt thẳng
+            bool isBypassApproval = purposeType.Id == 3;
+
+            // 🚨 CHẶN TỐI CAO: Lịch cấp độ độc quyền (Priority >= 2 - Academic & School Event) CẤM ĐẶT ĐỊNH KỲ
+            if (purposeType.PriorityLevel >= 2 && request.RecurringCount > 1)
+            {
+                throw new BusinessException($"Mục đích '{purposeType.PurposeName}' mang tính chất đặc biệt/độc quyền, hệ thống chỉ cho phép đăng ký sử dụng đơn lẻ cho từng buổi riêng biệt (Tối đa 1 tuần).");
+            }
+
+            // Phân bổ số tuần hoạt động: Lịch thường tối đa 4 tuần, lịch độc quyền cố định duy nhất 1 tuần
+            int totalWeeks = purposeType.PriorityLevel >= 2 ? 1 : Math.Min(request.RecurringCount > 0 ? request.RecurringCount : 1, 4);
+
+            // ==================== BƯỚC 2: TRANSACTION DỮ LIỆU CHÍNH THỨC ====================
             await _unitOfWork.BeginTransactionAsync();
             try
             {
@@ -54,91 +77,109 @@ namespace BookLAB.Application.Features.Bookings.Commands.CreateBooking
                     .FirstOrDefaultAsync(r => r.Id == request.LabRoomId, ct);
 
                 if (room == null || !room.IsActive)
-                    throw new NotFoundException("Phòng không tồn tại hoặc không hoạt động.");
+                    throw new NotFoundException("Phòng máy không tồn tại hoặc đã tạm dừng hoạt động.");
 
-                var startUtc = request.StartTime.ToUniversalTime();
-                var endUtc = request.EndTime.ToUniversalTime();
-
-                var overlappingSchedules = await _unitOfWork.Repository<Schedule>().Entities
+                // 2.1. ĐÁNH CHẶN MA TRẬN ĐỘC QUYỀN TRÊN CÁC SCHEDULES ĐÃ ĐƯỢC DUYỆT TRONG DB
+                var allOverlappingSchedules = await _unitOfWork.Repository<Schedule>().Entities
                     .Where(s => s.LabRoomId == request.LabRoomId && s.IsActive && !s.IsDeleted &&
-                                s.StartTime < endUtc && s.EndTime > startUtc)
-                    .Select(s => new { s.StartTime, s.EndTime, s.StudentCount })
+                                s.StartTime < endUtc.AddDays((totalWeeks - 1) * 7) && s.EndTime > startUtc)
                     .ToListAsync(ct);
 
-                var events = new List<(DateTimeOffset Time, int Count)>();
-
-                foreach (var s in overlappingSchedules)
+                // Vòng lặp quét kiểm tra va chạm cấu trúc độc quyền theo từng tuần đơn lẻ
+                for (int i = 0; i < totalWeeks; i++)
                 {
-                    events.Add((s.StartTime, s.StudentCount));   // Sinh viên vào
-                    events.Add((s.EndTime, -s.StudentCount));    // Sinh viên ra
-                }
+                    var weekStart = startUtc.AddDays(i * 7);
+                    var weekEnd = endUtc.AddDays(i * 7);
 
-                // 3. Thuật toán Sweeping Line để tìm đỉnh cao nhất (Peak)
-                int peakStudents = 0;
-                int currentStudents = 0;
+                    var weekSchedules = allOverlappingSchedules
+                        .Where(s => s.StartTime < weekEnd && s.EndTime > weekStart)
+                        .ToList();
 
-                // Sắp xếp sự kiện theo thời gian, nếu trùng thời gian thì ưu tiên sự kiện "ra" trước để tránh vọt đỉnh ảo
-                var sortedEvents = events.OrderBy(e => e.Time).ThenBy(e => e.Count).ToList();
-
-                foreach (var ev in sortedEvents)
-                {
-                    currentStudents += ev.Count;
-                    if (currentStudents > peakStudents)
+                    // KỊCH BẢN A: Phòng đã có lịch SCHOOL_EVENT (Mức 3) -> KHÓA CỨNG PHÒNG TUYỆT ĐỐI
+                    bool hasSchoolEvent = weekSchedules.Any(s => s.SchedulePriority == SchedulePriority.SCHOOL_EVENT);
+                    if (hasSchoolEvent)
                     {
-                        peakStudents = currentStudents;
+                        throw new BusinessException($"Không thể đặt lịch. Tuần {i + 1} ({weekStart:dd/MM/yyyy}) phòng máy này đã bị khóa cứng bởi Sự kiện/Lịch thi độc quyền của Nhà trường.");
+                    }
+
+                    // KỊCH BẢN B: Yêu cầu là ACADEMIC/NORMAL nhưng đụng lịch ACADEMIC (Mức 2) đã duyệt sẵn
+                    bool hasAcademicEvent = weekSchedules.Any(s => s.SchedulePriority == SchedulePriority.ACADEMIC);
+                    if (hasAcademicEvent && !isBypassApproval)
+                    {
+                        throw new BusinessException($"Không thể tạo lịch. Tuần {i + 1} ({weekStart:dd/MM/yyyy}) phòng đã có lịch học chính khóa/dạy bù chính thức của Giảng viên khác.");
                     }
                 }
 
-                // 4. Kiểm tra với Capacity
-                int projectedPeak = peakStudents + request.StudentCount;
+                // 2.2. CHECK XUNG ĐỘT CÁ NHÂN (CHỈ ÁP DỤNG CHO LUỒNG ĐẶT LỊCH THƯỜNG)
+                if (!isBypassApproval)
+                {
+                    for (int i = 0; i < totalWeeks; i++)
+                    {
+                        var weekStart = startUtc.AddDays(i * 7);
+                        var weekEnd = endUtc.AddDays(i * 7);
 
+                        bool hasScheduleConflict = await _unitOfWork.Repository<Schedule>().Entities
+                            .AnyAsync(s => s.LecturerId == currentUserId && s.IsActive && !s.IsDeleted &&
+                                           s.StartTime < weekEnd && s.EndTime > weekStart, ct);
+
+                        bool hasBookingConflict = await _unitOfWork.Repository<BookingRequest>().Entities
+                            .AnyAsync(b => b.RequestedByUserId == currentUserId &&
+                                           b.BookingRequestStatus == BookingRequestStatus.Pending &&
+                                           b.Booking.StartTime < weekEnd && b.Booking.EndTime > weekStart, ct);
+
+                        if (hasScheduleConflict || hasBookingConflict)
+                            throw new BusinessException($"Bạn đã có lịch bận cá nhân hoặc một yêu cầu khác đang chờ duyệt trùng vào tuần {i + 1} ({weekStart:dd/MM/yyyy}).");
+                    }
+                }
+
+                // 2.3. THUẬT TOÁN SWEEPING LINE KIỂM TRA SỨC CHỨA PHÒNG (CAPACITY)
+                var sweepingEvents = new List<(DateTimeOffset Time, int Count)>();
+                foreach (var s in allOverlappingSchedules)
+                {
+                    sweepingEvents.Add((s.StartTime, s.StudentCount));
+                    sweepingEvents.Add((s.EndTime, -s.StudentCount));
+                }
+
+                var sortedSweepingEvents = sweepingEvents.OrderBy(e => e.Time).ThenBy(e => e.Count).ToList();
+                int peakStudents = 0;
+                int currentStudentsInRoom = 0;
+                foreach (var ev in sortedSweepingEvents)
+                {
+                    currentStudentsInRoom += ev.Count;
+                    if (currentStudentsInRoom > peakStudents) peakStudents = currentStudentsInRoom;
+                }
+
+                int projectedPeak = peakStudents + request.StudentCount;
                 if (projectedPeak > room.Capacity)
                 {
-                    warningMessage = $"Cảnh báo: Tại thời điểm cao nhất, phòng {room.RoomNo} sẽ có {projectedPeak}/{room.Capacity} sinh viên.";
+                    warningMessage = $"Cảnh báo: Tại thời điểm đông sinh viên nhất, phòng {room.RoomName} sẽ vượt tải công suất cấu hình ({projectedPeak}/{room.Capacity} chỗ).";
                 }
-
-                // 2. CHECK CONFLICT: Duyệt qua từng tuần để kiểm tra trùng lịch
-                for (int i = 0; i < totalWeeks; i++)
-                {
-                    var weekStart = request.StartTime.AddDays(i * 7).ToUniversalTime();
-                    var weekEnd = request.EndTime.AddDays(i * 7).ToUniversalTime();
-
-                    // Kiểm tra lịch cá nhân của User (Schedules)
-                    var hasScheduleConflict = await _unitOfWork.Repository<Schedule>().Entities
-                        .AnyAsync(s => s.LecturerId == currentUserId && s.IsActive && !s.IsDeleted &&
-                                       s.StartTime < weekEnd && s.EndTime > weekStart, ct);
-
-                    // Kiểm tra các yêu cầu đặt chỗ khác của chính User này (tránh đặt 2 phòng cùng lúc)
-                    var hasBookingConflict = await _unitOfWork.Repository<BookingRequest>().Entities
-                        .AnyAsync(b => b.RequestedByUserId == currentUserId &&
-                                       b.BookingRequestStatus == BookingRequestStatus.Pending &&
-                                       b.Booking.StartTime < weekEnd && b.Booking.EndTime > weekStart, ct);
-
-                    if (hasScheduleConflict || hasBookingConflict)
-                        throw new BusinessException($"Trùng lịch vào tuần {i + 1} ({weekStart:dd/MM/yyyy}). Vui lòng kiểm tra lại.");
-                }
-
-                // 3. POLICY EVALUATION (Chỉ cần đánh giá cho tuần đầu tiên/request gốc)
-                var activePolicies = room.RoomPolicies.Where(p => p.IsActive).ToList();
-                await _policyEvaluator.EvaluateAsync(request, activePolicies);
 
                 Guid firstBookingId = Guid.Empty;
+                var cancelledScheduleIds = new List<Guid>();
+                var rejectedBookingIds = new List<Guid>();
 
-                // 4. VÒNG LẶP TẠO CẶP (1 BOOKING : 1 BOOKING REQUEST)
+                // ==================== BƯỚC 3: VÒNG LẶP KHỞI TẠO VÀ PHÂN RÃ XUNG ĐỘT ƯU TIÊN ====================
                 for (int i = 0; i < totalWeeks; i++)
                 {
                     var bookingId = Guid.NewGuid();
                     if (i == 0) firstBookingId = bookingId;
+
+                    var weekStart = startUtc.AddDays(i * 7);
+                    var weekEnd = endUtc.AddDays(i * 7);
+
+                    var targetBookingStatus = isBypassApproval ? BookingStatus.Approved : BookingStatus.PendingApproval;
+                    var targetRequestStatus = isBypassApproval ? BookingRequestStatus.Approved : BookingRequestStatus.Pending;
 
                     var booking = new Booking
                     {
                         Id = bookingId,
                         LabRoomId = request.LabRoomId,
                         SlotTypeId = request.SlotTypeId > 0 ? request.SlotTypeId : null,
-                        StartTime = request.StartTime.AddDays(i * 7).ToUniversalTime(),
-                        EndTime = request.EndTime.AddDays(i * 7).ToUniversalTime(),
-                        Recur = totalWeeks,
-                        BookingStatus = BookingStatus.PendingApproval,
+                        StartTime = weekStart,
+                        EndTime = weekEnd,
+                        Recur = totalWeeks, // Đối với Academic/School Event, biến này luôn bằng 1
+                        BookingStatus = targetBookingStatus,
                         BookingType = request.BookingType,
                         PurposeTypeId = request.PurposeTypeId,
                         StudentCount = request.StudentCount,
@@ -150,33 +191,102 @@ namespace BookLAB.Application.Features.Bookings.Commands.CreateBooking
                     var bookingRequest = new BookingRequest
                     {
                         Id = Guid.NewGuid(),
-                        BookingId = bookingId, // Quan hệ 1:1
+                        BookingId = bookingId,
                         RequestedByUserId = currentUserId,
-                        BookingRequestStatus = BookingRequestStatus.Pending,
+                        BookingRequestStatus = targetRequestStatus,
+                        ResponsedByUserId = isBypassApproval ? currentUserId : null,
                         CreatedAt = DateTimeOffset.UtcNow,
                         CreatedBy = currentUserId
                     };
 
                     await _unitOfWork.Repository<Booking>().AddAsync(booking);
                     await _unitOfWork.Repository<BookingRequest>().AddAsync(bookingRequest);
+
+                    // --------------------------------------------------------------------------------
+                    // LUỒNG XỬ LÝ SẠCH PHÒNG (SWEEPING) CHỈ KÍCH HOẠT KHI PĐT IMPORT (SCHOOL_EVENT)
+                    // --------------------------------------------------------------------------------
+                    if (isBypassApproval)
+                    {
+                        // A. Hạ bệ toàn bộ LỊCH ĐÃ XÁC NHẬN (Schedules) cấp thấp hơn (Mức 2, 1) trùng giờ
+                        var actualLowerSchedules = allOverlappingSchedules
+                            .Where(s => s.StartTime < weekEnd && s.EndTime > weekStart &&
+                                        (int)s.SchedulePriority < purposeType.PriorityLevel)
+                            .ToList();
+
+                        foreach (var oldSchedule in actualLowerSchedules)
+                        {
+                            oldSchedule.IsActive = false;
+                            oldSchedule.ScheduleStatus = ScheduleStatus.Cancelled;
+                            oldSchedule.IsDeleted = true;
+                            oldSchedule.AutoCancelledByBookingId = bookingId; // Lưu vết để rollback nếu cần
+                            _unitOfWork.Repository<Schedule>().Update(oldSchedule);
+                            cancelledScheduleIds.Add(oldSchedule.Id);
+                        }
+
+                        // B. Triệt hạ toàn bộ HÀNG ĐỢI ĐANG CHỜ (Booking Requests) trùng giờ có priority thấp hơn
+                        var actualLowerPendingBookings = await _unitOfWork.Repository<Booking>().Entities
+                            .Include(b => b.PurposeType)
+                            .Where(b => b.LabRoomId == request.LabRoomId && b.Id != bookingId &&
+                                        b.BookingStatus == BookingStatus.PendingApproval &&
+                                        b.StartTime < weekEnd && b.EndTime > weekStart &&
+                                        b.PurposeType.PriorityLevel < purposeType.PriorityLevel)
+                            .ToListAsync(ct);
+
+                        foreach (var lowBooking in actualLowerPendingBookings)
+                        {
+                            lowBooking.BookingStatus = BookingStatus.Rejected;
+                            lowBooking.AutoRejectedByBookingId = bookingId; // Đóng dấu bắn thông báo
+                            lowBooking.PurposeType = null;
+                            _unitOfWork.Repository<Booking>().Update(lowBooking);
+                            rejectedBookingIds.Add(lowBooking.Id);
+
+                            var lowBookingReq = await _unitOfWork.Repository<BookingRequest>().Entities
+                                .FirstOrDefaultAsync(x => x.BookingId == lowBooking.Id, ct);
+                            if (lowBookingReq != null)
+                            {
+                                lowBookingReq.BookingRequestStatus = BookingRequestStatus.Rejected;
+                                _unitOfWork.Repository<BookingRequest>().Update(lowBookingReq);
+                            }
+                        }
+
+                        // C. BIẾN YÊU CẦU NÀY THÀNH LỊCH HOẠT ĐỘNG CHÍNH THỨC (SCHEDULE) TRÊN LƯỚI NGAY LẬP TỨC
+                        var newSchedule = new Schedule
+                        {
+                            Id = Guid.NewGuid(),
+                            LabRoomId = request.LabRoomId,
+                            LecturerId = currentUserId,
+                            StartTime = weekStart,
+                            EndTime = weekEnd,
+                            ScheduleType = ScheduleType.Event,
+                            SchedulePriority = SchedulePriority.SCHOOL_EVENT, // Gán mức độ ưu tiên 3 cao nhất
+                            ScheduleStatus = ScheduleStatus.Active,
+                            CreatedAt = DateTimeOffset.UtcNow,
+                            CreatedBy = currentUserId,
+                            IsActive = true,
+                            IsDeleted = false,
+                            StudentCount = request.StudentCount
+                        };
+                        await _unitOfWork.Repository<Schedule>().AddAsync(newSchedule);
+                    }
                 }
 
-                // 5. THÔNG BÁO DUY NHẤT (Chỉ gửi 1 Notification cho cả hành động này)
-                var metadata = JsonSerializer.Serialize(new
+                // 2.4. ĐÁNH GIÁ CHÍNH SÁCH HẠN MỨC QUY ĐỊNH (Chỉ áp dụng với luồng thường cần phê duyệt)
+                if (!isBypassApproval)
                 {
-                    bookingId = firstBookingId,
-                    totalWeeks = totalWeeks,
-                    isRecurring = totalWeeks > 1
-                });
+                    var activePolicies = room.RoomPolicies.Where(p => p.IsActive).ToList();
+                    await _policyEvaluator.EvaluateAsync(request, activePolicies);
+                }
 
+                // ==================== BƯỚC 4: THIẾT LẬP THÔNG BÁO VÀ HOÀN TẤT TRANSACTION ====================
+                var metadata = JsonSerializer.Serialize(new { bookingId = firstBookingId, totalWeeks = totalWeeks, isRecurring = totalWeeks > 1 });
                 await _unitOfWork.Repository<Notification>().AddAsync(new Notification
                 {
                     UserId = currentUserId,
-                    Title = totalWeeks > 1 ? "Đặt lịch định kỳ thành công" : "Đặt lịch thành công",
-                    Message = totalWeeks > 1
-                        ? $"Bạn đã gửi yêu cầu đặt phòng {room.RoomName} lặp lại trong {totalWeeks} tuần."
-                        : $"Yêu cầu đặt phòng {room.RoomName} của bạn đã được gửi.",
-                    Type = "BookingCreated",
+                    Title = isBypassApproval ? "Lịch sự kiện đặc biệt trường thiết lập trực tiếp" : "Đặt lịch thành công",
+                    Message = isBypassApproval
+                        ? $"Sự kiện trường độc quyền tại phòng {room.RoomName} đã được kích hoạt trực tiếp từ hệ thống điều phối."
+                        : $"Yêu cầu đặt phòng {room.RoomName} của bạn đã được gửi lên hàng đợi phê duyệt thành công.",
+                    Type = isBypassApproval ? "ExclusiveBookingCreated" : "BookingCreated",
                     Metadata = JsonDocument.Parse(metadata).RootElement.Clone(),
                     IsRead = false,
                     IsGlobal = false,
@@ -186,19 +296,32 @@ namespace BookLAB.Application.Features.Bookings.Commands.CreateBooking
                 await _unitOfWork.SaveChangesAsync(ct);
                 await _unitOfWork.CommitTransactionAsync();
 
+                // ==================== BƯỚC 5: PHÁT TÍN HIỆU REALTIME NOTIFICATIONS & INTERNALS ====================
                 if (currentUserId != Guid.Empty)
                 {
                     await _notificationService.NotifyBookingChangedAsync(currentUserId, new
                     {
-                        action = "created",
+                        action = isBypassApproval ? "approved" : "created",
                         bookingId = firstBookingId,
                         roomId = request.LabRoomId,
                         occurredAt = DateTimeOffset.UtcNow
                     }, ct);
                 }
 
-                // 6. TRICK: Chỉ publish event cho bản ghi đầu tiên để tránh spam Email/Event
-                await _mediator.Publish(new BookingCreatedEvent(firstBookingId), ct);
+                if (isBypassApproval)
+                {
+                    var statusChangedPayload = new { labRoomId = room.Id, startTime = request.StartTime, endTime = request.EndTime };
+                    await _notificationService.NotifyScheduleStatusChangedAsync(statusChangedPayload, ct);
+
+                    // Kích hoạt MediatR Event để chạy Worker ngầm xử lý gửi mail thông báo cho các giảng viên bị đè lịch
+                    await _mediator.Publish(new BookingApprovedEvent(firstBookingId, currentUserId, rejectedBookingIds, cancelledScheduleIds, false), ct);
+                }
+                else
+                {
+                    var newBookingPayload = new { publisherId = currentUserId, labRoomId = room.Id, startTime = request.StartTime, endTime = request.EndTime };
+                    await _notificationService.NotifyNewBookingAsync(newBookingPayload, ct);
+                    await _mediator.Publish(new BookingCreatedEvent(firstBookingId), ct);
+                }
 
                 return new CreateBookingResponse
                 {
@@ -212,6 +335,5 @@ namespace BookLAB.Application.Features.Bookings.Commands.CreateBooking
                 throw;
             }
         }
-
     }
 }

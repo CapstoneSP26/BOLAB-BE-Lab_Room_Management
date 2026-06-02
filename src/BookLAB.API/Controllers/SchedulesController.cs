@@ -12,6 +12,7 @@ using BookLAB.Application.Features.Schedules.Queries.GetCurrentScheduleInRoom;
 using BookLAB.Application.Features.Schedules.Queries.GetImportBatches;
 using BookLAB.Application.Features.Schedules.Queries.GetSchedules;
 using BookLAB.Application.Features.Schedules.Queries.GetSchedulesStudent;
+using BookLAB.Application.Features.Schedules.Queries.SearchFreeSlots;
 using BookLAB.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -308,5 +309,12 @@ public class SchedulesController : ControllerBase
 
         if (result) return NoContent(); // Trả về 204 nếu xóa thành công
         return BadRequest("Không thể xóa đợt Import này.");
+    }
+
+    [HttpGet("searchSlots/free")]
+    public async Task<IActionResult> GetFreeSlots([FromQuery] SearchFreeSlotsQuery query)
+    {
+        var result = await _mediator.Send(query);
+        return Ok(result);
     }
 }

@@ -39,7 +39,7 @@ namespace BookLAB.Application.Features.Groups.Commands.AddGroupMember
 
             // Check if member already exists
             var existingMember = await _unitOfWork.Repository<GroupMember>().Entities
-                .FirstOrDefaultAsync(gm => gm.GroupId == request.GroupId && gm.UserId == request.UserId, cancellationToken);
+                .FirstOrDefaultAsync(gm => gm.GroupId == request.GroupId && gm.UserId == request.UserId && gm.SubjectCode == request.SubjectCode, cancellationToken);
 
             if (existingMember != null)
                 throw new BusinessException("Sinh viên này đã có trong nhóm");

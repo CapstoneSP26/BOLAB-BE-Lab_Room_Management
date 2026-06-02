@@ -1,4 +1,4 @@
-﻿using BookLAB.Application.Common.Interfaces.Services;
+using BookLAB.Application.Common.Interfaces.Services;
 using BookLAB.Application.Common.Jobs.Bookings;
 using BookLAB.Application.Common.Jobs.Schedules;
 using Hangfire;
@@ -27,6 +27,13 @@ namespace BookLAB.Infrastructure.BackgroundJobs
                 "auto-update-schedule-status",
                 job => job.Execute(),
                 Cron.MinuteInterval(15) // Cron expression cho mỗi 5 phút
+            );
+
+            // Reset AI Quota hàng tuần vào thứ Hai
+            _jobService.AddOrUpdateRecurring<BookLAB.Application.Common.Jobs.Users.ResetAIQuotaJob>(
+                "reset-ai-quota-weekly",
+                job => job.Execute(),
+                Cron.Weekly()
             );
         }
     }

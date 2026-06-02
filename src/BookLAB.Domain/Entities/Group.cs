@@ -15,5 +15,6 @@ namespace BookLAB.Domain.Entities
 
         public virtual Campus Campus { get; set; }
         public virtual User User { get; set; }
+        public virtual ICollection<GroupMember> GroupMembers { get; set; } = new List<GroupMember>();
     }
 }

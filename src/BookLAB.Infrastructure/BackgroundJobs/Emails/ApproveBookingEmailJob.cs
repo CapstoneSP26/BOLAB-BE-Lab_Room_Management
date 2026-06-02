@@ -1,22 +1,26 @@
 using BookLAB.Application.Common.Extensions;
 using BookLAB.Application.Common.Helpers;
+using BookLAB.Application.Common.Interfaces.Jobs;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Interfaces.Services;
 using BookLAB.Domain.Entities;
 using BookLAB.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
-namespace BookLAB.Application.Common.Jobs.Emails
+namespace BookLAB.Infrastructure.BackgroundJobs.Emails
 {
-    public class ApproveBookingEmailJob
+    public class ApproveBookingEmailJob: IApproveBookingEmailJob
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IEmailService _emailService;
+        private readonly IConfiguration _configuration;
 
-        public ApproveBookingEmailJob(IUnitOfWork unitOfWork, IEmailService emailService)
+        public ApproveBookingEmailJob(IUnitOfWork unitOfWork, IEmailService emailService, IConfiguration configuration)
         {
             _unitOfWork = unitOfWork;
             _emailService = emailService;
+            _configuration = configuration;
         }
 
         public async Task Execute(Guid bookingId)
@@ -41,8 +45,14 @@ namespace BookLAB.Application.Common.Jobs.Emails
                 .FirstOrDefaultAsync(t => t.Type == EmailType.BookingApproved);
             if (template == null) return;
 
-            var vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
-             
+            var vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"); 
+
+            var myBookingUrl = $"{_configuration["FrontendUrl"]}/my-bookings";
+            Console.WriteLine("======== EMAIL JOB ========");
+            Console.WriteLine(_configuration["FrontendUrl"]);
+            Console.WriteLine(
+                Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"));
+
             var values = new Dictionary<string, string>
         {
             { "LecturerName", user.FullName },
@@ -51,8 +61,8 @@ namespace BookLAB.Application.Common.Jobs.Emails
             { "StartTime", booking.StartTime.ToVietnamString("HH:mm") },
             { "EndTime", booking.EndTime.ToVietnamString("HH:mm") },
             { "Reason", booking.Reason ?? "Yêu cầu của bạn đã được chấp nhận." },
-            { "PurposeType", booking.PurposeType.PurposeName ?? "No Purpose"}
-
+            { "PurposeType", booking.PurposeType.PurposeName ?? "No Purpose"},
+            { "DetailLink", myBookingUrl }
         };
 
             var body = TemplateHelper.PopulateTemplate(template.Content, values);

@@ -3,6 +3,7 @@ using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Models;
 using BookLAB.Domain.Entities;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -51,6 +52,22 @@ namespace BookLAB.Application.Features.LabRooms.Commands.CreateLabRoom
                 {
                     await _unitOfWork.BeginTransactionAsync();
                     await _unitOfWork.Repository<LabOwner>().AddAsync(new LabOwner { LabRoomId = latestId, UserId = request.LabOwnerId.Value });
+                    await _unitOfWork.SaveChangesAsync(cancellationToken);
+                    await _unitOfWork.CommitTransactionAsync();
+                }
+
+                if (!await _unitOfWork.Repository<TabletAccount>().Entities.AnyAsync(x => x.RoomId == labRoom.Id))
+                {
+                    var tabletAccount = new TabletAccount
+                    {
+                        Name = labRoom.RoomNo.Trim().Replace(" ", "_").ToLower(),
+                        Password = labRoom.RoomNo.Trim().Replace(" ", "_").ToLower(),
+                        RoomId = labRoom.Id,
+                        CreatedAt = DateTimeOffset.UtcNow,
+                        CreatedBy = _currentUserService.UserId.Value
+                    };
+                    await _unitOfWork.BeginTransactionAsync();
+                    await _unitOfWork.Repository<TabletAccount>().AddAsync(tabletAccount);
                     await _unitOfWork.SaveChangesAsync(cancellationToken);
                     await _unitOfWork.CommitTransactionAsync();
                 }

@@ -2,19 +2,21 @@ using BookLAB.API.Middlewares;
 using BookLAB.Application;
 using BookLAB.Infrastructure;
 using BookLAB.Infrastructure.Hubs;
-using BookLAB.Infrastructure.Persistence;
 using BookLAB.Infrastructure.Services;
 using Hangfire;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Tokens;
 using QRCoder;
+using QuestPDF.Infrastructure;
+using BookLAB.API.Filters;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+QuestPDF.Settings.License = LicenseType.Community;
 
 builder.Services.AddAuthentication(options =>
 {
@@ -46,9 +48,9 @@ builder.Services.AddAuthentication(options =>
             ValidateIssuer = false,
             ValidateAudience = false,
             ValidateLifetime = true,
-            ValidIssuer = builder.Configuration.GetSection("JWT:Issuer").Value,
-            ValidAudience = builder.Configuration.GetSection("JWT:Audience").Value,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration.GetSection("JWT:SecretKey").Value)),
+            ValidIssuer = builder.Configuration.GetSection("Jwt:Issuer").Value,
+            ValidAudience = builder.Configuration.GetSection("Jwt:Audience").Value,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration.GetSection("Jwt:SecretKey").Value)),
             ClockSkew = TimeSpan.Zero
         };
 
@@ -101,6 +103,11 @@ builder.Services.AddAuthorization(options =>
         policyBuilder => policyBuilder.RequireAssertion(
             context => context.User.HasClaim(claim => claim.Type == "Role")
             && context.User.FindFirst(claim => claim.Type == "Role").Value == "4"));
+
+    options.AddPolicy("Tablet",
+        policyBuilder => policyBuilder.RequireAssertion(
+            context => context.User.HasClaim(claim => claim.Type == "Role")
+            && context.User.FindFirst(claim => claim.Type == "Role").Value == "0"));
 });
 
 builder.Services.AddCors(opt =>
@@ -142,6 +149,14 @@ var app = builder.Build();
 //    var db = scope.ServiceProvider.GetRequiredService<BookLABDbContext>();
 //    db.Database.Migrate();
 //}
+
+if (app.Environment.IsProduction())
+{
+    app.UseForwardedHeaders(new ForwardedHeadersOptions
+    {
+        ForwardedHeaders = ForwardedHeaders.XForwardedProto
+    });
+}
 app.UseStaticFiles();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 // Middleware pipeline
@@ -149,17 +164,23 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-    app.UseHangfireDashboard();
 }
-app.UseCors("CorsPolicy");
 app.UseHttpsRedirection();
+app.UseCors("CorsPolicy");
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseHangfireDashboard("/hangfire", new DashboardOptions
+{
+    Authorization = new[]
+    {
+        new HangfireAuthorizationFilter()
+    }
+});
 
 app.MapControllers();
 app.MapHub<NotificationsHub>("/hubs/notifications");
 app.MapGet("/", () => "API Running");
 
-//var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 app.Run();

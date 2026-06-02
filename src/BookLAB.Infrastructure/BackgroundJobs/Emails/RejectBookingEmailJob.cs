@@ -1,14 +1,15 @@
 using BookLAB.Application.Common.Extensions;
 using BookLAB.Application.Common.Helpers;
+using BookLAB.Application.Common.Interfaces.Jobs;
 using BookLAB.Application.Common.Interfaces.Repositories;
 using BookLAB.Application.Common.Interfaces.Services;
 using BookLAB.Domain.Entities;
 using BookLAB.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
-namespace BookLAB.Application.Common.Jobs.Emails
+namespace BookLAB.Infrastructure.BackgroundJobs.Emails
 {
-    public class RejectBookingEmailJob
+    public class RejectBookingEmailJob : IRejectBookingEmailJob
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IEmailService _emailService;

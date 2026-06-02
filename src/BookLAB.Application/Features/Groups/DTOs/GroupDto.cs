@@ -9,5 +9,6 @@ namespace BookLAB.Application.Features.Groups.DTOs
         public int MembersCount { get; set; }
         public DateTimeOffset CreatedAt { get; set; }
         public DateTimeOffset? UpdatedAt { get; set; }
+        public List<string> SubjectCode { get; set; } = new List<string>();
     }
 }

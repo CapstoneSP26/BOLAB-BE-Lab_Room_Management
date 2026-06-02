@@ -1,5 +1,5 @@
-﻿using BookLAB.Application.Common.Interfaces.Services;
-using BookLAB.Application.Common.Jobs.Emails;
+﻿using BookLAB.Application.Common.Interfaces.Jobs;
+using BookLAB.Application.Common.Interfaces.Services;
 using BookLAB.Application.Common.Jobs.Schedules;
 using MediatR;
 
@@ -16,11 +16,17 @@ namespace BookLAB.Application.Features.Bookings.Events
 
         public Task Handle(BookingApprovedEvent notification, CancellationToken cancellationToken)
         {
-            _jobService.Enqueue<CreateScheduleJob>(
+            if (notification.allowedCreateSchedule)
+            {
+                _jobService.Enqueue<CreateScheduleJob>(
+                    x => x.Execute(notification.BookingId));
+            }
+
+            _jobService.Enqueue<IApproveBookingEmailJob>(
                 x => x.Execute(notification.BookingId));
 
-            _jobService.Enqueue<ApproveBookingEmailJob>(
-                x => x.Execute(notification.BookingId));
+            _jobService.Enqueue<IRejectBookingByPriorityEmailJob>(
+                x => x.Execute(notification.RejectedBookingIds, notification.RejectedScheduleIds));    
 
             return Task.CompletedTask;
         }

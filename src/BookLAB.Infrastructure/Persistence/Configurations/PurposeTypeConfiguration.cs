@@ -16,6 +16,8 @@ public class PurposeTypeConfiguration : IEntityTypeConfiguration<PurposeType>
         builder.Property(p => p.PurposeName)
             .HasMaxLength(100)
             .IsRequired();
+        builder.Property(builder => builder.PriorityLevel)
+            .IsRequired();
 
         // 3. Ràng buộc duy nhất (Unique Constraint)
         // Rule: Không cho phép tạo 2 loại mục đích trùng tên nhau (ví dụ: đã có 'Workshop' thì không tạo thêm 'Workshop' nữa)

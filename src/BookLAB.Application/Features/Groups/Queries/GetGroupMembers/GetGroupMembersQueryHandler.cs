@@ -32,7 +32,12 @@ namespace BookLAB.Application.Features.Groups.Queries.GetGroupMembers
             if (group.OwnerId != currentUserId)
                 throw new ForbiddenException("Bạn không có quyền xem thành viên của nhóm này");
 
-            var members = await _unitOfWork.Repository<GroupMember>().Entities
+            IQueryable<GroupMember> members = _unitOfWork.Repository<GroupMember>().Entities;
+
+            if (request.SubjectCode != null && request.SubjectCode != "")
+                members = members.Where(x => x.SubjectCode == request.SubjectCode);
+
+            var membersQuery = await members
                 .Where(gm => gm.GroupId == request.GroupId)
                 .Include(gm => gm.User)
                 .Select(gm => new GroupMemberDto
@@ -45,7 +50,7 @@ namespace BookLAB.Application.Features.Groups.Queries.GetGroupMembers
                 })
                 .ToListAsync(cancellationToken);
 
-            return members;
+            return membersQuery;
         }
     }
 }

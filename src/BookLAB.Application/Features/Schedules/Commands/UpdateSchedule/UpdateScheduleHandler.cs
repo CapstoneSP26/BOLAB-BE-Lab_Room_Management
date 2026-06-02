@@ -5,6 +5,7 @@ using BookLAB.Application.Common.Models;
 using BookLAB.Domain.Entities;
 using BookLAB.Domain.Enums;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -46,6 +47,12 @@ namespace BookLAB.Application.Features.Schedules.Commands.UpdateSchedule
 
                 schedule.UpdatedBy = userId;
                 schedule.UpdatedAt = DateTimeOffset.UtcNow;
+                if (request.GroupName != null)
+                {
+                    var group = await _unitOfWork.Repository<Group>().Entities.FirstOrDefaultAsync(x => x.GroupName.Equals(request.GroupName));
+                    if (group != null)
+                        schedule.GroupId = group.Id;
+                }
 
                 await _unitOfWork.BeginTransactionAsync();
                 await _unitOfWork.Repository<Schedule>().UpdateAsync(schedule);
